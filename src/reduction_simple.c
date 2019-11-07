@@ -5,7 +5,7 @@ void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_ta
     if(*n_sols<=n_target) return;
     // Free other solutions:
     for(int i=n_target; i<*n_sols; i++){
-        free(sols[i]);
+        solution_free(sols[i]);
     }
     // Set the amount of solutions right.
     *n_sols = n_target;
@@ -23,7 +23,7 @@ void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols,
     }
     // Free other solutions:
     for(int i=n_target;i<*n_sols;i++){
-        free(sols[i]);
+        solution_free(sols[i]);
     }
     // Set the amount of solutions right.
     *n_sols = n_target;

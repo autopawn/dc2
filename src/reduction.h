@@ -31,7 +31,7 @@ typedef struct {
     int arg;
 } redstrategy;
 
-// Allocates an array of redstrategis from nomenclatures 
+// Allocates an array of redstrategies from nomenclatures 
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms);
 
 // Parses a nomenclature to generate a redstrategy

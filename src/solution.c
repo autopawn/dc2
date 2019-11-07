@@ -8,7 +8,7 @@ int get_size(int len){
 }
 
 // Compare solutions to sort on decreasing value
-int solution_value_cmp_inv(const void *a, const void *b){
+int solutionp_value_cmp_inv(const void *a, const void *b){
     solution **aa = (solution **)a;
     solution **bb = (solution **)b;
     double diff = (*bb)->value - (*aa)->value;

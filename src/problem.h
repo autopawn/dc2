@@ -31,10 +31,12 @@ typedef struct {
     int size_restriction;
     // | Filter used after expanding the current solutions.
     filter filter;
-    // | Lower bound for the optimal cost
-    double lower_bound;
     // | If B&B is active
     int branch_and_bound;
+    // | Lower bound for the optimal cost (for B&B)
+    double lower_bound;
+    // | Amount of solution requested
+    int target_sols;
     // | Distance matrix between facilities.
     double **facs_distance;
 } problem;

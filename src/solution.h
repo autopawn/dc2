@@ -15,8 +15,8 @@ typedef struct {
     // ^ Value of the solution (> is better)
 } solution;
 
-// Solution comparison to sort on decreasing value
-int solution_value_cmp_inv(const void *a, const void *b);
+// Solution comparison to sort solution pointers on decreasing value
+int solutionp_value_cmp_inv(const void *a, const void *b);
 
 // Creates a new, empty solution.
 solution *solution_empty(const problem *prob);

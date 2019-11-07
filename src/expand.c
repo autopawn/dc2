@@ -73,7 +73,7 @@ void *expand_thread_execution(void *arg){
             if(new_sol->value > fsol->origin->value){
                 args->out_sols[r] = new_sol;
             }else{
-                free(new_sol);
+                solution_free(new_sol);
                 args->out_sols[r] = NULL;
             }
         }

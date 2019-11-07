@@ -67,7 +67,7 @@ problem *load_simple_format(FILE *fp){
     prob->transport_cost = 1;
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = BETTER_THAN_SUBSETS;
+    prob->filter = BETTER_THAN_ALL_PARENTS;
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
@@ -162,7 +162,7 @@ problem *load_orlib_format(FILE *fp){
     }
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = BETTER_THAN_SUBSETS;
+    prob->filter = BETTER_THAN_ALL_PARENTS;
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 

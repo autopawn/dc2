@@ -2,6 +2,7 @@
 #include "problem.h"
 #include "expand.h"
 #include "reduction.h"
+#include "construction.h"
 
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
@@ -22,7 +23,17 @@ int main(int argc, const char **argv){
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
 
+    // Final solutions
+    int final_n_sols;
+    int n_iterations;
+    solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
+        &final_n_sols, &n_iterations);
+
     // Free memory
+    for(int i=0;i<final_n_sols;i++){
+        solution_free(final_sols[i]);
+    }
+    free(final_sols);
     problem_free(prob);
     free(strategies);
 }

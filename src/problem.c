@@ -12,6 +12,7 @@ problem *problem_init(int n_facs, int n_clis){
     memset(prob,0,              sizeof(problem));
     prob->n_facs = n_facs;
     prob->n_clis = n_clis;
+    prob->target_sols = 10;
 
     //
     prob->client_weight = safe_malloc(sizeof(double)*prob->n_clis);
@@ -65,6 +66,7 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# UNASSIGNED_COST: %lf\n",prob->unassigned_cost);
     fprintf(fp,"# SIZE_RESTRICTION: %d\n",prob->size_restriction);
     fprintf(fp,"# FILTER: %s\n",filter_names[prob->filter]);
-    fprintf(fp,"# LOWER_BOUND: %lf\n",prob->lower_bound);
     fprintf(fp,"# BRANCH_AND_BOUND: %d\n",prob->branch_and_bound);
+    fprintf(fp,"# LOWER_BOUND: %lf\n",prob->lower_bound);
+    fprintf(fp,"# TARGET_SOLS: %d\n",prob->target_sols);
 }

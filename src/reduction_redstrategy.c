@@ -1,8 +1,7 @@
 #include "reduction.h"
 
 const char *default_redstrategies[] = {"rand:4000","sdcebest:200"};
-
-// Allocates an array of redstrategis from nomenclatures 
+ 
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
     redstrategy *strategies; 
@@ -97,6 +96,8 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
 void redstrategy_reduce(const problem *prob, const redstrategy rstrat, 
         solution **sols, int *n_sols){
+
+    if(*n_sols<=rstrat.n_target) return;
     
     printf("Reducing %5d -> %5d solutions, ",*n_sols,rstrat.n_target);
     if(rstrat.method==REDUCTION_BESTS){
