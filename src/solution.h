@@ -30,4 +30,7 @@ void solution_add(const problem *prob, solution *sol, int newf);
 // Delete solution
 void solution_free(solution *sol);
 
+// Print a solution to the given descriptor
+void solution_print(const problem *prob, const solution *sol, FILE *fp);
+
 #endif

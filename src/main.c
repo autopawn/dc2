@@ -29,6 +29,10 @@ int main(int argc, const char **argv){
     solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
         &final_n_sols, &n_iterations);
 
+    // Print solutions
+    for(int i=0;i<final_n_sols;i++){
+        solution_print(prob,final_sols[i],stdout);
+    }
     // Free memory
     for(int i=0;i<final_n_sols;i++){
         solution_free(final_sols[i]);

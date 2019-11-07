@@ -79,3 +79,30 @@ void solution_free(solution *sol){
     free(sol->assigns);
     free(sol);
 }
+
+void solution_print(const problem *prob, const solution *sol, FILE *fp){
+    fprintf(fp,"== SOLUTION ==\n");
+    fprintf(fp,"# VALUE: %lf\n",sol->value);
+    fprintf(fp,"# ASSIGNS:");
+    for(int i=0;i<prob->n_clis;i++){
+        fprintf(fp," %d",sol->assigns[i]);
+    }
+    fprintf(fp,"\n");
+    fprintf(fp,"# N_FACS: %d\n",sol->n_facs);
+    //
+    fprintf(fp,"# INDEXES: ");
+    for(int i=0;i<sol->n_facs;i++){
+        fprintf(fp,"%d ",sol->facs[i]);
+    }
+    fprintf(fp,"\n");
+    // Print clients for each facility
+    for(int i=0;i<sol->n_facs;i++){
+        fprintf(fp,"FAC %d :",sol->facs[i]);
+        for(int j=0;j<prob->n_clis;j++){
+            if(sol->assigns[j]==sol->facs[i]){
+                fprintf(fp," %d",j);
+            }
+        }
+        fprintf(fp,"\n");
+    }
+}
