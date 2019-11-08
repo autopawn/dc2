@@ -54,7 +54,16 @@ void problem_free(problem *prob){
 }
 
 void problem_precompute(problem *prob){
-    
+    // Precompute precomp_client_optimal_gain
+    prob->precomp_client_optimal_gain = 0;
+    for(int k=0;k<prob->n_clis;k++){
+        double best_val = problem_assig_value(prob,-1,k);
+        for(int i=0;i<prob->n_facs;i++){
+            double val = problem_assig_value(prob,i,k);
+            if(best_val < val) best_val = val;
+        }
+        prob->precomp_client_optimal_gain += best_val;
+    }
 }
 
 void problem_print(const problem *prob, FILE *fp){
@@ -69,4 +78,5 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# BRANCH_AND_BOUND: %d\n",prob->branch_and_bound);
     fprintf(fp,"# LOWER_BOUND: %lf\n",prob->lower_bound);
     fprintf(fp,"# TARGET_SOLS: %d\n",prob->target_sols);
+    fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",prob->precomp_client_optimal_gain);
 }

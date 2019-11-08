@@ -106,3 +106,12 @@ void solution_print(const problem *prob, const solution *sol, FILE *fp){
         fprintf(fp,"\n");
     }
 }
+
+// An upper bound for the best value that a children solution could have
+double solution_upper_bound(const problem *prob, const solution *sol){
+    double upbound = prob->precomp_client_optimal_gain;
+    for(int i=0;i<sol->n_facs;i++){
+        upbound -= prob->facility_cost[sol->facs[i]];
+    }
+    return upbound;
+}

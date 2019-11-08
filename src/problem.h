@@ -25,7 +25,7 @@ typedef struct {
     double transport_cost;
     // | Amount gained for reaching a unit of weight.
     double client_gain;
-    // | Cost of not reaching a unit of weight (generaly 0 or -infty).
+    // | Cost of not reaching a unit of weight (generaly 0 or infty), expected to be positive.
     double unassigned_cost;
     // | Unless it is -1, the returned solutions must be of that size.
     int size_restriction;
@@ -39,6 +39,8 @@ typedef struct {
     int target_sols;
     // | Distance matrix between facilities.
     double **facs_distance;
+    // | Optimal gain from all clients
+    double precomp_client_optimal_gain;
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 

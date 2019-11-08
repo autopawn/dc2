@@ -15,7 +15,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
     while((prob->size_restriction==-1 || csize<prob->size_restriction) && csize<prob->n_facs){
         printf("\n");
         // Expand solutions from the previous generation
-        printf("Expanding %5d solutions of size %d\n",n_sols[csize],csize);
+        printf("Expanding \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m\n",n_sols[csize],csize);
         sols_by_size[csize+1] = new_expand_solutions(
             prob,sols_by_size[csize],n_sols[csize],&n_sols[csize+1]);
         // Once the expansion is done, delete some solutions of the previous gen to save memory
@@ -24,6 +24,15 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
         // Sort new solutions by decreasing value
         csize += 1;
         qsort(sols_by_size[csize],n_sols[csize],sizeof(solution *),solutionp_value_cmp_inv);
+
+        // Apply branch and bound
+        if(prob->branch_and_bound){
+            int n_sols0 = n_sols[csize];
+            branch_and_bound(prob,sols_by_size[csize],&n_sols[csize]);
+            if(n_sols[csize] < n_sols0){
+                printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,n_sols[csize]);
+            }
+        }
 
         // Apply the reduction strategies
         for(int i=0;i<n_rstrats;i++){
@@ -36,7 +45,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
     printf("\n");
     // Merge pools
-    printf("Picking the best %5d solutions.\n",prob->target_sols);
+    printf("Picking the best \033[31;1m%d\033[0m solutions.\n",prob->target_sols);
     solution **merged_sols = safe_malloc(sizeof(solution *)*prob->target_sols*(csize+1));
     int final_n_sols = 0;
     for(int i=0;i<=csize;i++){

@@ -71,9 +71,6 @@ problem *load_simple_format(FILE *fp){
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
-    // Precomputations
-    problem_precompute(prob);
-
     //
     return prob;
 }
@@ -166,9 +163,6 @@ problem *load_orlib_format(FILE *fp){
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
-    // Precomputations
-    problem_precompute(prob);
-
     //
     return prob;
 }
@@ -201,6 +195,9 @@ problem *new_problem_load(const char *file){
     // Close file
     fclose(fp);
     printf("Done reading.\n");
+
+    // Precomputations
+    problem_precompute(prob);
 
     return prob;
 }

@@ -99,7 +99,7 @@ void redstrategy_reduce(const problem *prob, const redstrategy rstrat,
 
     if(*n_sols<=rstrat.n_target) return;
     
-    printf("Reducing %5d -> %5d solutions, ",*n_sols,rstrat.n_target);
+    printf("Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",*n_sols,rstrat.n_target);
     if(rstrat.method==REDUCTION_BESTS){
         printf("selecting bests.\n");
         reduction_bests(prob,sols,n_sols,rstrat.n_target);
