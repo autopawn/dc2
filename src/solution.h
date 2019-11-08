@@ -33,6 +33,11 @@ double solution_upper_bound(const problem *prob, const solution *sol);
 // Delete solution
 void solution_free(solution *sol);
 
+// Compute dissimilitude between solutions based 
+double solution_dissimilitude(const problem *prob,
+        const solution *sol1, const solution *sol2,
+        soldismode sdismode, facdismode fdismode);
+
 // Print a solution to the given descriptor
 void solution_print(const problem *prob, const solution *sol, FILE *fp);
 

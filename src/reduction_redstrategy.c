@@ -1,6 +1,6 @@
 #include "reduction.h"
 
-const char *default_redstrategies[] = {"rand:4000","sdcebest:200"};
+const char *default_redstrategies[] = {"rand:4000","sdce+:200"};
  
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
@@ -39,56 +39,94 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     strcpy(nomenclature2,nomenclature);
 
     // Replace the colons with spaces
-    int n_parts = 1;
+    int strategy_n_parts = 1;
     for(int i=0;i<nomlen;i++){
         if(nomenclature2[i]==':'){
             nomenclature2[i]=' ';
-            n_parts += 1;
+            strategy_n_parts += 1;
         }
     }
 
-    // Compare the abreviation of the first strategy:
+    // Get the abreviations of the strategies:
     char abrev[400];
-    if(n_parts==2){
-        if(sscanf(nomenclature2,"%s %d",abrev,&strategy.n_target)!=2){
-        }
-        strategy.arg = -1;
-    }else if(n_parts==3){
-        if(sscanf(nomenclature2,"%s %d %d",abrev,&strategy.n_target,&strategy.arg)!=3){
-        }
-    }else{
-        fprintf(stderr,"ERROR: Invalid nomenclature format!\n");
+    char distm[400];
+    
+    int n_scan = sscanf(nomenclature2,"%s %d %s %d",
+            abrev,&strategy.n_target,distm,&strategy.arg);
+    if(n_scan<2){
+        fprintf(stderr,"ERROR: Invalid reduction format \"%s\"!\n",nomenclature);
         exit(1);
     }
 
+    // Set the strategy arg to -1 if not given:
+    if(n_scan<4) strategy.arg = -1;
+
+    int invalid = 0;
     // Set the strategy method based on the abrev
     if(strcmp(abrev,"best")==0){
         strategy.method = REDUCTION_BESTS;
-        assert(strategy.arg==-1);
+        if(strategy_n_parts!=2) invalid = 1;
     }
     else if(strcmp(abrev,"rand")==0){
         strategy.method = REDUCTION_RANDOM_UNIFORM;
-        assert(strategy.arg==-1);
+        if(strategy_n_parts!=2) invalid = 1;
     }
     else if(strcmp(abrev,"rank")==0){
         strategy.method = REDUCTION_RANDOM_RANK;
-        assert(strategy.arg==-1);
+        if(strategy_n_parts!=2) invalid = 1;
     }
     else if(strcmp(abrev,"vrh")==0){
         strategy.method = REDUCTION_VRHEURISTIC;
+        if(strategy_n_parts>4) invalid = 1;
+        // Set the default value for the VISION RANGE
         if(strategy.arg==-1) strategy.arg = 2*strategy.n_target;
     }
     else if(strcmp(abrev,"sdce")==0){
         strategy.method = REDUCTION_GLOVER_SDCE;
-        assert(strategy.arg==-1);
+        if(strategy_n_parts!=3) invalid = 1;
     }
-    else if(strcmp(abrev,"sdcebest")==0){
+    else if(strcmp(abrev,"sdce+")==0){
         strategy.method = REDUCTION_GLOVER_SDCE_BESTS;
-        assert(strategy.arg==-1);
+        if(strategy_n_parts!=3) invalid = 1;
     }
     else{
-        fprintf(stderr,"ERROR: Invalid nomenclature abrev \"%s\"!\n",abrev);
+        fprintf(stderr,"ERROR: Invalid reduction name \"%s\"!\n",abrev);
         exit(1);
+    }
+    if(invalid){
+        fprintf(stderr,"ERROR: Invalid reduction arguments \"%s\"!\n",nomenclature);
+        exit(1);
+    }
+
+    // Identify the dissimilitude and distance strategies
+    if(n_scan<3){
+        strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+        strategy.facdis = FACDIS_SUM_OF_DELTAS;
+    }else{
+        if(strcmp(distm,"msemin")==0){
+            strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+            strategy.facdis = FACDIS_MIN_TRIANGLE;
+        }
+        else if(strcmp(distm,"msesum")==0){
+            strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+            strategy.facdis = FACDIS_SUM_OF_DELTAS;
+        }
+        else if(strcmp(distm,"haumin")==0){
+            strategy.soldis = SOLDIS_HAUSDORF;
+            strategy.facdis = FACDIS_MIN_TRIANGLE;
+        }
+        else if(strcmp(distm,"hausum")==0){
+            strategy.soldis = SOLDIS_HAUSDORF;
+            strategy.facdis = FACDIS_SUM_OF_DELTAS;
+        }
+        else if(strcmp(distm,"pcd")==0){
+            strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
+            strategy.facdis = 0; // Placeholder.
+        }
+        else{
+            fprintf(stderr,"ERROR: Invalid dissimilitude abrev \"%s\"!\n",distm);
+            exit(1);
+        }
     }
 
     return strategy;

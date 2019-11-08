@@ -3,12 +3,25 @@
 
 #include "utils.h"
 
+#define N_FACDIS_MODES 2
+
+typedef enum {
+    FACDIS_MIN_TRIANGLE = 0,  // df(a,b) = min_j d(a,j)+d(b,j)
+    FACDIS_SUM_OF_DELTAS = 1, // df(a,b) = sum_j |d(a,j)-d(b,j)|
+} facdismode;
+
+typedef enum {
+    SOLDIS_MEAN_SQUARE_ERROR = 0, // D(A,B) = sum_j |d(A,j)-d(B,j)|
+    SOLDIS_HAUSDORF = 1,          // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
+    SOLDIS_PER_CLIENT_DELTA = 2,  // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
+} soldismode;
+
 typedef enum {
     NO_FILTER = 0,
     BETTER_THAN_ONE_PARENT = 1,
     BETTER_THAN_ALL_PARENTS = 2,
     BETTER_THAN_SUBSETS = 3,
-    } filter;
+} filter;
 
 extern const char *filter_names[];
 
@@ -37,10 +50,10 @@ typedef struct {
     double lower_bound;
     // | Amount of solution requested
     int target_sols;
-    // | Distance matrix between facilities.
-    double **facs_distance;
-    // | Optimal gain from all clients
+    // | Precomputed optimal gain from all clients
     double precomp_client_optimal_gain;
+    // | Distance matrices between facilities (for each mode)
+    double **facs_distance[N_FACDIS_MODES];
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 
@@ -59,8 +72,11 @@ problem *problem_init(int n_facs, int n_clis);
 // Free a problem memory
 void problem_free(problem *prob);
 
-// Precomputations that may be useful
+// Perform useful precomputations
 void problem_precompute(problem *prob);
+
+// Compute facility-facility distances for a distance mode
+void problem_compute_facility_distances(problem *prob, facdismode mode);
 
 // Prints a briefing of the problem
 void problem_print(const problem *prob, FILE *fp);

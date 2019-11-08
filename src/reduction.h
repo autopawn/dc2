@@ -28,6 +28,8 @@ typedef struct {
     const char *nomenclature;
     reduction_method method;
     int n_target;
+    soldismode soldis;
+    facdismode facdis;
     int arg;
 } redstrategy;
 

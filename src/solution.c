@@ -107,6 +107,68 @@ void solution_print(const problem *prob, const solution *sol, FILE *fp){
     }
 }
 
+// Compute the distance between two solutions
+double solution_dissimilitude(const problem *prob,
+        const solution *sol1, const solution *sol2,
+        soldismode sdismode, facdismode fdismode){
+    // Compute the dissimilitude according to the sdismode
+    if(sdismode==SOLDIS_MEAN_SQUARE_ERROR){
+        // Expect the facility distances for this mode to be computed:
+        assert(prob->facs_distance[fdismode]!=NULL);
+        // Add distance from each facility in sol1 to sol2.
+        double disim = 0;
+        for(int t=0;t<2;t++){
+            for(int i1=0;i1<sol1->n_facs;i1++){
+                double min_dist = INFINITY;
+                int f1 = sol1->facs[i1];
+                for(int i2=0;i2<sol2->n_facs;i2++){
+                    int f2 = sol2->facs[i2];
+                    double dist = prob->facs_distance[fdismode][f1][f2];
+                    if(dist<min_dist) min_dist = dist;
+                }
+                disim += min_dist;
+            }
+            // Swap solutions for 2nd iteration:
+            const solution *aux = sol1; sol1 = sol2; sol2 = aux;
+        }
+    }
+    else if(sdismode==SOLDIS_HAUSDORF){ // Based on https://github.com/mavillan/py-hausdorff
+        // Expect the facility distances for this mode to be computed:
+        assert(prob->facs_distance[fdismode]!=NULL);
+        double disim = 0;
+        for(int t=0;t<2;t++){
+            for(int i1=0;i1<sol1->n_facs;i1++){
+                int f1 = sol1->facs[i1];
+                double cmin = INFINITY;
+                for(int i2=0;i2<sol2->n_facs;i2++){
+                    int f2 = sol2->facs[i2];
+                    double dist = prob->facs_distance[fdismode][f1][f2];
+                    if(dist<cmin) cmin = dist;
+                    if(cmin<disim) break;
+                }
+                if(disim<cmin && cmin<INFINITY) disim = cmin;
+            }
+            // Swap solutions for 2nd iteration:
+            const solution *aux = sol1; sol1 = sol2; sol2 = aux;
+        }
+        return disim;
+    }
+    else if(sdismode==SOLDIS_PER_CLIENT_DELTA){
+        double total = 0;
+        for(int i=0;i<prob->n_clis;i++){
+            double cost_a = prob->distance[sol1->assigns[i]][i];
+            double cost_b = prob->distance[sol2->assigns[i]][i];
+            double delta = cost_a-cost_b;
+            if(delta<0) delta = -delta;
+            total += delta;
+        }
+        return total;
+    }
+    // Error if it was an invalid soldismode
+    fprintf(stderr,"ERROR: Invalid soldismode!\n");
+    exit(1);
+}
+
 // An upper bound for the best value that a children solution could have
 double solution_upper_bound(const problem *prob, const solution *sol){
     double upbound = prob->precomp_client_optimal_gain;
