@@ -7,8 +7,11 @@
 #include <assert.h>
 #include <errno.h>
 #include <math.h>
-#if THREADS>0
-    #include <pthread.h>
+
+#include <pthread.h>
+#include <semaphore.h>
+#ifndef THREADS
+    #define THREADS 4
 #endif
 
 typedef unsigned int uint;

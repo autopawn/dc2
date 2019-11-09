@@ -131,6 +131,7 @@ double solution_dissimilitude(const problem *prob,
             // Swap solutions for 2nd iteration:
             const solution *aux = sol1; sol1 = sol2; sol2 = aux;
         }
+        return disim;
     }
     else if(sdismode==SOLDIS_HAUSDORF){ // Based on https://github.com/mavillan/py-hausdorff
         // Expect the facility distances for this mode to be computed:

@@ -3,11 +3,12 @@
 
 #include "utils.h"
 
-#define N_FACDIS_MODES 2
+#define N_FACDIS_MODES 3
 
 typedef enum {
     FACDIS_MIN_TRIANGLE = 0,  // df(a,b) = min_j d(a,j)+d(b,j)
     FACDIS_SUM_OF_DELTAS = 1, // df(a,b) = sum_j |d(a,j)-d(b,j)|
+    FACDIS_NONE = 2,
 } facdismode;
 
 typedef enum {

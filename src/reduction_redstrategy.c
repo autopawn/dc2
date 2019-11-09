@@ -83,11 +83,11 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     }
     else if(strcmp(abrev,"sdce")==0){
         strategy.method = REDUCTION_GLOVER_SDCE;
-        if(strategy_n_parts!=3) invalid = 1;
+        if(strategy_n_parts>3) invalid = 1;
     }
     else if(strcmp(abrev,"sdce+")==0){
         strategy.method = REDUCTION_GLOVER_SDCE_BESTS;
-        if(strategy_n_parts!=3) invalid = 1;
+        if(strategy_n_parts>3) invalid = 1;
     }
     else{
         fprintf(stderr,"ERROR: Invalid reduction name \"%s\"!\n",abrev);
@@ -121,7 +121,7 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         }
         else if(strcmp(distm,"pcd")==0){
             strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
-            strategy.facdis = 0; // Placeholder.
+            strategy.facdis = FACDIS_NONE;
         }
         else{
             fprintf(stderr,"ERROR: Invalid dissimilitude abrev \"%s\"!\n",distm);
@@ -132,10 +132,24 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     return strategy;
 }
 
-void redstrategy_reduce(const problem *prob, const redstrategy rstrat, 
+void redstrategy_reduce(problem *prob, const redstrategy rstrat, 
         solution **sols, int *n_sols){
 
     if(*n_sols<=rstrat.n_target) return;
+
+    /* Check if the reduction method doens't use dissimilitude */
+    int simple = 0;
+    simple = simple || rstrat.method==REDUCTION_BESTS;
+    simple = simple || rstrat.method==REDUCTION_RANDOM_UNIFORM;
+    simple = simple || rstrat.method==REDUCTION_RANDOM_RANK;
+    
+    // Compute facility distances if not already
+    if(!simple){
+        if(rstrat.facdis!=FACDIS_NONE && prob->facs_distance[rstrat.facdis]==NULL){
+            printf("Computing facility-facility distances.\n");
+            problem_compute_facility_distances(prob,rstrat.facdis);
+        }
+    }
     
     printf("Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",*n_sols,rstrat.n_target);
     if(rstrat.method==REDUCTION_BESTS){
@@ -150,10 +164,19 @@ void redstrategy_reduce(const problem *prob, const redstrategy rstrat,
         printf("randomly (by rank).\n");
         reduction_random_rank(prob,sols,n_sols,rstrat.n_target);
     }
+    else if(rstrat.method==REDUCTION_GLOVER_SDCE){
+        printf("simple diversity-based clustering.\n");
+        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
+            rstrat.soldis,rstrat.facdis,0);
+    }
+    else if(rstrat.method==REDUCTION_GLOVER_SDCE_BESTS){
+        printf("simple diversity-based clustering (best).\n");
+        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
+            rstrat.soldis,rstrat.facdis,1);
+    }
     else{
         printf("???.\n");
         fprintf(stderr,"ERROR: Reduction method not yet implemented.\n");
         exit(1);
     }
-    
 }

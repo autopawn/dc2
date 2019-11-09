@@ -52,7 +52,6 @@ int futuresol_init_from(futuresol *fsol, const solution *sol, int newf){
 
 typedef struct {
     int thread_id;
-    int n_threads;
     const problem *prob;
     int n_fsols;
     void *futuresols;
@@ -62,7 +61,7 @@ typedef struct {
 
 void *expand_thread_execution(void *arg){
     expand_thread_args *args = (expand_thread_args *) arg;
-    for(int r=args->thread_id;r<args->n_fsols;r+=args->n_threads){
+    for(int r=args->thread_id;r<args->n_fsols;r+=THREADS){
         // Generate a new solution from the fsol, and then check if it passes filtering.
         futuresol *fsol = (futuresol *)(args->futuresols+args->fsol_size*r);
         solution *new_sol = solution_copy(args->prob,fsol->origin);
@@ -137,40 +136,30 @@ solution **new_expand_solutions(const problem *prob,
 
     solution **out_sols = safe_malloc(sizeof(solution*)*n_futuresols);
     { // Create new solutions [in parallel]
-        #if THREADS>0
-            const int n_threads = THREADS;
-        #else
-            const int n_threads = 1;
-        #endif
-        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*n_threads);
-        for(int i=0;i<n_threads;i++){
+        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*THREADS);
+        for(int i=0;i<THREADS;i++){
             targs[i].thread_id = i;
-            targs[i].n_threads = n_threads;
             targs[i].prob = prob;
             targs[i].n_fsols = n_futuresols;
             targs[i].futuresols = futuresols;
             targs[i].fsol_size = fsol_size;
             targs[i].out_sols = out_sols;
         }
-        #if THREADS>0
-            // Generate threads in order to expand the solutions
-            pthread_t *threads = safe_malloc(sizeof(pthread_t)*n_threads);
-            for(int i=0;i<n_threads;i++){
-                int rc = pthread_create(&threads[i],NULL,expand_thread_execution,&targs[i]);
-                if(rc){
-                    printf("Error %d on thread creation\n",rc);
-                    exit(1);
-                }
+        // Generate threads in order to expand the solutions
+        pthread_t *threads = safe_malloc(sizeof(pthread_t)*THREADS);
+        for(int i=0;i<THREADS;i++){
+            int rc = pthread_create(&threads[i],NULL,expand_thread_execution,&targs[i]);
+            if(rc){
+                printf("Error %d on thread creation\n",rc);
+                exit(1);
             }
-            // Join threads
-            for(int i=0;i<THREADS;i++){
-                pthread_join(threads[i],NULL);
-            }
-            //
-            free(threads);
-        #else
-            expand_thread_execution(&targs[0]);
-        #endif
+        }
+        // Join threads
+        for(int i=0;i<THREADS;i++){
+            pthread_join(threads[i],NULL);
+        }
+        //
+        free(threads);
         free(targs);
     }
 

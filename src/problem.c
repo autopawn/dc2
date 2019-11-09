@@ -74,7 +74,7 @@ void problem_compute_facility_distances(problem *prob, facdismode mode){
     assert(mode<N_FACDIS_MODES);
     prob->facs_distance[mode] = safe_malloc(sizeof(double*)*prob->n_facs);
     for(int i=0;i<prob->n_facs;i++){
-        prob->facs_distance[i] = safe_malloc(sizeof(double)*prob->n_facs);
+        prob->facs_distance[mode][i] = safe_malloc(sizeof(double)*prob->n_facs);
     }
     // Allocate distance matrix between facilities 
     for(int a=0;a<prob->n_facs;a++){

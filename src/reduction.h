@@ -40,7 +40,7 @@ redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms)
 redstrategy redstrategy_from_nomenclature(const char *nomenclature);
 
 // Apply a redstrategy to reduce a set of solutions
-void redstrategy_reduce(const problem *prob, const redstrategy rstrat, 
+void redstrategy_reduce(problem *prob, const redstrategy rstrat, 
         solution **sols, int *n_sols);
 
 // Reduce the solutions, just picking the bests
@@ -52,5 +52,8 @@ void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols,
 // Reduce the solutions, with probabilities according to their rank.
 void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target);
 
+// Reduce the solutions, using Glover's simple diversity-based starting
+void reduction_diversity_starting(const problem *prob, solution **sols, int *n_sols,
+        int n_target, soldismode soldis, facdismode facdis, int bests_of_clusters);
 
 #endif

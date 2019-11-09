@@ -10,7 +10,6 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
     sols_by_size[0] = safe_malloc(sizeof(solution *)*1);
     sols_by_size[0][0] = solution_empty(prob);
 
-
     int csize = 0; // Current size
     while((prob->size_restriction==-1 || csize<prob->size_restriction) && csize<prob->n_facs){
         printf("\n");
