@@ -36,7 +36,7 @@ typedef struct {
     int branch_and_bound;
     // | Lower bound for the optimal cost (for B&B)
     double lower_bound;
-    // | Amount of solution requested
+    // | Number of solutions requested
     int target_sols;
     // | Precomputed optimal gain from all clients
     double precomp_client_optimal_gain;

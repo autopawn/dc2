@@ -10,6 +10,9 @@ int main(int argc, const char **argv){
         fprintf(stderr,"usage: %s {strategy:n} <input_file> <output_file>\n",argv[0]);
         exit(1);
     }
+
+    // Set a fixed seed
+    srand(0xc0ffee);
     
     int n_strategies = argc-3;
     redstrategy *strategies = redstrategy_init_from_nomenclatures(&argv[1],&n_strategies);

@@ -2,10 +2,25 @@
 
 // Compare solutions to sort on decreasing value
 int solutionp_value_cmp_inv(const void *a, const void *b){
-    solution **aa = (solution **)a;
-    solution **bb = (solution **)b;
+    const solution **aa = (const solution **)a;
+    const solution **bb = (const solution **)b;
     double diff = (*bb)->value - (*aa)->value;
     return diff == 0 ? 0 : ((diff > 0) ? +1 : -1);
+}
+
+// Compare solutions for equality
+int solutionp_facs_cmp(const void *a, const void *b){
+    const solution **aa = (const solution **) a;
+    const solution **bb = (const solution **) b;
+    const solution *sol1 = *aa;
+    const solution *sol2 = *bb;
+    int d = sol1->n_facs - sol2->n_facs;
+    if(d!=0) return d;
+    for(int i=0;i<sol1->n_facs;i++){
+        d = sol1->facs[i]-sol2->facs[i];
+        if(d!=0) return d;
+    }
+    return 0;
 }
 
 solution *solution_empty(const problem *prob){

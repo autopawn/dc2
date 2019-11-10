@@ -12,6 +12,13 @@ void update_final_solutions(problem *prob, solution **final, int *n_final,
     for(int i=0;i<n_cands;i++){
         solution_whitaker_hill_climbing(prob,cands[i]);
     }
+    // Delete repeated solutions after local search
+    int n_cands0 = n_cands;
+    solutions_delete_repeated(prob,cands,&n_cands);
+    if(n_cands0>n_cands){
+        printf("Reduced \033[31;1m%d\033[0m solutions to \033[32;1m%d\033[0m local optima.\n",
+            n_cands0,n_cands);
+    }
     // Pick the best prob->target_sols candidates
     reduction_bests(prob,cands,&n_cands,prob->target_sols);
     // Merge candidates with the final solutions
@@ -31,6 +38,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
         int *out_n_sols, int *out_n_iterations){
 
     // Perform problem precomputations
+    printf("\n");
     printf("Performing precomputations.\n");
     problem_precompute(prob,rstrats,n_rstrats);
     
@@ -79,8 +87,10 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
         if(prev_n_sols==0) break;
     }
 
+    printf("\n");
     // Put the last generation after LS in the final solutions
     update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
+    printf("\n");
 
     // Retrieve the final solutions:
     *out_n_sols = final_n_sols;

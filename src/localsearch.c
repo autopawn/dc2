@@ -111,9 +111,26 @@ void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
         assert(sol->value>old_value);
     }
 
-
     // Free memory
     free(v);
     free(used);
     free(phi2);
+}
+
+void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols){
+    // If there are 0 solutions, do nothing.
+    if(*n_sols==0) return;
+    // Sort solutions for easier comparison
+    qsort(sols,*n_sols,sizeof(solution *),solutionp_facs_cmp);
+    // Delete repeated solutions
+    int n_final = 1;
+    for(int i=1;i<*n_sols;i++){
+        if(solutionp_facs_cmp(&sols[n_final-1],&sols[i])!=0){
+            sols[n_final] = sols[i];
+            n_final++;
+        }else{
+            solution_free(sols[i]);
+        }
+    }
+    *n_sols = n_final;
 }
