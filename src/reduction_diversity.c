@@ -36,6 +36,8 @@ void *reductiondiv_thread_execution(void *arg){
 
 void reduction_diversity_starting(const problem *prob, solution **sols, int *n_sols,
         int n_target, soldismode soldis, facdismode facdis, int bests_of_clusters){
+    // Sort solutions in decreasing order
+    qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
     if(*n_sols<=n_target) return;
     // Indexes of selected centroids
     int *centroids = safe_malloc(sizeof(int)*n_target);

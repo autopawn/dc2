@@ -1,68 +1,85 @@
 #include "construction.h"
 
+// final is expected to have a size >= 2*prob->target_sols 
+// cands is liberated.
+void update_final_solutions(problem *prob, solution **final, int *n_final,
+        solution **cands, int n_cands){
+    // Perform local search on the candidate solutions
+    if(n_cands>0){
+        printf("Performing LS on \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m, saving the bests for final.\n",
+            n_cands,cands[0]->n_facs);
+    }
+    for(int i=0;i<n_cands;i++){
+        solution_whitaker_hill_climbing(prob,cands[i]);
+    }
+    // Pick the best prob->target_sols candidates
+    reduction_bests(prob,cands,&n_cands,prob->target_sols);
+    // Merge candidates with the final solutions
+    for(int i=0;i<n_cands;i++){
+        final[*n_final] = cands[i];
+        *n_final += 1;
+    }
+    // Pick the best prob->target_sols for final solutions
+    reduction_bests(prob,final,n_final,prob->target_sols);
+    // Update the lower bound
+    if(final[0]->value > prob->lower_bound) prob->lower_bound = final[0]->value;
+    // Solution cands is not longer needed.
+    free(cands);
+}
+
 solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rstrats,
         int *out_n_sols, int *out_n_iterations){
-    solution ***sols_by_size = safe_malloc(sizeof(solution **)*(prob->n_facs+2));
-    int *n_sols = safe_malloc(sizeof(int)*(prob->n_facs+2));
+    
+    // The final solutions:
+    int final_n_sols = 0;
+    solution **final_sols = safe_malloc(sizeof(solution *)*prob->target_sols*2);
+    
+    // The previous generation
+    int prev_n_sols = 1;
+    solution **prev_sols = safe_malloc(sizeof(solution *)*prev_n_sols);
+    prev_sols[0] = solution_empty(prob);
 
-    // Initialize first array with just the empty solution
-    n_sols[0] = 1;
-    sols_by_size[0] = safe_malloc(sizeof(solution *)*1);
-    sols_by_size[0][0] = solution_empty(prob);
-
-    int csize = 0; // Current size
-    while((prob->size_restriction==-1 || csize<prob->size_restriction) && csize<prob->n_facs){
+    int csize = 0; // Last size computed
+    while(csize<prob->n_facs && (prob->size_restriction==-1 || csize<prob->size_restriction)){
         printf("\n");
+        printf("Expanding \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m\n",prev_n_sols,csize);
+        
         // Expand solutions from the previous generation
-        printf("Expanding \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m\n",n_sols[csize],csize);
-        sols_by_size[csize+1] = new_expand_solutions(
-            prob,sols_by_size[csize],n_sols[csize],&n_sols[csize+1]);
-        // Once the expansion is done, delete some solutions of the previous gen to save memory
-        reduction_bests(prob,sols_by_size[csize],&n_sols[csize],prob->target_sols);
+        int next_n_sols = prev_n_sols;
+        solution **next_sols = new_expand_solutions(prob,prev_sols,prev_n_sols,&next_n_sols);
 
-        // Sort new solutions by decreasing value
+        // Put the prev generation after LS in the final solutions
+        update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
+
+        // Increase csize
         csize += 1;
-        qsort(sols_by_size[csize],n_sols[csize],sizeof(solution *),solutionp_value_cmp_inv);
 
         // Apply branch and bound
         if(prob->branch_and_bound){
-            int n_sols0 = n_sols[csize];
-            branch_and_bound(prob,sols_by_size[csize],&n_sols[csize]);
-            if(n_sols[csize] < n_sols0){
-                printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,n_sols[csize]);
+            int n_sols0 = next_n_sols;
+            branch_and_bound(prob,next_sols,&next_n_sols);
+            if(next_n_sols < n_sols0){
+                printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,next_n_sols);
             }
         }
 
         // Apply the reduction strategies
         for(int i=0;i<n_rstrats;i++){
-            redstrategy_reduce(prob,rstrats[i],sols_by_size[csize],&n_sols[csize]);
+            redstrategy_reduce(prob,rstrats[i],next_sols,&next_n_sols);
         }
-        if(n_sols[csize]==0) break;
+
+        // Now the current gen is the previous one
+        prev_n_sols = next_n_sols;
+        prev_sols = next_sols;
+        
+        if(prev_n_sols==0) break;
     }
-    // Delete some solutions of the previous gen for consistency
-    reduction_bests(prob,sols_by_size[csize],&n_sols[csize],prob->target_sols);
 
-    printf("\n");
-    // Merge pools
-    printf("Picking the best \033[31;1m%d\033[0m solutions.\n",prob->target_sols);
-    solution **merged_sols = safe_malloc(sizeof(solution *)*prob->target_sols*(csize+1));
-    int final_n_sols = 0;
-    for(int i=0;i<=csize;i++){
-        for(int j=0;j<n_sols[i];j++){
-            merged_sols[final_n_sols] = sols_by_size[i][j];
-            final_n_sols += 1;
-        }
-        // Release array of references.
-        free(sols_by_size[i]);
-    }
-    free(n_sols);
-    free(sols_by_size);
+    // Put the last generation after LS in the final solutions
+    update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
 
-    // Sort merged pool, pick best solutions.
-    qsort(merged_sols,final_n_sols,sizeof(solution *),solutionp_value_cmp_inv);
-    reduction_bests(prob,merged_sols,&final_n_sols,prob->target_sols);
-
+    // Retrieve the final solutions:
     *out_n_sols = final_n_sols;
     *out_n_iterations = csize;
-    return merged_sols;
+    return final_sols;
 }

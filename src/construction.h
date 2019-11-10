@@ -7,6 +7,7 @@
 #include "reduction.h"
 #include "expand.h"
 #include "bnb.h"
+#include "localsearch.h"
 
 solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rstrats,
         int *out_n_sols, int *out_n_iterations);

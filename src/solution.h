@@ -27,6 +27,9 @@ solution *solution_copy(const problem *prob, const solution *sol);
 // Add a facility to an existing solution
 void solution_add(const problem *prob, solution *sol, int newf);
 
+// Remove a facility to an existing solution
+void solution_remove(const problem *prob, solution *sol, int newf);
+
 // An upper bound for the best value that a children solution could have
 double solution_upper_bound(const problem *prob, const solution *sol);
 

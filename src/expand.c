@@ -98,7 +98,7 @@ solution **new_expand_solutions(const problem *prob,
     int n_futuresols = 0;
     for(int i=0;i<n_sols;i++){
         assert(sols[i]->n_facs==current_size); // All solutions are expected to have the same size.
-        for(short f=0;f<prob->n_facs;f++){
+        for(int f=0;f<prob->n_facs;f++){
             futuresol *fsol = (futuresol *)(futuresols+fsol_size*n_futuresols);
             n_futuresols += futuresol_init_from(fsol,sols[i],f);
         }

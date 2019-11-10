@@ -1,12 +1,5 @@
 #include "solution.h"
 
-// Used to get the size of the linear-growing array reserved for facility indexes.
-int get_size(int len){
-    const int FACTOR = 8;
-    int s = FACTOR*((len+FACTOR-1)/FACTOR);
-    return s==0? FACTOR : s;
-}
-
 // Compare solutions to sort on decreasing value
 int solutionp_value_cmp_inv(const void *a, const void *b){
     solution **aa = (solution **)a;
@@ -18,7 +11,7 @@ int solutionp_value_cmp_inv(const void *a, const void *b){
 solution *solution_empty(const problem *prob){
     solution *sol = safe_malloc(sizeof(solution));
     sol->n_facs = 0;
-    sol->facs = safe_malloc(sizeof(int)*get_size(prob->n_facs));
+    sol->facs = safe_malloc(sizeof(int)*1);
     sol->assigns = safe_malloc(sizeof(int)*prob->n_clis);
     for(int j=0;j<prob->n_clis;j++){
         sol->assigns[j] = -1;
@@ -34,7 +27,7 @@ solution *solution_empty(const problem *prob){
 solution *solution_copy(const problem *prob, const solution *sol){
     solution *sol2 = safe_malloc(sizeof(solution));
     sol2->n_facs = sol->n_facs;
-    sol2->facs = safe_malloc(sizeof(int)*get_size(prob->n_facs));
+    sol2->facs =    safe_malloc(sizeof(int)*sol->n_facs);
     memcpy(sol2->facs,sol->facs,sizeof(int)*sol->n_facs);
     sol2->assigns = safe_malloc(sizeof(int)*prob->n_clis);
     memcpy(sol2->assigns,sol->assigns,sizeof(int)*prob->n_clis);
@@ -47,10 +40,8 @@ void solution_add(const problem *prob, solution *sol, int newf){
     for(int f=0;f<sol->n_facs;f++){
         if(sol->facs[f]==newf) return;
     }
-    // Extend array of facility indexes if necessary
-    if(sol->n_facs==get_size(sol->n_facs)){
-        sol->facs = realloc(sol->facs,sizeof(int)*get_size(sol->n_facs+1));
-    }
+    // Extend array of facilities
+    sol->facs = realloc(sol->facs,sizeof(int)*(sol->n_facs+1));
     // Add facility to the solution
     add_to_sorted(sol->facs,&sol->n_facs,newf);
     // | New value after adding the new facility.
@@ -74,37 +65,45 @@ void solution_add(const problem *prob, solution *sol, int newf){
     sol->value = value2;
 }
 
+void solution_remove(const problem *prob, solution *sol, int remf){
+    rem_of_sorted(sol->facs,&sol->n_facs,remf);
+    // New value after adding the new facility
+    double value2 = 0;
+    // Drop clients of the facility.
+    for(int c=0;c<prob->n_clis;c++){
+        // If the client was owned by the facility reassing
+        if(sol->assigns[c]==remf){
+            int reassign = -1;
+            double reassign_value = problem_assig_value(prob,reassign,c);
+            for(int i=0;i<sol->n_facs;i++){
+                int candidate = sol->facs[i];
+                double cand_value = problem_assig_value(prob,candidate,c);
+                if(cand_value>reassign_value){
+                    reassign = candidate;
+                    reassign_value = cand_value;
+                }
+            }
+            // Reassign client
+            sol->assigns[c] = reassign;
+            // Value of new assigment
+            value2 += reassign_value;
+        }else{
+            // Value of the current assignment
+            value2 += problem_assig_value(prob,sol->assigns[c],c);
+        }
+    }
+    // The facility costs
+    for(int i=0;i<sol->n_facs;i++){
+        value2 -= prob->facility_cost[sol->facs[i]];
+    }
+    // Update solution value
+    sol->value = value2;
+}
+
 void solution_free(solution *sol){
     free(sol->facs);
     free(sol->assigns);
     free(sol);
-}
-
-void solution_print(const problem *prob, const solution *sol, FILE *fp){
-    fprintf(fp,"== SOLUTION ==\n");
-    fprintf(fp,"# VALUE: %lf\n",sol->value);
-    fprintf(fp,"# ASSIGNS:");
-    for(int i=0;i<prob->n_clis;i++){
-        fprintf(fp," %d",sol->assigns[i]);
-    }
-    fprintf(fp,"\n");
-    fprintf(fp,"# N_FACS: %d\n",sol->n_facs);
-    //
-    fprintf(fp,"# INDEXES: ");
-    for(int i=0;i<sol->n_facs;i++){
-        fprintf(fp,"%d ",sol->facs[i]);
-    }
-    fprintf(fp,"\n");
-    // Print clients for each facility
-    for(int i=0;i<sol->n_facs;i++){
-        fprintf(fp,"FAC %d :",sol->facs[i]);
-        for(int j=0;j<prob->n_clis;j++){
-            if(sol->assigns[j]==sol->facs[i]){
-                fprintf(fp," %d",j);
-            }
-        }
-        fprintf(fp,"\n");
-    }
 }
 
 // Compute the distance between two solutions
@@ -177,4 +176,31 @@ double solution_upper_bound(const problem *prob, const solution *sol){
         upbound -= prob->facility_cost[sol->facs[i]];
     }
     return upbound;
+}
+
+void solution_print(const problem *prob, const solution *sol, FILE *fp){
+    fprintf(fp,"== SOLUTION ==\n");
+    fprintf(fp,"# VALUE: %lf\n",sol->value);
+    fprintf(fp,"# ASSIGNS:");
+    for(int i=0;i<prob->n_clis;i++){
+        fprintf(fp," %d",sol->assigns[i]);
+    }
+    fprintf(fp,"\n");
+    fprintf(fp,"# N_FACS: %d\n",sol->n_facs);
+    //
+    fprintf(fp,"# INDEXES: ");
+    for(int i=0;i<sol->n_facs;i++){
+        fprintf(fp,"%d ",sol->facs[i]);
+    }
+    fprintf(fp,"\n");
+    // Print clients for each facility
+    for(int i=0;i<sol->n_facs;i++){
+        fprintf(fp,"FAC %d :",sol->facs[i]);
+        for(int j=0;j<prob->n_clis;j++){
+            if(sol->assigns[j]==sol->facs[i]){
+                fprintf(fp," %d",j);
+            }
+        }
+        fprintf(fp,"\n");
+    }
 }

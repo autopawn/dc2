@@ -5,10 +5,6 @@
 #include "problem.h"
 #include "solution.h"
 
-/*
-NOTE: All reduction methods expect the solutions to be sorted on decreasing value
-*/
-
 typedef enum {
     // | Pick the best solutions
     REDUCTION_BESTS,

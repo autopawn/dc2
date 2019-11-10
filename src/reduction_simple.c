@@ -1,6 +1,8 @@
 #include "reduction.h"
 
 void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_target){
+    // Sort solutions in decreasing order
+    qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
     // If there are already less solutions, do nothing.
     if(*n_sols<=n_target) return;
     // Free other solutions:
@@ -30,4 +32,6 @@ void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols,
 }
 
 void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target){
+    // Sort solutions in decreasing order
+    qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
 }
