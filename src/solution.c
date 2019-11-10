@@ -113,7 +113,10 @@ double solution_dissimilitude(const problem *prob,
     // Compute the dissimilitude according to the sdismode
     if(sdismode==SOLDIS_MEAN_SQUARE_ERROR){
         // Expect the facility distances for this mode to be computed:
-        assert(prob->facs_distance[fdismode]!=NULL);
+        if(prob->facs_distance[fdismode]==NULL){
+            fprintf(stderr,"Error: problem facility-facility distances are not precomputed!\n");
+            exit(1);
+        }
         // Add distance from each facility in sol1 to sol2.
         double disim = 0;
         for(int t=0;t<2;t++){
@@ -134,7 +137,10 @@ double solution_dissimilitude(const problem *prob,
     }
     else if(sdismode==SOLDIS_HAUSDORF){ // Based on https://github.com/mavillan/py-hausdorff
         // Expect the facility distances for this mode to be computed:
-        assert(prob->facs_distance[fdismode]!=NULL);
+        if(prob->facs_distance[fdismode]==NULL){
+            fprintf(stderr,"Error: problem facility-facility distances are not precomputed!\n");
+            exit(1);
+        }
         double disim = 0;
         for(int t=0;t<2;t++){
             for(int i1=0;i1<sol1->n_facs;i1++){
