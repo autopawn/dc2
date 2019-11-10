@@ -7,18 +7,44 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s {strategy:n} <input_file> <output_file>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-n<target_n>] {strategy:n} <input_file> <output_file>\n",argv[0]);
         exit(1);
     }
 
     // Set a fixed seed
     srand(0xc0ffee);
-    
-    int n_strategies = argc-3;
-    redstrategy *strategies = redstrategy_init_from_nomenclatures(&argv[1],&n_strategies);
 
-    // Read problem
+    // Strategy nomenclature arguments
+    int n_strategies = 0;
+    const char **strategy_args = safe_malloc(sizeof(const char *)*argc);
+
+    // Target number of solutions
+    int target_n = -1;
+
+    // Parse arguments
+    for(int i=1;i<argc-2;i++){
+        if(argv[i][0]=='-'){
+            if(argv[i][1]=='n'){
+                int n_read = sscanf(argv[1],"-n%d",&target_n);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected numer on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
+            }else{
+                fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
+                exit(1);
+            }
+        }else{
+            strategy_args[n_strategies] = argv[i];
+            n_strategies++;
+        }
+    }
+
+    redstrategy *strategies = redstrategy_init_from_nomenclatures(strategy_args,&n_strategies);
+
+    // Read problem and use console arguments
     problem *prob = new_problem_load(argv[argc-2]);
+    if(target_n>0) prob->target_sols = target_n;
     
     // Print current run info:
     problem_print(prob,stdout);
@@ -43,4 +69,5 @@ int main(int argc, const char **argv){
     free(final_sols);
     problem_free(prob);
     free(strategies);
+    free(strategy_args);
 }
