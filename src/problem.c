@@ -56,7 +56,7 @@ void problem_free(problem *prob){
     free(prob);
 }
 
-void problem_precompute(problem *prob){
+void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
     // Precompute precomp_client_optimal_gain
     prob->precomp_client_optimal_gain = 0;
     for(int k=0;k<prob->n_clis;k++){
@@ -67,35 +67,38 @@ void problem_precompute(problem *prob){
         }
         prob->precomp_client_optimal_gain += best_val;
     }
-}
 
-void problem_compute_facility_distances(problem *prob, facdismode mode){
-    // Allocate distance matrix between facilities 
-    assert(mode<N_FACDIS_MODES);
-    prob->facs_distance[mode] = safe_malloc(sizeof(double*)*prob->n_facs);
-    for(int i=0;i<prob->n_facs;i++){
-        prob->facs_distance[mode][i] = safe_malloc(sizeof(double)*prob->n_facs);
-    }
-    // Allocate distance matrix between facilities 
-    for(int a=0;a<prob->n_facs;a++){
-        for(int b=0;b<prob->n_facs;b++){
-            if(mode==FACDIS_SUM_OF_DELTAS){
-                double dist = 0;
-                for(int j=0;j<prob->n_clis;j++){
-                    double delta = prob->distance[a][j]-prob->distance[b][j];
-                    if(delta<0) delta = -delta;
-                    dist += delta;
+    // Precompute facility distances
+    for(int r=0;r<n_rstrats;r++){
+        int mode = redstrategy_required_facdis_mode(rstrats[r]);
+        if(mode!=FACDIS_NONE && prob->facs_distance[mode]==NULL){
+            // Allocate distance matrix between facilities 
+            prob->facs_distance[mode] = safe_malloc(sizeof(double*)*prob->n_facs);
+            for(int i=0;i<prob->n_facs;i++){
+                prob->facs_distance[mode][i] = safe_malloc(sizeof(double)*prob->n_facs);
+            }
+            // Compute distance matrix 
+            for(int a=0;a<prob->n_facs;a++){
+                for(int b=0;b<prob->n_facs;b++){
+                    if(mode==FACDIS_SUM_OF_DELTAS){
+                        double dist = 0;
+                        for(int j=0;j<prob->n_clis;j++){
+                            double delta = prob->distance[a][j]-prob->distance[b][j];
+                            if(delta<0) delta = -delta;
+                            dist += delta;
+                        }
+                        prob->facs_distance[mode][a][b] = dist;
+                        prob->facs_distance[mode][b][a] = dist;
+                    }else if(mode==FACDIS_MIN_TRIANGLE){
+                        double dist = INFINITY;
+                        for(int j=0;j<prob->n_clis;j++){
+                            double dist_sum = prob->distance[a][j]+prob->distance[b][j];
+                            if(dist_sum<dist) dist = dist_sum;
+                        }
+                        prob->facs_distance[mode][a][b] = dist;
+                        prob->facs_distance[mode][b][a] = dist;
+                    }
                 }
-                prob->facs_distance[mode][a][b] = dist;
-                prob->facs_distance[mode][b][a] = dist;
-            }else if(mode==FACDIS_MIN_TRIANGLE){
-                double dist = INFINITY;
-                for(int j=0;j<prob->n_clis;j++){
-                    double dist_sum = prob->distance[a][j]+prob->distance[b][j];
-                    if(dist_sum<dist) dist = dist_sum;
-                }
-                prob->facs_distance[mode][a][b] = dist;
-                prob->facs_distance[mode][b][a] = dist;
             }
         }
     }

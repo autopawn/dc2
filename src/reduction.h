@@ -2,41 +2,14 @@
 #define DC_REDUCTION_H
 
 #include "utils.h"
+#include "redstrategy.h"
 #include "problem.h"
 #include "solution.h"
 
-typedef enum {
-    // | Pick the best solutions
-    REDUCTION_BESTS,
-    // | Random uniform
-    REDUCTION_RANDOM_UNIFORM,
-    // | Random with ponderation by rank
-    REDUCTION_RANDOM_RANK,
-    // | The VR-Heuristic
-    REDUCTION_VRHEURISTIC,
-    // | Enhanced Glover simple diversity-based starting method
-    REDUCTION_GLOVER_SDCE,
-    // | EGLOVER_SDCE selecting the best solution of each cluster 
-    REDUCTION_GLOVER_SDCE_BESTS,
-} reduction_method;
+// NOTE: not all methods are in reduction.c, there are also methods in reduction_*.c files.
 
-typedef struct {
-    const char *nomenclature;
-    reduction_method method;
-    int n_target;
-    soldismode soldis;
-    facdismode facdis;
-    int arg;
-} redstrategy;
-
-// Allocates an array of redstrategies from nomenclatures 
-redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms);
-
-// Parses a nomenclature to generate a redstrategy
-redstrategy redstrategy_from_nomenclature(const char *nomenclature);
-
-// Apply a redstrategy to reduce a set of solutions
-void redstrategy_reduce(problem *prob, const redstrategy rstrat, 
+// Perform a redunction indicated by the given redstrategy
+void reduce_by_redstrategy(problem *prob, const redstrategy rstrat, 
         solution **sols, int *n_sols);
 
 // Reduce the solutions, just picking the bests

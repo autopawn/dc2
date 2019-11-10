@@ -29,6 +29,10 @@ void update_final_solutions(problem *prob, solution **final, int *n_final,
 
 solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rstrats,
         int *out_n_sols, int *out_n_iterations){
+
+    // Perform problem precomputations
+    printf("Performing precomputations.\n");
+    problem_precompute(prob,rstrats,n_rstrats);
     
     // The final solutions:
     int final_n_sols = 0;
@@ -65,7 +69,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
         // Apply the reduction strategies
         for(int i=0;i<n_rstrats;i++){
-            redstrategy_reduce(prob,rstrats[i],next_sols,&next_n_sols);
+            reduce_by_redstrategy(prob,rstrats[i],next_sols,&next_n_sols);
         }
 
         // Now the current gen is the previous one

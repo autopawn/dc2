@@ -1,4 +1,4 @@
-#include "reduction.h"
+#include "redstrategy.h"
 
 const char *default_redstrategies[] = {"rand:4000","sdce+:200"};
  
@@ -132,51 +132,10 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     return strategy;
 }
 
-void redstrategy_reduce(problem *prob, const redstrategy rstrat, 
-        solution **sols, int *n_sols){
-
-    if(*n_sols<=rstrat.n_target) return;
-
-    /* Check if the reduction method doens't use dissimilitude */
-    int simple = 0;
-    simple = simple || rstrat.method==REDUCTION_BESTS;
-    simple = simple || rstrat.method==REDUCTION_RANDOM_UNIFORM;
-    simple = simple || rstrat.method==REDUCTION_RANDOM_RANK;
-    
-    // Compute facility distances if not already
-    if(!simple){
-        if(rstrat.facdis!=FACDIS_NONE && prob->facs_distance[rstrat.facdis]==NULL){
-            printf("Computing facility-facility distances.\n");
-            problem_compute_facility_distances(prob,rstrat.facdis);
-        }
-    }
-    
-    printf("Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",*n_sols,rstrat.n_target);
-    if(rstrat.method==REDUCTION_BESTS){
-        printf("selecting bests.\n");
-        reduction_bests(prob,sols,n_sols,rstrat.n_target);
-    }
-    else if(rstrat.method==REDUCTION_RANDOM_UNIFORM){
-        printf("randomly (uniform).\n");
-        reduction_random_uniform(prob,sols,n_sols,rstrat.n_target);
-    }
-    else if(rstrat.method==REDUCTION_RANDOM_RANK){
-        printf("randomly (by rank).\n");
-        reduction_random_rank(prob,sols,n_sols,rstrat.n_target);
-    }
-    else if(rstrat.method==REDUCTION_GLOVER_SDCE){
-        printf("simple diversity-based clustering.\n");
-        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
-            rstrat.soldis,rstrat.facdis,0);
-    }
-    else if(rstrat.method==REDUCTION_GLOVER_SDCE_BESTS){
-        printf("simple diversity-based clustering (best).\n");
-        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
-            rstrat.soldis,rstrat.facdis,1);
-    }
-    else{
-        printf("???.\n");
-        fprintf(stderr,"ERROR: Reduction method not yet implemented.\n");
-        exit(1);
-    }
+facdismode redstrategy_required_facdis_mode(const redstrategy rstrat){
+    /* Check if the reduction method doesn't use dissimilitude */
+    if(rstrat.method==REDUCTION_BESTS) return FACDIS_NONE;
+    if(rstrat.method==REDUCTION_RANDOM_UNIFORM) return FACDIS_NONE;
+    if(rstrat.method==REDUCTION_RANDOM_RANK) return FACDIS_NONE;
+    return rstrat.facdis;
 }

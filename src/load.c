@@ -196,8 +196,5 @@ problem *new_problem_load(const char *file){
     fclose(fp);
     printf("Done reading.\n");
 
-    // Precomputations
-    problem_precompute(prob);
-
     return prob;
 }
