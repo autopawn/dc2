@@ -80,7 +80,7 @@ void solution_add(const problem *prob, solution *sol, int newf){
     sol->value = value2;
 }
 
-void solution_remove(const problem *prob, solution *sol, int remf){
+void solution_remove(const problem *prob, solution *sol, int remf, int *phi2){
     rem_of_sorted(sol->facs,&sol->n_facs,remf);
     // New value after adding the new facility
     double value2 = 0;
@@ -88,14 +88,21 @@ void solution_remove(const problem *prob, solution *sol, int remf){
     for(int c=0;c<prob->n_clis;c++){
         // If the client was owned by the facility reassing
         if(sol->assigns[c]==remf){
-            int reassign = -1;
-            double reassign_value = problem_assig_value(prob,reassign,c);
-            for(int i=0;i<sol->n_facs;i++){
-                int candidate = sol->facs[i];
-                double cand_value = problem_assig_value(prob,candidate,c);
-                if(cand_value>reassign_value){
-                    reassign = candidate;
-                    reassign_value = cand_value;
+            int reassign;
+            double reassign_value;
+            if(phi2!=NULL){
+                reassign = phi2[c];
+                reassign_value = problem_assig_value(prob,reassign,c);
+            }else{
+                reassign = -1;
+                reassign_value = problem_assig_value(prob,reassign,c);
+                for(int i=0;i<sol->n_facs;i++){
+                    int candidate = sol->facs[i];
+                    double cand_value = problem_assig_value(prob,candidate,c);
+                    if(cand_value>reassign_value){
+                        reassign = candidate;
+                        reassign_value = cand_value;
+                    }
                 }
             }
             // Reassign client
@@ -197,6 +204,69 @@ double solution_upper_bound(const problem *prob, const solution *sol){
         upbound -= prob->facility_cost[sol->facs[i]];
     }
     return upbound;
+}
+
+int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cli){
+    // Nearest facility
+    int phi1 = sol->assigns[cli];
+    // 2nd nearest
+    int phi2 = -1;
+    double phi2_assig_value = problem_assig_value(prob,phi2,cli);
+    // Iterate to find 2nd best facility
+    for(int p=0;p<sol->n_facs;p++){
+        int fac = sol->facs[p];
+        if(fac==phi1) continue;
+        if(problem_assig_value(prob,fac,cli)>phi2_assig_value){
+            phi2 = fac;
+            phi2_assig_value = problem_assig_value(prob,phi2,cli);
+        }
+    }
+    return phi2;
+}
+
+// Find the best option for removal if f_ins is inserted to the solution
+// NOTE: v must be intialized with -INFINITY and have size equal to prob->n_facs.
+// ^ It is always reset to that state before returning.
+void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
+        const int *phi2, int *out_f_rem, double *out_profit){
+    // The facility costs:
+    double w = f_ins==-1? 0 : -prob->facility_cost[f_ins];
+    for(int k=0;k<sol->n_facs;k++){
+        v[sol->facs[k]] = -prob->facility_cost[sol->facs[k]];
+    }
+    //
+    for(int u=0;u<prob->n_clis;u++){
+
+        int phi1u = sol->assigns[u];
+        double assig_f_ins_value = problem_assig_value(prob,f_ins,u);
+        double assig_phi1u_value = problem_assig_value(prob,phi1u,u);
+        double delta = assig_f_ins_value - assig_phi1u_value;
+        if(delta>=0){ // Profit by adding f_ins, because it is nearly.
+            w += delta;
+        }else{ // Loss by removing phi1u, because it is nearly.
+            if(phi1u==-1 || v[phi1u]==-INFINITY) continue; // phi1u not part of the solution.
+            double assig_phi2u_value = problem_assig_value(prob,phi2[u],u);
+            if(assig_f_ins_value > assig_phi2u_value){
+                v[phi1u] += assig_phi1u_value - assig_f_ins_value;
+            }else{
+                v[phi1u] += assig_phi1u_value - assig_phi2u_value;
+            }
+        }
+    }
+    // Find the one to be removed with less loss
+    int f_rem = sol->facs[0];
+    for(int k=1;k<sol->n_facs;k++){
+        if(v[sol->facs[k]]<v[f_rem]){
+            f_rem = sol->facs[k];
+        }
+    }
+    // Outputs
+    *out_f_rem = f_rem;
+    *out_profit = w - (f_rem==-1? 0 : v[f_rem]);
+    // Reset v
+    for(int k=0;k<sol->n_facs;k++){
+        v[sol->facs[k]] = -INFINITY;
+    }
 }
 
 void solution_print(const problem *prob, const solution *sol, FILE *fp){

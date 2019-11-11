@@ -31,7 +31,9 @@ solution *solution_copy(const problem *prob, const solution *sol);
 void solution_add(const problem *prob, solution *sol, int newf);
 
 // Remove a facility to an existing solution
-void solution_remove(const problem *prob, solution *sol, int newf);
+// The phi2 array is optional, if not NULL it should contain the second nearest facility
+// for each client.
+void solution_remove(const problem *prob, solution *sol, int newf, int *phi2);
 
 // An upper bound for the best value that a children solution could have
 double solution_upper_bound(const problem *prob, const solution *sol);
@@ -43,6 +45,15 @@ void solution_free(solution *sol);
 double solution_dissimilitude(const problem *prob,
         const solution *sol1, const solution *sol2,
         soldismode sdismode, facdismode fdismode);
+
+// Find the index of the second nearest facility to the given client, on the solution
+int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cli);
+
+// Find the best option for removal if f_ins is inserted to the solution
+// NOTE: v must be intialized with -INFINITY and have size equal to prob->n_facs.
+// ^ It is always reset to that state before returning.
+void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
+        const int *phi2, int *out_f_rem, double *out_profit);
 
 // Print a solution to the given descriptor
 void solution_print(const problem *prob, const solution *sol, FILE *fp);

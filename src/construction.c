@@ -34,10 +34,7 @@ void update_final_solutions(problem *prob, solution **final, int *n_final,
 solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rstrats,
         int *out_n_sols, int *out_n_iterations){
 
-    // Perform problem precomputations
     printf("\n");
-    printf("Performing precomputations.\n");
-    problem_precompute(prob,rstrats,n_rstrats);
     
     // The final solutions:
     int final_n_sols = 0;

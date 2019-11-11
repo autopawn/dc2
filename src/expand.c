@@ -61,22 +61,57 @@ typedef struct {
 
 void *expand_thread_execution(void *arg){
     expand_thread_args *args = (expand_thread_args *) arg;
+    
+    // Auxiliary arrays that could be useful
+    int *phi2 = NULL;
+    double *v = NULL;
+
     for(int r=args->thread_id;r<args->n_fsols;r+=THREADS){
         // Generate a new solution from the fsol, and then check if it passes filtering.
         futuresol *fsol = (futuresol *)(args->futuresols+args->fsol_size*r);
         solution *new_sol = solution_copy(args->prob,fsol->origin);
         solution_add(args->prob,new_sol,fsol->newf);
+        int filtered = 0;
+        // Must be better than any other other subset (minus 1 facility)
         if(args->prob->filter >= BETTER_THAN_SUBSETS){
-            // TODO: implement.
-        }else if(args->prob->filter > NO_FILTER){
-            if(new_sol->value > fsol->origin->value){
-                args->out_sols[r] = new_sol;
-            }else{
-                solution_free(new_sol);
-                args->out_sols[r] = NULL;
+            // Initialize useful arrays if they aren't already
+            if(v==NULL){
+                v = safe_malloc(sizeof(double)*args->prob->n_facs);
+                for(int i=0;i<args->prob->n_facs;i++) v[i] = -INFINITY;
             }
+            if(phi2==NULL) phi2 = safe_malloc(sizeof(int)*args->prob->n_clis);
+            // Find second nearest facility for each client
+            for(int i=0;i<args->prob->n_clis;i++){
+                phi2[i] = solution_client_2nd_nearest(args->prob,new_sol,i);
+            }
+            // Check if there's profit after picking the best facility for removal 
+            int f_rem;
+            double delta_profit;
+            solution_findout(args->prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
+            if(delta_profit>0) filtered = 1;
+        }
+        // Any other filter uses the fsol->origin
+        else if(args->prob->filter >= BETTER_THAN_ONE_PARENT){
+            if(fsol->origin->value > -INFINITY &&
+                new_sol->value <= fsol->origin->value) filtered = 1;
+        }
+        // If it must be better than the empty solution
+        else if(args->prob->filter == BETTER_THAN_EMPTY){
+            if(args->prob->precomp_empty_value > -INFINITY && 
+                new_sol->value <= args->prob->precomp_empty_value) filtered = 1;
+        }
+        // Delete the solution
+        if(filtered){
+            solution_free(new_sol);
+            args->out_sols[r] = NULL;
+        }else{
+            args->out_sols[r] = new_sol;
         }
     }
+    // Free auxilary arrays if they were allocated
+    if(v!=NULL) free(v);
+    if(phi2!=NULL) free(phi2);
+    //
     return NULL;
 }
 
@@ -86,8 +121,6 @@ void *expand_thread_execution(void *arg){
 
 solution **new_expand_solutions(const problem *prob,
         solution **sols, int n_sols, int *out_n_sols){
-    // TODO: Remove this once the missing filter is added
-    assert(prob->filter<BETTER_THAN_SUBSETS);
     // Get the corrent size of the solutions on this expansion:
     int current_size = n_sols>0? sols[0]->n_facs : 0;
     // Compute the size of each futuresol (flexible array member must be added):

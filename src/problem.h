@@ -4,11 +4,14 @@
 #include "utils.h"
 #include "redstrategy.h"
 
+#define MAX_FILTER 4
+
 typedef enum {
     NO_FILTER = 0,
-    BETTER_THAN_ONE_PARENT = 1,
-    BETTER_THAN_ALL_PARENTS = 2,
-    BETTER_THAN_SUBSETS = 3,
+    BETTER_THAN_EMPTY = 1,
+    BETTER_THAN_ONE_PARENT = 2,
+    BETTER_THAN_ALL_PARENTS = 3,
+    BETTER_THAN_SUBSETS = 4,
 } filter;
 
 extern const char *filter_names[];
@@ -38,9 +41,11 @@ typedef struct {
     double lower_bound;
     // | Number of solutions requested
     int target_sols;
+    // | Precomputed value of empty solution
+    double precomp_empty_value;
     // | Precomputed optimal gain from all clients
     double precomp_client_optimal_gain;
-    // | Distance matrices between facilities (for each mode)
+    // | Precomputed distance matrices between facilities (for each mode)
     double **facs_distance[N_FACDIS_MODES];
 } problem;
 

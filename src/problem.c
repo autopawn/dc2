@@ -2,6 +2,7 @@
 
 const char *filter_names[] = {
     "NO_FILTER",
+    "BETTER_THAN_EMPTY",
     "BETTER_THAN_ONE_PARENT",
     "BETTER_THAN_ALL_PARENTS",
     "BETTER_THAN_SUBSETS",
@@ -57,6 +58,15 @@ void problem_free(problem *prob){
 }
 
 void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
+    // Precompute value of empty solution
+    double empty_val = 0;
+    for(int j=0;j<prob->n_clis;j++){
+        empty_val += problem_assig_value(prob,-1,j);
+    }
+    prob->precomp_empty_value = empty_val;
+    // Update lower bound
+    if(empty_val > prob->lower_bound) prob->lower_bound = empty_val;
+
     // Precompute precomp_client_optimal_gain
     prob->precomp_client_optimal_gain = 0;
     for(int k=0;k<prob->n_clis;k++){
@@ -112,9 +122,10 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# CLIENT_GAIN: %lf\n",prob->client_gain);
     fprintf(fp,"# UNASSIGNED_COST: %lf\n",prob->unassigned_cost);
     fprintf(fp,"# SIZE_RESTRICTION: %d\n",prob->size_restriction);
-    fprintf(fp,"# FILTER: %s\n",filter_names[prob->filter]);
+    fprintf(fp,"# FILTER: %s (%d)\n",filter_names[prob->filter],(int)prob->filter);
     fprintf(fp,"# BRANCH_AND_BOUND: %d\n",prob->branch_and_bound);
     fprintf(fp,"# LOWER_BOUND: %lf\n",prob->lower_bound);
     fprintf(fp,"# TARGET_SOLS: %d\n",prob->target_sols);
     fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",prob->precomp_client_optimal_gain);
+    fprintf(fp,"# PRECOMP_EMPTY_VALUE: %lf\n",prob->precomp_empty_value);
 }
