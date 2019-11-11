@@ -21,7 +21,7 @@ void *reductiondiv_thread_execution(void *arg){
         sem_wait(args->thread_sem);
         int centroid = args->centroids[t];
         // Help updating the dissimilitudes to each cluster
-        for(int r=args->thread_id;r<args->n_sols;r+=THREADS){
+        for(int r=args->thread_id;r<args->n_sols;r+=args->prob->n_threads){
             double disim = solution_dissimilitude(args->prob,
                 args->sols[r],args->sols[centroid],args->soldis,args->facdis);
             if(disim<args->nearest_dist[r]){
@@ -55,11 +55,11 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     }
     is_centroid[0] = 1;
     // Create threads
-    pthread_t *threads = safe_malloc(sizeof(pthread_t)*THREADS);
-    sem_t *t_sems = safe_malloc(sizeof(sem_t)*THREADS);
-    sem_t *c_sems = safe_malloc(sizeof(sem_t)*THREADS);
-    reductiondiv_thread_args *targs = safe_malloc(sizeof(reductiondiv_thread_args)*THREADS);
-    for(int i=0;i<THREADS;i++){
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
+    sem_t *t_sems = safe_malloc(sizeof(sem_t)*prob->n_threads);
+    sem_t *c_sems = safe_malloc(sizeof(sem_t)*prob->n_threads);
+    reductiondiv_thread_args *targs = safe_malloc(sizeof(reductiondiv_thread_args)*prob->n_threads);
+    for(int i=0;i<prob->n_threads;i++){
         // Init semaphores
         if(sem_init(&t_sems[i],0,0)==-1 || sem_init(&c_sems[i],0,0)==-1){
             fprintf(stderr,"ERROR: sem_init failed!\n");
@@ -85,9 +85,9 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     }
     for(int t=0;t<n_target;t++){
         // Allow threads to update the distances again
-        for(int i=0;i<THREADS;i++) sem_post(&t_sems[i]);
+        for(int i=0;i<prob->n_threads;i++) sem_post(&t_sems[i]);
         // Wait for all threads to have updated the centroids
-        for(int i=0;i<THREADS;i++) sem_wait(&c_sems[i]);
+        for(int i=0;i<prob->n_threads;i++) sem_wait(&c_sems[i]);
         
         if(t==n_target-1) break;
 
@@ -111,11 +111,11 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     assert(n_centroids==n_target);
 
     /* Free thread memory and close semaphores. */
-    for(int i=0;i<THREADS;i++){ // Join threads
+    for(int i=0;i<prob->n_threads;i++){ // Join threads
         pthread_join(threads[i],NULL);
     }
     free(targs);
-    for(int i=0;i<THREADS;i++){ // Close semaphores
+    for(int i=0;i<prob->n_threads;i++){ // Close semaphores
         if(sem_destroy(&c_sems[i])==-1 || sem_destroy(&t_sems[i])==-1){
             fprintf(stderr,"ERROR: sem_destroy failed!\n");
             exit(1);

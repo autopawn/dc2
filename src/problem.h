@@ -6,6 +6,9 @@
 
 #define MAX_FILTER 4
 
+#define DEFAULT_TARGET_SOLS 10
+#define DEFAULT_THREADS 4
+
 typedef enum {
     NO_FILTER = 0,
     BETTER_THAN_EMPTY = 1,
@@ -49,6 +52,8 @@ typedef struct {
     double precomp_client_optimal_gain;
     // | Precomputed distance matrices between facilities (for each mode)
     double **facs_distance[N_FACDIS_MODES];
+    // | Number of threads
+    int n_threads;
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 

@@ -66,7 +66,7 @@ void *expand_thread_execution(void *arg){
     int *phi2 = NULL;
     double *v = NULL;
 
-    for(int r=args->thread_id;r<args->n_fsols;r+=THREADS){
+    for(int r=args->thread_id;r<args->n_fsols;r+=args->prob->n_threads){
         // Generate a new solution from the fsol, and then check if it passes filtering.
         futuresol *fsol = (futuresol *)(args->futuresols+args->fsol_size*r);
         solution *new_sol = solution_copy(args->prob,fsol->origin);
@@ -169,8 +169,8 @@ solution **new_expand_solutions(const problem *prob,
 
     solution **out_sols = safe_malloc(sizeof(solution*)*n_futuresols);
     { // Create new solutions [in parallel]
-        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*THREADS);
-        for(int i=0;i<THREADS;i++){
+        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*prob->n_threads);
+        for(int i=0;i<prob->n_threads;i++){
             targs[i].thread_id = i;
             targs[i].prob = prob;
             targs[i].n_fsols = n_futuresols;
@@ -179,8 +179,8 @@ solution **new_expand_solutions(const problem *prob,
             targs[i].out_sols = out_sols;
         }
         // Generate threads in order to expand the solutions
-        pthread_t *threads = safe_malloc(sizeof(pthread_t)*THREADS);
-        for(int i=0;i<THREADS;i++){
+        pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
+        for(int i=0;i<prob->n_threads;i++){
             int rc = pthread_create(&threads[i],NULL,expand_thread_execution,&targs[i]);
             if(rc){
                 printf("Error %d on thread creation\n",rc);
@@ -188,7 +188,7 @@ solution **new_expand_solutions(const problem *prob,
             }
         }
         // Join threads
-        for(int i=0;i<THREADS;i++){
+        for(int i=0;i<prob->n_threads;i++){
             pthread_join(threads[i],NULL);
         }
         //

@@ -13,7 +13,8 @@ problem *problem_init(int n_facs, int n_clis){
     memset(prob,0,              sizeof(problem));
     prob->n_facs = n_facs;
     prob->n_clis = n_clis;
-    prob->target_sols = 10;
+    prob->target_sols = DEFAULT_TARGET_SOLS;
+    prob->n_threads = DEFAULT_THREADS;
 
     //
     prob->client_weight = safe_malloc(sizeof(double)*prob->n_clis);
@@ -129,4 +130,5 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# TARGET_SOLS: %d\n",prob->target_sols);
     fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",prob->precomp_client_optimal_gain);
     fprintf(fp,"# PRECOMP_EMPTY_VALUE: %lf\n",prob->precomp_empty_value);
+    fprintf(fp,"# N_THREADS: %d\n",prob->n_threads);
 }

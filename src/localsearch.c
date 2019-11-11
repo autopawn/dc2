@@ -81,7 +81,7 @@ typedef struct {
 
 void *hillclimb_thread_execution(void *arg){
     hillclimb_thread_args *args = (hillclimb_thread_args *) arg;
-    for(int r=args->thread_id;r<args->n_sols;r+=THREADS){
+    for(int r=args->thread_id;r<args->n_sols;r+=args->prob->n_threads){
         // Perform local search on the given solution
         solution_whitaker_hill_climbing(args->prob,args->sols[r]);
     }
@@ -91,10 +91,10 @@ void *hillclimb_thread_execution(void *arg){
 // Perform local searches (in parallel).
 void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
     // Allocate memory for threads and arguments
-    pthread_t *threads = safe_malloc(sizeof(pthread_t)*THREADS);
-    hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*THREADS);
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
+    hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*prob->n_threads);
     // Call all threads to perform local search
-    for(int i=0;i<THREADS;i++){
+    for(int i=0;i<prob->n_threads;i++){
         targs[i].thread_id = i;
         targs[i].prob = prob;
         targs[i].sols = sols;
@@ -106,7 +106,7 @@ void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
         }
     }
     // Join threads
-    for(int i=0;i<THREADS;i++){ // Join threads
+    for(int i=0;i<prob->n_threads;i++){ // Join threads
         pthread_join(threads[i],NULL);
     }
     // Free memory

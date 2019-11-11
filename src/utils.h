@@ -10,9 +10,6 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#ifndef THREADS
-    #define THREADS 4
-#endif
 
 typedef unsigned int uint;
 

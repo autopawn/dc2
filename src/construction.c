@@ -79,6 +79,9 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
         // Put the prev generation after LS in the final solutions
         if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
             update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
+        }else{
+            for(int i=0;i<prev_n_sols;i++) solution_free(prev_sols[i]);
+            free(prev_sols);
         }
 
         // Now the current gen is the previous one
