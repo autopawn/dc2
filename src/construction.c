@@ -8,9 +8,7 @@ void update_final_solutions(problem *prob, solution **final, int *n_final,
     if(n_cands>0){
         printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
     }
-    for(int i=0;i<n_cands;i++){
-        solution_whitaker_hill_climbing(prob,cands[i]);
-    }
+    solutions_hill_climbing(prob,cands,n_cands);
     // Delete repeated solutions after local search
     int n_cands0 = n_cands;
     solutions_delete_repeated(prob,cands,&n_cands);

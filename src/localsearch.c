@@ -134,3 +134,45 @@ void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols
     }
     *n_sols = n_final;
 }
+
+typedef struct {
+    int thread_id;
+    const problem *prob;
+    solution **sols;
+    int n_sols;
+} hillclimb_thread_args;
+
+void *hillclimb_thread_execution(void *arg){
+    hillclimb_thread_args *args = (hillclimb_thread_args *) arg;
+    for(int r=args->thread_id;r<args->n_sols;r+=THREADS){
+        // Perform local search on the given solution
+        solution_whitaker_hill_climbing(args->prob,args->sols[r]);
+    }
+    return NULL;
+}
+
+// Perform local searches (in parallel).
+void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
+    // Allocate memory for threads and arguments
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*THREADS);
+    hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*THREADS);
+    // Call all threads to perform local search
+    for(int i=0;i<THREADS;i++){
+        targs[i].thread_id = i;
+        targs[i].prob = prob;
+        targs[i].sols = sols;
+        targs[i].n_sols = n_sols;
+        int rc = pthread_create(&threads[i],NULL,hillclimb_thread_execution,&targs[i]);
+        if(rc){
+            fprintf(stderr,"ERROR: Error %d on pthread_create\n",rc);
+            exit(1);
+        }
+    }
+    // Join threads
+    for(int i=0;i<THREADS;i++){ // Join threads
+        pthread_join(threads[i],NULL);
+    }
+    // Free memory
+    free(targs);
+    free(threads);
+}

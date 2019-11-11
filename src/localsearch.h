@@ -7,7 +7,10 @@
 // Performs hill climbing via facility swapings using Witaker's fast exchange heuristic 
 void solution_whitaker_hill_climbing(const problem *prob, solution *sol);
 
-// Delete repeated solutions on the given array of refs.
+// Delete repeated solutions on the given array
 void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols);
+
+// Perform local searches (in parallel).
+void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols);
 
 #endif

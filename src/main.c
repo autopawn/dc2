@@ -27,7 +27,7 @@ int main(int argc, const char **argv){
             if(argv[i][1]=='n'){
                 int n_read = sscanf(argv[1],"-n%d",&target_n);
                 if(n_read<1){
-                   fprintf(stderr,"ERROR: expected numer on argument \"%s\".\n",argv[i]);
+                   fprintf(stderr,"ERROR: expected number on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
             }else{

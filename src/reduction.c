@@ -25,7 +25,7 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
             rstrat.soldis,rstrat.facdis,0);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE_BESTS){
-        printf("simple diversity-based clustering (best).\n");
+        printf("simple diversity-based clustering (bests).\n");
         reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,1);
     }
