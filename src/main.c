@@ -7,7 +7,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-n<target_n>] [-f<filter>] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-n<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -18,26 +18,48 @@ int main(int argc, const char **argv){
     int n_strategies = 0;
     const char **strategy_args = safe_malloc(sizeof(const char *)*argc);
 
-    // Target number of solutions
+    // Problem arguments to be changed by command line arguments
     int target_n = -1;
     int filter_n = -1;
+    int bnb = -1;
+    int max_size = -1;
+    int min_size = -1;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
         if(argv[i][0]=='-'){
             if(argv[i][1]=='n'){
+                // Number of target solutions
                 int n_read = sscanf(argv[i],"-n%d",&target_n);
                 if(n_read<1){
                    fprintf(stderr,"ERROR: expected number of target sols. on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
+            }else if(argv[i][1]=='s'){
+                // Minimum solution size
+                int n_read = sscanf(argv[i],"-s%d",&min_size);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected minimum size on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
+            }else if(argv[i][1]=='S'){
+                // Number of target solutions
+                int n_read = sscanf(argv[i],"-S%d",&max_size);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected maximum size on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
             }else if(argv[i][1]=='f'){
+                // Select kind of filter
                 int n_read = sscanf(argv[i],"-f%d",&filter_n);
                 if(n_read<1){
                    fprintf(stderr,"ERROR: expected filter level on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
                 assert(0<=filter_n && filter_n<=MAX_FILTER);
+            }else if(argv[i][1]=='b' && strcmp(argv[i],"-b")==0){
+                // Disable branch and bound
+                bnb = 0;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);
@@ -54,6 +76,9 @@ int main(int argc, const char **argv){
     problem *prob = new_problem_load(argv[argc-2]);
     if(target_n>=0) prob->target_sols = target_n;
     if(filter_n>=0) prob->filter = filter_n;
+    if(bnb>=0) prob->branch_and_bound = bnb;
+    if(min_size>=0) prob->size_restriction_minimum = min_size;
+    if(max_size>=0) prob->size_restriction_maximum = max_size;
     
     printf("\n");
     printf("Performing precomputations.\n");

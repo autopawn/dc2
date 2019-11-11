@@ -31,8 +31,10 @@ typedef struct {
     double client_gain;
     // | Cost of not reaching a unit of weight (generaly 0 or infty), expected to be positive.
     double unassigned_cost;
-    // | Unless it is -1, the returned solutions must be of that size.
-    int size_restriction;
+    // | Unless it is -1, the returned solutions must be of that size or larger.
+    int size_restriction_minimum;
+    // | Unless it is -1, the returned solutions must be of that size or smaller.
+    int size_restriction_maximum;
     // | Filter used after expanding the current solutions.
     filter filter;
     // | If B&B is active

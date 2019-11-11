@@ -32,7 +32,8 @@ problem *load_simple_format(FILE *fp){
         exit(1);
     }
     if(trd_num==0) trd_num=-1;
-    prob->size_restriction = trd_num;
+    prob->size_restriction_maximum = trd_num;
+    prob->size_restriction_minimum = trd_num;
 
     // For each facility
     for(int i=0;i<prob->n_facs;i++){
@@ -150,7 +151,8 @@ problem *load_orlib_format(FILE *fp){
     }
 
     // Unsetted values:
-    prob->size_restriction = -1; // SPLP
+    prob->size_restriction_minimum = -1; // SPLP
+    prob->size_restriction_maximum = -1; // SPLP
     prob->transport_cost = 1;
     if(all_demands_0){
         for(int j=0;j<prob->n_clis;j++){

@@ -69,7 +69,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
         // Expand solutions from the previous generation
         if(csize<prob->n_facs && prev_n_sols>0){
-            if(prob->size_restriction==-1 || csize<prob->size_restriction){
+            if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
                 printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
                 next_n_sols = prev_n_sols;
                 next_sols = new_expand_solutions(prob,prev_sols,prev_n_sols,&next_n_sols);
@@ -77,7 +77,9 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
         }
 
         // Put the prev generation after LS in the final solutions
-        update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
+        if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
+            update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols);
+        }
 
         // Now the current gen is the previous one
         prev_n_sols = next_n_sols;

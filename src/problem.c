@@ -121,7 +121,8 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# TRANSPORT_COST: %lf\n",prob->transport_cost);
     fprintf(fp,"# CLIENT_GAIN: %lf\n",prob->client_gain);
     fprintf(fp,"# UNASSIGNED_COST: %lf\n",prob->unassigned_cost);
-    fprintf(fp,"# SIZE_RESTRICTION: %d\n",prob->size_restriction);
+    fprintf(fp,"# SIZE_RESTRICTION_MINIMUM: %d\n",prob->size_restriction_minimum);
+    fprintf(fp,"# SIZE_RESTRICTION_MAXIMUM: %d\n",prob->size_restriction_maximum);
     fprintf(fp,"# FILTER: %s (%d)\n",filter_names[prob->filter],(int)prob->filter);
     fprintf(fp,"# BRANCH_AND_BOUND: %d\n",prob->branch_and_bound);
     fprintf(fp,"# LOWER_BOUND: %lf\n",prob->lower_bound);
