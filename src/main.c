@@ -7,18 +7,16 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
-
-    // Set a fixed seed
-    srand(0xc0ffee);
 
     // Strategy nomenclature arguments
     int n_strategies = 0;
     const char **strategy_args = safe_malloc(sizeof(const char *)*argc);
 
     // Problem arguments to be changed by command line arguments
+    int random_seed = -1;
     int target_n = -1;
     int filter_n = -1;
     int bnb = -1;
@@ -29,7 +27,14 @@ int main(int argc, const char **argv){
     // Parse arguments
     for(int i=1;i<argc-2;i++){
         if(argv[i][0]=='-'){
-            if(argv[i][1]=='n'){
+            if(argv[i][1]=='r'){
+                // Number of target solutions
+                int n_read = sscanf(argv[i],"-r%d",&random_seed);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected seed on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
+            }else if(argv[i][1]=='n'){
                 // Number of target solutions
                 int n_read = sscanf(argv[i],"-n%d",&target_n);
                 if(n_read<1){
@@ -80,6 +85,10 @@ int main(int argc, const char **argv){
 
     redstrategy *strategies = redstrategy_init_from_nomenclatures(strategy_args,&n_strategies);
 
+    // Set random seed
+    if(random_seed==-1) random_seed = (int) time(NULL);
+    srand(random_seed);
+
     // Read problem and use console arguments
     problem *prob = new_problem_load(argv[argc-2]);
     if(target_n>=0) prob->target_sols = target_n;
@@ -98,7 +107,7 @@ int main(int argc, const char **argv){
     printf("# REDUCTION:");
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
-
+    printf("# RANDOM_SEED: %d\n",random_seed);
 
     // Final solutions
     int final_n_sols;
