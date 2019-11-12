@@ -3,6 +3,10 @@
 #include "expand.h"
 #include "reduction.h"
 #include "construction.h"
+#include "output.h"
+
+#include <time.h>
+#include <sys/time.h>
 
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
@@ -14,6 +18,10 @@ int main(int argc, const char **argv){
     // Strategy nomenclature arguments
     int n_strategies = 0;
     const char **strategy_args = safe_malloc(sizeof(const char *)*argc);
+
+    // Filenames
+    const char *input_fname = argv[argc-2];
+    const char *output_fname = argv[argc-1];
 
     // Problem arguments to be changed by command line arguments
     int random_seed = -1;
@@ -89,12 +97,8 @@ int main(int argc, const char **argv){
 
     redstrategy *strategies = redstrategy_init_from_nomenclatures(strategy_args,&n_strategies);
 
-    // Set random seed
-    if(random_seed==-1) random_seed = (int) time(NULL);
-    srand(random_seed);
-
     // Read problem and use console arguments
-    problem *prob = new_problem_load(argv[argc-2]);
+    problem *prob = new_problem_load(input_fname);
     if(target_n>=0) prob->target_sols = target_n;
     if(filter_n>=0) prob->filter = filter_n;
     if(bnb>=0) prob->branch_and_bound = bnb;
@@ -103,6 +107,18 @@ int main(int argc, const char **argv){
     if(n_threads>0) prob->n_threads = n_threads;
     if(local_search>0) prob->local_search = local_search; 
     
+    // Set random seed
+    if(random_seed==-1) random_seed = (int) time(NULL);
+    prob->random_seed = random_seed; 
+
+    // Start counting time (cpu and elapsed)
+    clock_t start = clock();
+    struct timeval elapsed_start;
+    gettimeofday(&elapsed_start,NULL);
+    // ---@>
+    
+    // Perform precomputations
+    // (derivated attributes of the problem, like facility-facility distanceS)
     printf("\n");
     printf("Performing precomputations.\n");
     problem_precompute(prob,strategies,n_strategies);
@@ -112,13 +128,25 @@ int main(int argc, const char **argv){
     printf("# REDUCTION:");
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
-    printf("# RANDOM_SEED: %d\n",random_seed);
 
     // Final solutions
     int final_n_sols;
     int n_iterations;
     solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
         &final_n_sols, &n_iterations);
+
+    // End counting time
+    clock_t end = clock();
+    struct timeval elapsed_end;
+    gettimeofday(&elapsed_end,NULL);
+    float seconds = (float)(end - start) / (float)CLOCKS_PER_SEC;
+    float elapsed_seconds = get_delta_seconds(elapsed_start,elapsed_end);
+    // ---@>
+
+    // Save output
+    save_solutions(output_fname,
+        prob,final_sols,final_n_sols,input_fname,
+        seconds,elapsed_seconds,n_iterations,strategies,n_strategies);
 
     // Print solutions
     for(int i=0;i<final_n_sols;i++){

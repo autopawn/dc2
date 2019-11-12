@@ -133,4 +133,5 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# PRECOMP_EMPTY_VALUE: %lf\n",prob->precomp_empty_value);
     fprintf(fp,"# N_THREADS: %d\n",prob->n_threads);
     fprintf(fp,"# LOCAL_SEACH: %d\n",prob->local_search);
+    fprintf(fp,"# RANDOM_SEED: %d\n",prob->random_seed);
 }

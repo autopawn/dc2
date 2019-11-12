@@ -57,6 +57,8 @@ typedef struct {
     int n_threads;
     // | Perform local search?
     int local_search;
+    // | Random seed
+    int random_seed;
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 
