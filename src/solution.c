@@ -224,9 +224,6 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
     return phi2;
 }
 
-// Find the best option for removal if f_ins is inserted to the solution
-// NOTE: v must be intialized with -INFINITY and have size equal to prob->n_facs.
-// ^ It is always reset to that state before returning.
 void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
         const int *phi2, int *out_f_rem, double *out_profit){
     // The facility costs:

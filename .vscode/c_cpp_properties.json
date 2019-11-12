@@ -5,9 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
-            "defines": [
-                "THREADS=4"
-            ],
+            "defines": [],
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
             "cppStandard": "c++17",

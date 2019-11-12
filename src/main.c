@@ -7,7 +7,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-n<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -36,6 +36,13 @@ int main(int argc, const char **argv){
                    fprintf(stderr,"ERROR: expected number of target sols. on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
+            }else if(argv[i][1]=='t'){
+                // Number of target solutions
+                int n_read = sscanf(argv[i],"-t%d",&n_threads);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected number of threads on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
             }else if(argv[i][1]=='s'){
                 // Minimum solution size
                 int n_read = sscanf(argv[i],"-s%d",&min_size);
@@ -58,13 +65,6 @@ int main(int argc, const char **argv){
                    exit(1);
                 }
                 assert(0<=filter_n && filter_n<=MAX_FILTER);
-            }else if(argv[i][1]=='t'){
-                // Number of target solutions
-                int n_read = sscanf(argv[i],"-t%d",&n_threads);
-                if(n_read<1){
-                   fprintf(stderr,"ERROR: expected number of threads on argument \"%s\".\n",argv[i]);
-                   exit(1);
-                }
             }else if(argv[i][1]=='b' && strcmp(argv[i],"-b")==0){
                 // Disable branch and bound
                 bnb = 0;

@@ -2,7 +2,6 @@
 
 void reduce_by_redstrategy(problem *prob, const redstrategy rstrat, 
         solution **sols, int *n_sols){
-
     if(*n_sols<=rstrat.n_target) return;
 
     printf("Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",
@@ -50,10 +49,9 @@ void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_ta
 }
 
 void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target){
-    // If there are already less solutions, do nothing.
     if(*n_sols<=n_target) return;
     // Put target_n randomly selected solutions first on the array, but keep the best so far.
-    for(int i=1;i<n_target;i++){
+    for(int i=1;i<n_target;i++){ // Fisher-Yates shuffle
         int choice = i+rand()%(*n_sols-i);
         solution *aux = sols[i];
         sols[i] = sols[choice];
@@ -67,7 +65,3 @@ void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols,
     *n_sols = n_target;
 }
 
-void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target){
-    // Sort solutions in decreasing order
-    qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
-}
