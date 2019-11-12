@@ -7,7 +7,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -19,10 +19,11 @@ int main(int argc, const char **argv){
     int random_seed = -1;
     int target_n = -1;
     int filter_n = -1;
-    int bnb = -1;
     int max_size = -1;
     int min_size = -1;
     int n_threads = -1;
+    int local_search = -1;
+    int bnb = -1;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -73,6 +74,9 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='b' && strcmp(argv[i],"-b")==0){
                 // Disable branch and bound
                 bnb = 0;
+            }else if(argv[i][1]=='l' && strcmp(argv[i],"-l")==0){
+                // Disable local search
+                local_search = 0;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);
@@ -97,6 +101,7 @@ int main(int argc, const char **argv){
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
     if(n_threads>0) prob->n_threads = n_threads;
+    if(local_search>0) prob->local_search = local_search; 
     
     printf("\n");
     printf("Performing precomputations.\n");

@@ -8,6 +8,7 @@
 
 #define DEFAULT_TARGET_SOLS 10
 #define DEFAULT_THREADS 4
+#define DEFAULT_LOCAL_SEARCH 1
 
 typedef enum {
     NO_FILTER = 0,
@@ -54,6 +55,8 @@ typedef struct {
     double **facs_distance[N_FACDIS_MODES];
     // | Number of threads
     int n_threads;
+    // | Perform local search?
+    int local_search;
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 

@@ -5,10 +5,10 @@
 void update_final_solutions(problem *prob, solution **final, int *n_final,
         solution **cands, int n_cands){
     // Perform local search on the candidate solutions
-    if(n_cands>0){
+    if(prob->local_search && n_cands>0){
         printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
+        solutions_hill_climbing(prob,cands,n_cands);
     }
-    solutions_hill_climbing(prob,cands,n_cands);
     // Delete repeated solutions after local search
     int n_cands0 = n_cands;
     solutions_delete_repeated(prob,cands,&n_cands);
