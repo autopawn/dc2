@@ -53,7 +53,9 @@ solution *solution_copy(const problem *prob, const solution *sol){
 void solution_add(const problem *prob, solution *sol, int newf){
     // Check if f is already on the solution:
     for(int f=0;f<sol->n_facs;f++){
-        if(sol->facs[f]==newf) return;
+        if(sol->facs[f]==newf){
+            return;
+        }
     }
     // Extend array of facilities
     sol->facs = realloc(sol->facs,sizeof(int)*(sol->n_facs+1));
@@ -74,7 +76,7 @@ void solution_add(const problem *prob, solution *sol, int newf){
     }
     // Cost of facilities
     for(int i=0;i<sol->n_facs;i++){
-        value2 -= prob->facility_cost[i];
+        value2 -= prob->facility_cost[sol->facs[i]];
     }
     // Update solution value
     sol->value = value2;
@@ -216,9 +218,10 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
     for(int p=0;p<sol->n_facs;p++){
         int fac = sol->facs[p];
         if(fac==phi1) continue;
-        if(problem_assig_value(prob,fac,cli)>phi2_assig_value){
+        double fac_assig_value = problem_assig_value(prob,fac,cli);
+        if(fac_assig_value>phi2_assig_value){
             phi2 = fac;
-            phi2_assig_value = problem_assig_value(prob,phi2,cli);
+            phi2_assig_value = fac_assig_value;
         }
     }
     return phi2;
@@ -226,14 +229,13 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
 
 void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
         const int *phi2, int *out_f_rem, double *out_profit){
-    // The facility costs:
+    // The cost for removing a facility decreases on the cost of the facility
     double w = f_ins==-1? 0 : -prob->facility_cost[f_ins];
     for(int k=0;k<sol->n_facs;k++){
         v[sol->facs[k]] = -prob->facility_cost[sol->facs[k]];
     }
     //
     for(int u=0;u<prob->n_clis;u++){
-
         int phi1u = sol->assigns[u];
         double assig_f_ins_value = problem_assig_value(prob,f_ins,u);
         double assig_phi1u_value = problem_assig_value(prob,phi1u,u);
@@ -241,7 +243,8 @@ void solution_findout(const problem *prob, const solution *sol, int f_ins, doubl
         if(delta>=0){ // Profit by adding f_ins, because it is nearly.
             w += delta;
         }else{ // Loss by removing phi1u, because it is nearly.
-            if(phi1u==-1 || v[phi1u]==-INFINITY) continue; // phi1u not part of the solution.
+            assert(phi1u==-1 || v[phi1u]!=-INFINITY);
+            if(phi1u==-1) continue; // phi1u not part of the solution.
             double assig_phi2u_value = problem_assig_value(prob,phi2[u],u);
             if(assig_f_ins_value > assig_phi2u_value){
                 v[phi1u] += assig_phi1u_value - assig_f_ins_value;
@@ -259,7 +262,7 @@ void solution_findout(const problem *prob, const solution *sol, int f_ins, doubl
     }
     // Outputs
     *out_f_rem = f_rem;
-    *out_profit = w - (f_rem==-1? 0 : v[f_rem]);
+    *out_profit = w - v[f_rem];
     // Reset v
     for(int k=0;k<sol->n_facs;k++){
         v[sol->facs[k]] = -INFINITY;

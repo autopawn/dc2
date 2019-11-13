@@ -68,11 +68,96 @@ problem *load_simple_format(FILE *fp){
     prob->transport_cost = 1;
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = BETTER_THAN_ALL_PARENTS;
+    prob->filter = BETTER_THAN_SUBSETS;
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
     //
+    return prob;
+}
+
+problem *load_dc_format(FILE *fp, int dc_version){
+    // For now, just this one version
+    assert(dc_version==1);
+
+    // Read line in header
+    char buffer[400];
+    if(fscanf(fp,"%s",buffer)!=1){
+        fprintf(stderr,"ERROR: couldn't read header!\n");
+        exit(1);
+    }
+
+    // Parameters
+    double transport_cost;
+    double client_gain;
+    double unassigned_cost;
+    int min_size,max_size;
+    int n_facs,n_clis;
+
+    // Scan parameters
+    if(fscanf(fp,"%lf",&transport_cost)!=1){
+        fprintf(stderr,"ERROR: transport cost expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%lf",&client_gain)!=1){
+        fprintf(stderr,"ERROR: client gain expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%lf",&unassigned_cost)!=1){
+        fprintf(stderr,"ERROR: unassigned cost expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%d",&min_size)!=1){
+        fprintf(stderr,"ERROR: minimum size expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%d",&max_size)!=1){
+        fprintf(stderr,"ERROR: maximum size expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%d",&n_facs)!=1){
+        fprintf(stderr,"ERROR: number of facilitites expected!\n");
+        exit(1);
+    }
+    if(fscanf(fp,"%d",&n_clis)!=1){
+        fprintf(stderr,"ERROR: number of clients expected!\n");
+        exit(1);
+    }
+
+    // Initialize problem
+    problem *prob = problem_init(n_facs,n_clis);
+    prob->size_restriction_minimum = min_size;
+    prob->size_restriction_maximum = max_size;
+    prob->transport_cost = transport_cost;
+    prob->client_gain = client_gain;
+    prob->unassigned_cost = unassigned_cost;
+
+    // Read facility costs
+    for(int i=0;i<prob->n_facs;i++){
+        if(fscanf(fp," %lf",&prob->facility_cost[i])!=1){
+            fprintf(stderr,"ERROR: facility cost expected!\n");
+            exit(1);
+        }
+    }
+    // Read client weights and distances
+    for(int i=0;i<prob->n_clis;i++){
+        if(fscanf(fp,"%lf",&prob->client_weight[i])!=1){
+            fprintf(stderr,"ERROR: client weight expected!\n");
+            exit(1);
+        }
+        for(int j=0;j<prob->n_facs;j++){
+            if(fscanf(fp," %lf",&prob->distance[j][i])!=1){
+                fprintf(stderr,"ERROR: distance expected!\n");
+                exit(1);
+            }
+        }
+    }
+
+    // Default parameters
+    prob->filter = BETTER_THAN_SUBSETS;
+    prob->lower_bound = -INFINITY;
+    prob->branch_and_bound = 1;
+
     return prob;
 }
 
@@ -161,7 +246,7 @@ problem *load_orlib_format(FILE *fp){
     }
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = BETTER_THAN_ALL_PARENTS;
+    prob->filter = BETTER_THAN_SUBSETS;
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
@@ -182,16 +267,32 @@ problem *new_problem_load(const char *file){
         fprintf(stderr,"ERROR: couldn't read first string!\n");
         exit(1);
     }
-    int simple_format = (strcmp(buffer,"FILE:")==0);
 
     fseek(fp,0,SEEK_SET); // Reset reading
     problem *prob;
-    if(simple_format){
+    
+    // Check if it is simple format
+    if(strcmp(buffer,"FILE:")==0){
         printf("SIMPLE format identified.\n");
         prob = load_simple_format(fp);
     }else{
-        printf("ORLIB format identified.\n");
-        prob = load_orlib_format(fp);
+        buffer[2] = '\0';
+        // Check if it is a DC format
+        if(strcmp(buffer,"DC")==0){
+            int dc_version = 0;
+            int n_read = sscanf(&buffer[3],"V%d",&dc_version);
+            if(n_read<1){
+                fprintf(stderr,"ERROR: couldn't identify DC format version \"%s\"!\n",&buffer[3]);
+                exit(1);
+            }
+            printf("DC format identified, version %d.\n",dc_version);
+            prob = load_dc_format(fp,dc_version);
+        }
+        // Assume ORLIB format
+        else{
+            printf("ORLIB format assumed.\n");
+            prob = load_orlib_format(fp);
+        }
     }
 
     // Close file

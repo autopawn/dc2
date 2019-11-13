@@ -13,9 +13,11 @@ void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
         used[i] = 0;
         v[i] = -INFINITY;
     }
+    for(int i=0;i<sol->n_facs;i++){
+        used[sol->facs[i]] = 1;
+    }
     // Each movement:
     while(1){
-        for(int i=0;i<sol->n_facs;i++) used[sol->facs[i]] = 1;
         // Clients nearest to the solution
         for(int i=0;i<prob->n_clis;i++){
             phi2[i] = solution_client_2nd_nearest(prob,sol,i);
@@ -44,7 +46,7 @@ void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
         solution_remove(prob,sol,best_rem,phi2);
         used[best_rem] = 0;
         solution_add(prob,sol,best_ins);
-        used[best_rem] = 1;
+        used[best_ins] = 1;
         assert(sol->value>old_value);
     }
 
