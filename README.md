@@ -72,7 +72,7 @@ executes the solver using 8 threads with a two step reduction method (first samp
 
 # Formats supported
 
-The solver currently supports 3 formats, the ORLIB-cap format and the Simple format specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html).
+The solver currently supports 3 formats, the ORLIB-cap format and the Simple format, specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html), and the more general DC_V1 format.
 
 ## ORLIB-cap format
 
