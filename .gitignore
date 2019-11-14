@@ -1,5 +1,5 @@
 bin
-out
+out.txt
 
 # Prerequisites
 *.d

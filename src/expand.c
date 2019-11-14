@@ -59,6 +59,18 @@ typedef struct {
     solution **out_sols;
 } expand_thread_args;
 
+// Check if a solution passes the value of which it would be filtered.
+// Equal valued solutions are not filtered if the size restriction has not yet ben reached
+// Or if the other value is -INFINITY.
+int is_filtered(const problem *prob, const solution *sol, double other){
+    int not_equality = sol->n_facs<=prob->size_restriction_minimum || other<=-INFINITY;
+    if(not_equality){
+        return sol->value < other; 
+    }else{
+        return sol->value <= other; 
+    }
+}
+
 void *expand_thread_execution(void *arg){
     expand_thread_args *args = (expand_thread_args *) arg;
     
@@ -88,17 +100,17 @@ void *expand_thread_execution(void *arg){
             int f_rem;
             double delta_profit;
             solution_findout(args->prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
-            if(delta_profit>0) filtered = 1;
+            filtered = is_filtered(args->prob,new_sol,new_sol->value+delta_profit);
         }
-        // Any other filter uses the fsol->origin
+        // Filters that use fsol->origin
+        // Notice that if the filter is BETTER_THAN_ONE_PARENT, then fsol->origin is the worst parent
+        // If it is BETTER_THAN_ALL_PARENTS, then fsol->origin is the best parent
         else if(args->prob->filter >= BETTER_THAN_ONE_PARENT){
-            if(fsol->origin->value > -INFINITY &&
-                new_sol->value <= fsol->origin->value) filtered = 1;
+            filtered = is_filtered(args->prob,new_sol,fsol->origin->value);
         }
         // If it must be better than the empty solution
         else if(args->prob->filter == BETTER_THAN_EMPTY){
-            if(args->prob->precomp_empty_value > -INFINITY && 
-                new_sol->value <= args->prob->precomp_empty_value) filtered = 1;
+            filtered = is_filtered(args->prob,new_sol,args->prob->precomp_empty_value);
         }
         // Delete the solution
         if(filtered){
