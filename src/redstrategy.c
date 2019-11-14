@@ -1,6 +1,6 @@
 #include "redstrategy.h"
 
-const char *default_redstrategies[] = {"rand:5000","sdce+:150"};
+const char *default_redstrategies[] = {"rand:6000","sdce+:200"};
  
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;

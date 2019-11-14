@@ -212,7 +212,7 @@ The reduction is performed chaining one or more reduction strategies. These redu
 
 The default (and recommended) reduction strategy, is:
 ```
-rand:5000 sdce+:150
+rand:6000 sdce+:200
 ```
 which picks 5000 solutions randomly and then applies scde to select 150.
 
@@ -220,6 +220,12 @@ which picks 5000 solutions randomly and then applies scde to select 150.
 ```
 rand:10000 sdce+:400
 ```
+
+You may also skip the previous random selection, which will be more costly but will result on more representative solutions.
+```
+sdce+:400
+```
+
 
 Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise.
 
@@ -287,3 +293,7 @@ Solution-solution dissimilitudes:
     D(A,B) = sum_j |d(A,j)-d(B,j)|
     ```
     Uses the distance to the clients as a vector which is compared, its cost is O(m) (number of clients) so may be good for problems with very large solutions.
+
+## Local search
+
+The local searches are performed using Whitaker's fast swap heuristic.
