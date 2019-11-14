@@ -186,8 +186,8 @@ double solution_dissimilitude(const problem *prob,
     else if(sdismode==SOLDIS_PER_CLIENT_DELTA){
         double total = 0;
         for(int i=0;i<prob->n_clis;i++){
-            double cost_a = prob->distance[sol1->assigns[i]][i];
-            double cost_b = prob->distance[sol2->assigns[i]][i];
+            double cost_a = problem_assig_value(prob,sol1->assigns[i],i);
+            double cost_b = problem_assig_value(prob,sol2->assigns[i],i);
             double delta = cost_a-cost_b;
             if(delta<0) delta = -delta;
             total += delta;
