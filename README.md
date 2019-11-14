@@ -250,6 +250,7 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 | `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `msesum`).
 
 The following table lists the complexities to select `n` solutions from a set of size `m`.
+
 | **Strategy** | **Comparisons** | **Memory** |
 | :----------  | :-------------: | :--------: |
 | `sdce` | `m n` | `O(m)` |
@@ -259,6 +260,7 @@ The following table lists the complexities to select `n` solutions from a set of
 ### Dissimilitude metrics:
 
 The following dissimilitude metrics are available:
+
 | `<di>` | **Description** |
 | :---- | ------- |
 | `mgemin` | Mean Geometric Error. <br> Using **min triangle** as facility-facility distance. |
