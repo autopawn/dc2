@@ -39,8 +39,8 @@ SPLP, p-median, set covering, and maximum coverage problems can be **reduced** t
 | :------ | ------ |
 | SPLP | `K=inf`, `C=0` |
 | p-median | `K=inf`, `C=0`, `f_i=0`, `s_max=p` |
-| set covering | `K=n+1`, `C=0`, `f_i=1`, `T=inf`, `d_ij={0|1}` |
-| maximum coverage | `K=0`, `C=1`, `f_i=0`, `T=inf`, `d_ij={0|1}`, `s_max=k` |
+| set covering | `K=n+1`, `C=0`, `f_i=1`, `T=inf`, `d_ij={0 or 1}` |
+| maximum coverage | `K=0`, `C=1`, `f_i=0`, `T=inf`, `d_ij={0 or 1}`, `s_max=k` |
 
 Furthermore, the solver can read a SPLP and a p-median problem file formats directly.
 
