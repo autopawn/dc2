@@ -37,10 +37,10 @@ SPLP, p-median, set covering, and maximum coverage problems can be **reduced** t
 
 | Problem | Values |
 | :------ | ------ |
-| SPLP | `K=inf`, `C=0`
+| SPLP | `K=inf`, `C=0` |
 | p-median | `K=inf`, `C=0`, `f_i=0`, `s_max=p` |
-| set covering | `K=n+1`, `C=0`, `f_i=1`, `T=inf`, `d_ij={0|1}` |
-| maximum coverage | `K=0`, `C=1`, `f_i=0`, `T=inf`, `d_ij={0|1}`, `s_max=k`
+| set covering | `K=n+1`, `C=0`, `f_i=1`, `T=inf`, `d_ij={0 or 1}` |
+| maximum coverage | `K=0`, `C=1`, `f_i=0`, `T=inf`, `d_ij={0 or 1}`, `s_max=k` |
 
 Furthermore, the solver can read a SPLP and a p-median problem file formats directly.
 
@@ -72,7 +72,7 @@ executes the solver using 8 threads with a two step reduction method (first samp
 
 # Formats supported
 
-The solver currently supports 3 formats, the ORLIB-cap format and the Simple format specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html).
+The solver currently supports 3 formats, the ORLIB-cap format and the Simple format, specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html), and the more general DC_V1 format.
 
 ## ORLIB-cap format
 
@@ -250,6 +250,7 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 | `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `msesum`).
 
 The following table lists the complexities to select `n` solutions from a set of size `m`.
+
 | **Strategy** | **Comparisons** | **Memory** |
 | :----------  | :-------------: | :--------: |
 | `sdce` | `m n` | `O(m)` |
@@ -259,6 +260,7 @@ The following table lists the complexities to select `n` solutions from a set of
 ### Dissimilitude metrics:
 
 The following dissimilitude metrics are available:
+
 | `<di>` | **Description** |
 | :---- | ------- |
 | `mgemin` | Mean Geometric Error. <br> Using **min triangle** as facility-facility distance. |
