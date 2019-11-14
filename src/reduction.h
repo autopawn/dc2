@@ -22,7 +22,12 @@ void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols,
 void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target);
 
 // Reduce the solutions, using Glover's simple diversity-based starting
+// The best_of_clusters flag is used to indentify if the best of each cluster is selected,
+// instead of the centroid.
 void reduction_diversity_starting(const problem *prob, solution **sols, int *n_sols,
         int n_target, soldismode soldis, facdismode facdis, int bests_of_clusters);
+
+void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
+        int n_target, soldismode soldis, facdismode facdis, int vision_range);
 
 #endif

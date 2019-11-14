@@ -28,6 +28,11 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
         reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,1);
     }
+    else if(rstrat.method==REDUCTION_VRHEURISTIC){
+        printf("VR heuristic (vision range: %d).\n",rstrat.arg);
+        reduction_vr_heuristic(prob,sols,n_sols,rstrat.n_target,
+            rstrat.soldis,rstrat.facdis,rstrat.arg);
+    }
     else{
         printf("???.\n");
         fprintf(stderr,"ERROR: Reduction method not yet implemented.\n");
