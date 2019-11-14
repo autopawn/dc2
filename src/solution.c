@@ -135,7 +135,7 @@ double solution_dissimilitude(const problem *prob,
         const solution *sol1, const solution *sol2,
         soldismode sdismode, facdismode fdismode){
     // Compute the dissimilitude according to the sdismode
-    if(sdismode==SOLDIS_MEAN_SQUARE_ERROR){
+    if(sdismode==SOLDIS_MEAN_GEOMETRIC_ERROR){
         // Expect the facility distances for this mode to be computed:
         if(prob->facs_distance[fdismode]==NULL){
             fprintf(stderr,"Error: problem facility-facility distances are not precomputed!\n");

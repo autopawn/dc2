@@ -12,7 +12,7 @@ typedef enum {
 } facdismode;
 
 typedef enum {
-    SOLDIS_MEAN_SQUARE_ERROR = 0, // D(A,B) = sum_j |d(A,j)-d(B,j)|
+    SOLDIS_MEAN_GEOMETRIC_ERROR = 0, // D(A,B) = sum_j |d(A,j)-d(B,j)|
     SOLDIS_HAUSDORF = 1,          // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
     SOLDIS_PER_CLIENT_DELTA = 2,  // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
 } soldismode;

@@ -1,6 +1,6 @@
 #include "redstrategy.h"
 
-const char *default_redstrategies[] = {"rand:4000","sdce+:200"};
+const char *default_redstrategies[] = {"rand:5000","sdce+:150"};
  
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
@@ -100,15 +100,15 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Identify the dissimilitude and distance strategies
     if(n_scan<3){
-        strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+        strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;
         strategy.facdis = FACDIS_SUM_OF_DELTAS;
     }else{
-        if(strcmp(distm,"msemin")==0){
-            strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+        if(strcmp(distm,"mgemin")==0){
+            strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;
             strategy.facdis = FACDIS_MIN_TRIANGLE;
         }
-        else if(strcmp(distm,"msesum")==0){
-            strategy.soldis = SOLDIS_MEAN_SQUARE_ERROR;
+        else if(strcmp(distm,"mgesum")==0){
+            strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;
             strategy.facdis = FACDIS_SUM_OF_DELTAS;
         }
         else if(strcmp(distm,"haumin")==0){
