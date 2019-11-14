@@ -1,14 +1,16 @@
 # dc2
 
-dc2 is a solver for uncapacitated facility location problems like SPLP and p-median, based on Disperse Construction, a constructive incomplete search method that explores the search space using diversity.
+**dc2** is a solver for uncapacitated facility location problems like SPLP and p-median, based on Disperse Construction, a constructive incomplete search method that explores the search space using diversity.
 
-![](imgs/dc2.png)
+This is the second version of the original [dc_splp](https://github.com/autopawn/dc_splp).
 
 It is mainly composed of:
 * **Expansion**: Starightforward method to generate all possible solutions of size `n+1` by adding one facility to solutions size `n`.
 * **Filtering**: A method that deletes some of the solutions if they are not worth exploring, i.e. leading to worse solutions that the one from where it originated.
 * **Reduction**: A method to select a representative subset of solutions from a given set.
 * **Local search**: A method that perform moves on a given solution until no further moves can increase the solution value.
+
+![](imgs/dc2.png)
 
 The search advances using these methods on several iterations, as shown in the previous diagram, until no more solutions are present. Additionaly it uses Branch and Bound to further filter solutions.
 
