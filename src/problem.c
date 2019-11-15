@@ -91,7 +91,7 @@ void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
             }
             // Compute distance matrix 
             for(int a=0;a<prob->n_facs;a++){
-                for(int b=0;b<prob->n_facs;b++){
+                for(int b=a;b<prob->n_facs;b++){
                     if(mode==FACDIS_SUM_OF_DELTAS){
                         double dist = 0;
                         for(int j=0;j<prob->n_clis;j++){
