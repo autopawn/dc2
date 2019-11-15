@@ -23,6 +23,7 @@ redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms)
     for(int i=1;i<n_strategies;i++){
         if(strategies[i-1].n_target<=strategies[i].n_target){
             fprintf(stderr,"ERROR: strategy n_targets must decrease!\n");
+            exit(1);
         }
     }
     *n_noms = n_strategies;

@@ -43,3 +43,48 @@ void rem_of_sorted(int *array, int *len, int val){
     }
     *len -= 1;
 }
+
+sem_t *dc_semaphore_init(){
+    static int sem_id = 4232;
+    sem_t *sem;
+    assert(errno==0);
+    #ifdef NAMED_SEMAPHORES
+        char namebuffer[300];
+        sprintf(namebuffer,"/dc2_sem_%d",sem_id++);
+        sem = sem_open(namebuffer,O_CREAT | O_EXCL,0644,0);
+        if(sem == SEM_FAILED){
+            perror("ERROR: sem_open failed!");
+            exit(1);
+        }
+        if(sem_unlink(namebuffer)!=0){
+            perror("ERROR: sem_unlink failed!");
+            exit(1);
+        }
+    #else
+        sem = safe_malloc(sizeof(sem_t)*1);
+        if(sem_init(sem,0,0)==-1){
+            perror("ERROR: sem_init failed!");
+            exit(1);
+        }
+    #endif
+    assert(errno==0);
+    return sem;
+}
+
+void dc_semaphore_free(sem_t *sem){
+    assert(errno==0);
+    #ifdef NAMED_SEMAPHORES
+        if(sem_close(sem)==-1){
+            perror("ERROR: sem_close failed!");
+            exit(1);
+        }
+        assert(errno==0);
+    #else
+        if(sem_destroy(sem)==-1){
+            perror("ERROR: sem_destroy failed!");
+            exit(1);
+        }
+        free(sem);
+    #endif
+    assert(errno==0);
+}

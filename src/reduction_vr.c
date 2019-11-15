@@ -201,14 +201,15 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
     
     // Create threads:
     pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
-    sem_t *t_sems = safe_malloc(sizeof(pthread_mutex_t)*prob->n_threads);
-    sem_t *c_sems = safe_malloc(sizeof(pthread_mutex_t)*prob->n_threads);
+    sem_t **t_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
+    sem_t **c_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
     reductionvr_thread_args *targs = safe_malloc(sizeof(reductionvr_thread_args)*prob->n_threads);
     int terminated = 0; // NOTE: Only access before threads are waken.
     //
     for(int i=0;i<prob->n_threads;i++){
-        sem_init(&t_sems[i],0,0);
-        sem_init(&c_sems[i],0,0);
+        // Init semaphores
+        t_sems[i] = dc_semaphore_init();
+        c_sems[i] = dc_semaphore_init();
 
         // Parameters
         targs[i].thread_id = i;
@@ -226,8 +227,8 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
         targs[i].prev_sols = prev_sols;
         targs[i].next_sols = next_sols;
         // Semaphores
-        targs[i].thread_sem = &t_sems[i];
-        targs[i].complete_sem = &c_sems[i];
+        targs[i].thread_sem = t_sems[i];
+        targs[i].complete_sem = c_sems[i];
         targs[i].terminated = &terminated;
 
         // Initialize thread
@@ -250,7 +251,7 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
 
     // Wait for all threads to terminate the last job
     for(int i=0;i<prob->n_threads;i++){
-        sem_wait(&c_sems[i]);
+        sem_wait(c_sems[i]);
     }
     // ---@> At this point, all initial dissimilitude pairs are complete.
 
@@ -294,11 +295,11 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
             }
             // Wake threads to create new pairs
             for(int i=0;i<prob->n_threads;i++){
-                sem_post(&t_sems[i]);
+                sem_post(t_sems[i]);
             }
             // Wait for all threads to terminate their job
             for(int i=0;i<prob->n_threads;i++){
-                sem_wait(&c_sems[i]);
+                sem_wait(c_sems[i]);
             }
         }
     }
@@ -306,22 +307,23 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
     // Wake threads for termination
     terminated = 1;
     for(int i=0;i<prob->n_threads;i++){
-        sem_post(&t_sems[i]);
+        sem_post(t_sems[i]);
     }
+
     // Join threads
     for(int i=0;i<prob->n_threads;i++){
         pthread_join(threads[i],NULL);
     }
+    free(threads);
+    free(targs);
+
     // Destroy semaphores
     for(int i=0;i<prob->n_threads;i++){
-        sem_destroy(&t_sems[i]);
-        sem_destroy(&c_sems[i]);
+        dc_semaphore_free(t_sems[i]);
+        dc_semaphore_free(c_sems[i]);
     }
-    // Free double linked list
-    free(threads);
     free(t_sems);
     free(c_sems);
-    free(targs);
 
     // Free prev and next sols arrays
     free(prev_sols);
