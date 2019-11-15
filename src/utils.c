@@ -45,11 +45,12 @@ void rem_of_sorted(int *array, int *len, int val){
 }
 
 sem_t *dc_semaphore_init(){
-    static int sem_id = 4232;
     sem_t *sem;
     assert(errno==0);
     #ifdef NAMED_SEMAPHORES
-        char namebuffer[300];
+        // id changes each time this function is called
+        static int sem_id = 1000;
+        char namebuffer[200];
         sprintf(namebuffer,"/dc2_sem_%d",sem_id++);
         sem = sem_open(namebuffer,O_CREAT | O_EXCL,0644,0);
         if(sem == SEM_FAILED){
