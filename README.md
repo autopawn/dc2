@@ -216,7 +216,7 @@ The default (and recommended) reduction strategy, is:
 ```
 rand:6000 sdce+:200
 ```
-which picks 5000 solutions randomly and then applies scde to select 150.
+which picks 6000 solutions randomly and then applies scde to select 200.
 
 **If you want to spend more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
 ```
