@@ -5,7 +5,7 @@
 This is the second version of the original [dc_splp](https://github.com/autopawn/dc_splp).
 
 It is mainly composed of:
-* **Expansion**: Starightforward method to generate all possible solutions of size `n+1` by adding one facility to solutions size `n`.
+* **Expansion**: Straightforward method to generate all possible solutions of size `n+1` by adding one facility to solutions size `n`.
 * **Filtering**: A method that deletes some of the solutions if they are not worth exploring, i.e. leading to worse solutions that the one from where it originated.
 * **Reduction**: A method to select a representative subset of solutions from a given set.
 * **Local search**: A method that perform moves on a given solution until no further moves can increase the solution value.
