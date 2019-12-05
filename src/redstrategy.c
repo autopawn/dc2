@@ -113,8 +113,9 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Identify the dissimilitude and distance strategies
     if(n_scan<3){
-        strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;
-        strategy.facdis = FACDIS_SUM_OF_DELTAS;
+        // Default dissimilitudes:
+        strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
+        strategy.facdis = FACDIS_NONE;
     }else{
         if(strcmp(distm,"mgemin")==0){
             strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;

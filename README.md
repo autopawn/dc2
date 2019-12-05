@@ -215,13 +215,13 @@ The reduction is performed chaining one or more reduction strategies. These redu
 
 The default (and recommended) reduction strategy, is:
 ```
-rand:6000 sdce+:200
+rand1:6000 sdce+:200
 ```
 which picks 6000 solutions randomly and then applies scde to select 200.
 
-**If you want to spend more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
+**If you want to invest more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
 ```
-rand:10000 sdce+:400
+rand1:10000 sdce+:400
 ```
 
 You may also skip the previous random selection, which will be more costly but will result on more representative solutions.
@@ -229,8 +229,7 @@ You may also skip the previous random selection, which will be more costly but w
 sdce+:400
 ```
 
-
-Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise.
+Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise. These dissimilitudes require precomputations.
 
 ### Strategies
 
@@ -248,17 +247,17 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 
 | **Strategy** | **Description** |
 | :----------  | --------------- |
-| `sdce:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based <br> clustering initialization method, enhanced. <br> Using the `<di>` dissimilitude metric (default: `mgesum`).
+| `sdce:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based <br> clustering initialization method, enhanced. <br> Using the `<di>` dissimilitude metric (default: `pcd`).
 | `sdce+:<n>:<di>` | Same as `scde` but the bests solutions of each cluster <br> are selected instead of the centroids.
-| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `mgesum`).
+| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `pcd`).
 
-The following table lists the complexities to select `n` solutions from a set of size `m`.
+The following table lists the complexities to select `Q` solutions from a set of size `P`.
 
-| **Strategy** | **Comparisons** | **Memory** |
+| **Strategy** | **Dissimilitudes** | **Memory** |
 | :----------  | :-------------: | :--------: |
-| `sdce` | `m n` | `O(m)` |
-| `sdce+` | `m n` | `O(m)` |
-| `vrh` | `2 m v` | `O(m v)` |
+| `sdce` | `P Q` | `O(P)` |
+| `sdce+` | `P Q` | `O(P)` |
+| `vrh` | `2 P v` | `O(P v)` |
 
 ### Dissimilitude metrics:
 
@@ -278,11 +277,16 @@ Facility-facility distances:
     df(a,b) = min_j d(a,j)+d(b,j)
     ```
     This facility-facility distance is the best for **metric** problems, but may be very bad for **non-metric** problems. Its intended to be geographical distance.
+    
+    Precomputation of all them costs O(n^2 m).
+
 * **sum of deltas**:
     ```
     df(a,b) = sum_j |v(a,j)-v(b,j)|
     ```
     This facility-facility distance is the best for **non-metric** problems. Compares the assignment costs.
+
+    Precomputation of all them costs O(n^2 m).
 
 Solution-solution dissimilitudes:
 * **Mean geometric error**:
