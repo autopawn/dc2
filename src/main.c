@@ -117,23 +117,24 @@ int main(int argc, const char **argv){
     gettimeofday(&elapsed_start,NULL);
     // ---@>
     
-    // Perform precomputations
-    // (derivated attributes of the problem, like facility-facility distanceS)
     printf("\n");
-    printf("Performing precomputations.\n");
-    problem_precompute(prob,strategies,n_strategies);
-    
+
     // Print current run info:
     problem_print(prob,stdout);
     printf("# REDUCTION:");
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
+    printf("\n");
 
+    // Perform precomputations
+    // (derivated attributes of the problem, like facility-facility distanceS)
+    printf("Performing precomputations.\n");
+    problem_precompute(prob,strategies,n_strategies);
+    
     // Final solutions
     int final_n_sols;
-    int n_iterations;
     solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
-        &final_n_sols, &n_iterations);
+        &final_n_sols);
 
     // End counting time
     clock_t end = clock();
@@ -143,10 +144,12 @@ int main(int argc, const char **argv){
     float elapsed_seconds = get_delta_seconds(elapsed_start,elapsed_end);
     // ---@>
 
+    printf("\n");
+    
     // Save output
     save_solutions(output_fname,
         prob,final_sols,final_n_sols,input_fname,
-        seconds,elapsed_seconds,n_iterations,strategies,n_strategies);
+        seconds,elapsed_seconds,strategies,n_strategies);
 
     // Print solutions
     for(int i=0;i<final_n_sols;i++){

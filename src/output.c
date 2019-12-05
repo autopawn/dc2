@@ -12,7 +12,7 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2){
 
 void save_solutions(const char *file, 
         const problem *prob, solution **sols, int n_sols,
-        const char *input_file, float seconds, float elapsed, int n_iters,
+        const char *input_file, float seconds, float elapsed,
         const redstrategy *strategies, int n_strategies){
     FILE *fp;
     // Open output file
@@ -33,8 +33,34 @@ void save_solutions(const char *file,
     fprintf(fp,"# CPU_TIME: %f\n",seconds);
     fprintf(fp,"# ELAPSED: %f\n",elapsed);
     fprintf(fp,"# INPUT_FILE: \"%s\"\n",input_file);
-    fprintf(fp,"# ITERATIONS: %d\n",n_iters);
     fprintf(fp,"\n");
+    
+    /* LAST RESTART DATA */
+    fprintf(fp,"== LAST RESTART DATA ==\n");
+    fprintf(fp,"# ITERATIONS: %d\n",prob->lastr_n_iterations);
+    //
+    fprintf(fp,"# PER_SIZE_SOLS:          ");
+    for(int i=0;i<prob->lastr_n_iterations;i++){
+        fprintf(fp," %6d",prob->lastr_per_size_n_sols[i]);
+    }
+    fprintf(fp,"\n");
+    //
+    fprintf(fp,"# PER_SIZE_SOLS_AFTER_RED:");
+    for(int i=0;i<prob->lastr_n_iterations;i++){
+        fprintf(fp," %6d",prob->lastr_per_size_n_sols_after_red[i]);
+    }
+    fprintf(fp,"\n");
+    //
+    fprintf(fp,"# PER_SIZE_LOCAL_OPTIMA:  ");
+    for(int i=0;i<prob->lastr_n_iterations;i++){
+        fprintf(fp," %6d",prob->lastr_per_size_n_local_optima[i]);
+    }
+    fprintf(fp,"\n");
+    //
+    fprintf(fp,"\n");
+    
+    /* SOLUTIONS DATA */
+    fprintf(fp,"== SOLUTIONS DATA ==\n");
     fprintf(fp,"# SOLUTIONS: %d\n",n_sols);
     for(int i=0;i<n_sols;i++){
         fprintf(fp,"\n");

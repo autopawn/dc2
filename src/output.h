@@ -13,7 +13,7 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2);
 // the resulting solutions
 void save_solutions(const char *file, 
         const problem *prob, solution **sols, int n_sols,
-        const char *input_file, float seconds, float elapsed, int n_iters,
+        const char *input_file, float seconds, float elapsed,
         const redstrategy *strategies, int n_strategies);
 
 

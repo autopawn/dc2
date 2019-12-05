@@ -59,6 +59,16 @@ typedef struct {
     int local_search;
     // | Random seed
     int random_seed;
+
+    /* OUTPUT INFO */
+    // | Total number of iterations performed. Just the last restart when using restarts.
+    int lastr_n_iterations;
+    // | Number of solutions after expansion. Just the last restart when using restarts.
+    int *lastr_per_size_n_sols;
+    // | Number of solutions after reduction. Just the last restart when using restarts.
+    int *lastr_per_size_n_sols_after_red;
+    // | Number of different local optima found. Just the last restart when using restarts.
+    int *lastr_per_size_n_local_optima;
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 
