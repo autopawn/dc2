@@ -43,6 +43,7 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
 void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_target){
     // Sort solutions in decreasing order
     qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
+    assert(*n_sols<2 || sols[0]->value>=sols[1]->value);
     // If there are already less solutions, do nothing.
     if(*n_sols<=n_target) return;
     // Free other solutions:

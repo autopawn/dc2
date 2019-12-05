@@ -22,6 +22,7 @@ void save_solutions(const char *file,
         fprintf(stderr,"ERROR: couldn't open file \"%s\"!\n",file);
         exit(1);
     }
+    printf("\n");
     // Print problem data
     problem_print(prob,fp);
     // Print reduction scheme
@@ -61,7 +62,7 @@ void save_solutions(const char *file,
     
     /* SOLUTIONS DATA */
     fprintf(fp,"== SOLUTIONS DATA ==\n");
-    fprintf(fp,"# SOLUTIONS: %d\n",n_sols);
+    fprintf(fp,"# OUTPUT_SOLUTIONS: %d\n",n_sols);
     for(int i=0;i<n_sols;i++){
         fprintf(fp,"\n");
         solution_print(prob,sols[i],fp);

@@ -203,6 +203,7 @@ The following flags can be used to specify different behaviours:
 | `-l` | Skip local searches | 
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
+| `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> B&B bound is kept after restarts.  |
 | `-t<n>` | The number of threads to use. |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.

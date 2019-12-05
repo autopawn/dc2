@@ -47,73 +47,80 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
     int final_n_sols = 0;
     solution **final_sols = safe_malloc(sizeof(solution *)*prob->target_sols*2);
     
-    // The previous generation
-    int prev_n_sols = 1;
-    solution **prev_sols = safe_malloc(sizeof(solution *)*prev_n_sols);
-    prev_sols[0] = solution_empty(prob);
 
-    int csize = 0; // Last base computed
-    while(prev_n_sols>0){
-        
+    for(int r=0;r<prob->n_restarts;r++){
+
         printf("\n");
-        printf("Base has \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m.\n",prev_n_sols,csize);
-        // Apply branch and bound
-        if(prob->branch_and_bound){
-            int n_sols0 = prev_n_sols;
-            branch_and_bound(prob,prev_sols,&prev_n_sols);
-            if(prev_n_sols < n_sols0){
-                printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,prev_n_sols);
+        printf("== RESTART %d/%d ==\n",r+1,prob->n_restarts);
+
+        // The previous generation
+        int prev_n_sols = 1;
+        solution **prev_sols = safe_malloc(sizeof(solution *)*prev_n_sols);
+        prev_sols[0] = solution_empty(prob);
+
+        int csize = 0; // Last base computed
+        while(prev_n_sols>0){
+            
+            printf("\n");
+            printf("Base has \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m.\n",prev_n_sols,csize);
+            // Apply branch and bound
+            if(prob->branch_and_bound){
+                int n_sols0 = prev_n_sols;
+                branch_and_bound(prob,prev_sols,&prev_n_sols);
+                if(prev_n_sols < n_sols0){
+                    printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,prev_n_sols);
+                }
             }
-        }
-        
-        // Save number of solutions after expansion
-        if(prob->local_search){
-            prob->lastr_per_size_n_sols[csize] = prev_n_sols;
-        }
-
-        // Apply the reduction strategies
-        for(int i=0;i<n_rstrats;i++){
-            reduce_by_redstrategy(prob,rstrats[i],prev_sols,&prev_n_sols);
-        }
-
-
-        // Save number of solutions after reduction
-        if(prob->local_search){
-            prob->lastr_per_size_n_sols_after_red[csize] = prev_n_sols;
-        }
-
-        int next_n_sols = 0;
-        solution **next_sols = NULL;
-
-        // Expand solutions from the previous generation
-        if(csize<prob->n_facs && prev_n_sols>0){
-            if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
-                printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
-                next_n_sols = prev_n_sols;
-                next_sols = new_expand_solutions(prob,prev_sols,prev_n_sols,&next_n_sols);
+            
+            // Save number of solutions after expansion
+            if(prob->local_search){
+                prob->lastr_per_size_n_sols[csize] = prev_n_sols;
             }
+
+            // Apply the reduction strategies
+            for(int i=0;i<n_rstrats;i++){
+                reduce_by_redstrategy(prob,rstrats[i],prev_sols,&prev_n_sols);
+            }
+
+
+            // Save number of solutions after reduction
+            if(prob->local_search){
+                prob->lastr_per_size_n_sols_after_red[csize] = prev_n_sols;
+            }
+
+            int next_n_sols = 0;
+            solution **next_sols = NULL;
+
+            // Expand solutions from the previous generation
+            if(csize<prob->n_facs && prev_n_sols>0){
+                if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
+                    printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
+                    next_n_sols = prev_n_sols;
+                    next_sols = new_expand_solutions(prob,prev_sols,prev_n_sols,&next_n_sols);
+                }
+            }
+
+
+            // Put the prev generation after LS in the final solutions
+            if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
+                update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols,csize);
+            }else{
+                for(int i=0;i<prev_n_sols;i++) solution_free(prev_sols[i]);
+                free(prev_sols);
+            }
+
+            // Now the current gen is the previous one
+            prev_n_sols = next_n_sols;
+            prev_sols = next_sols;
+
+            // Increase csize
+            csize += 1;
+            // Update number of iterations
+            prob->lastr_n_iterations = csize;
         }
 
-
-        // Put the prev generation after LS in the final solutions
-        if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
-            update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols,csize);
-        }else{
-            for(int i=0;i<prev_n_sols;i++) solution_free(prev_sols[i]);
-            free(prev_sols);
-        }
-
-        // Now the current gen is the previous one
-        prev_n_sols = next_n_sols;
-        prev_sols = next_sols;
-
-        // Increase csize
-        csize += 1;
-        // Update number of iterations
-        prob->lastr_n_iterations = csize;
+        printf("\n");
     }
-
-    printf("\n");
 
     // Retrieve the final solutions:
     *out_n_sols = final_n_sols;

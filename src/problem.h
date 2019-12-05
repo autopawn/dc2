@@ -47,18 +47,22 @@ typedef struct {
     double lower_bound;
     // | Number of solutions requested
     int target_sols;
-    // | Precomputed value of empty solution
-    double precomp_empty_value;
-    // | Precomputed optimal gain from all clients
-    double precomp_client_optimal_gain;
-    // | Precomputed distance matrices between facilities (for each mode)
-    double **facs_distance[N_FACDIS_MODES];
     // | Number of threads
     int n_threads;
     // | Perform local search?
     int local_search;
     // | Random seed
     int random_seed;
+    // | Restarts
+    int n_restarts;
+
+    /* PRECOMPUTATIONS */
+    // | Precomputed value of empty solution
+    double precomp_empty_value;
+    // | Precomputed optimal gain from all clients
+    double precomp_client_optimal_gain;
+    // | Precomputed distance matrices between facilities (for each mode)
+    double **facs_distance[N_FACDIS_MODES];
 
     /* OUTPUT INFO */
     // | Total number of iterations performed. Just the last restart when using restarts.

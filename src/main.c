@@ -11,7 +11,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -25,6 +25,7 @@ int main(int argc, const char **argv){
 
     // Problem arguments to be changed by command line arguments
     int random_seed = -1;
+    int restarts = -1;
     int target_n = -1;
     int filter_n = -1;
     int max_size = -1;
@@ -37,7 +38,7 @@ int main(int argc, const char **argv){
     for(int i=1;i<argc-2;i++){
         if(argv[i][0]=='-'){
             if(argv[i][1]=='r'){
-                // Number of target solutions
+                // Random seed
                 int n_read = sscanf(argv[i],"-r%d",&random_seed);
                 if(n_read<1){
                    fprintf(stderr,"ERROR: expected seed on argument \"%s\".\n",argv[i]);
@@ -50,8 +51,15 @@ int main(int argc, const char **argv){
                    fprintf(stderr,"ERROR: expected number of target sols. on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
+            }else if(argv[i][1]=='R'){
+                // Number of restarts
+                int n_read = sscanf(argv[i],"-R%d",&restarts);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected number of restarts on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
             }else if(argv[i][1]=='t'){
-                // Number of target solutions
+                // Number of threads
                 int n_read = sscanf(argv[i],"-t%d",&n_threads);
                 if(n_read<1){
                    fprintf(stderr,"ERROR: expected number of threads on argument \"%s\".\n",argv[i]);
@@ -105,7 +113,8 @@ int main(int argc, const char **argv){
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
     if(n_threads>0) prob->n_threads = n_threads;
-    if(local_search>0) prob->local_search = local_search; 
+    if(local_search>0) prob->local_search = local_search;
+    if(restarts>0) prob->n_restarts = restarts;
     
     // Set random seed
     if(random_seed==-1) random_seed = (int) time(NULL);
@@ -145,7 +154,7 @@ int main(int argc, const char **argv){
     // ---@>
 
     printf("\n");
-    
+
     // Save output
     save_solutions(output_fname,
         prob,final_sols,final_n_sols,input_fname,

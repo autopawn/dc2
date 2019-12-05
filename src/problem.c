@@ -16,6 +16,7 @@ problem *problem_init(int n_facs, int n_clis){
     prob->target_sols = DEFAULT_TARGET_SOLS;
     prob->n_threads = DEFAULT_THREADS;
     prob->local_search = DEFAULT_LOCAL_SEARCH;
+    prob->n_restarts = 1;
 
     //
     prob->client_weight = safe_malloc(sizeof(double)*prob->n_clis);
@@ -145,4 +146,5 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# N_THREADS: %d\n",prob->n_threads);
     fprintf(fp,"# LOCAL_SEACH: %d\n",prob->local_search);
     fprintf(fp,"# RANDOM_SEED: %d\n",prob->random_seed);
+    fprintf(fp,"# RESTARTS: %d\n",prob->n_restarts);
 }
