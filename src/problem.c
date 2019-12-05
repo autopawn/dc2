@@ -107,7 +107,7 @@ void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
                     if(mode==FACDIS_SUM_OF_DELTAS){
                         double dist = 0;
                         for(int j=0;j<prob->n_clis;j++){
-                            double delta = prob->distance[a][j]-prob->distance[b][j];
+                            double delta = problem_assig_value(prob,a,j) - problem_assig_value(prob,b,j);
                             if(delta<0) delta = -delta;
                             dist += delta;
                         }

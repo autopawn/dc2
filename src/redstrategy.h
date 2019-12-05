@@ -7,14 +7,14 @@
 
 typedef enum {
     FACDIS_MIN_TRIANGLE = 0,  // df(a,b) = min_j d(a,j)+d(b,j)
-    FACDIS_SUM_OF_DELTAS = 1, // df(a,b) = sum_j |d(a,j)-d(b,j)|
+    FACDIS_SUM_OF_DELTAS = 1, // df(a,b) = sum_j |v(a,j)-v(b,j)|
     FACDIS_NONE = 2,
 } facdismode;
 
 typedef enum {
-    SOLDIS_MEAN_GEOMETRIC_ERROR = 0, // D(A,B) = sum_j |d(A,j)-d(B,j)|
+    SOLDIS_MEAN_GEOMETRIC_ERROR = 0, // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
     SOLDIS_HAUSDORF = 1,          // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
-    SOLDIS_PER_CLIENT_DELTA = 2,  // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
+    SOLDIS_PER_CLIENT_DELTA = 2,  // D(A,B) = sum_j |v(A,j)-v(B,j)|
 } soldismode;
 
 typedef enum {

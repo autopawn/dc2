@@ -277,12 +277,12 @@ Facility-facility distances:
     ```
     df(a,b) = min_j d(a,j)+d(b,j)
     ```
-    This facility-facility distance is the best for **metric** problems, but may be very bad for **non-metric** problems.
+    This facility-facility distance is the best for **metric** problems, but may be very bad for **non-metric** problems. Its intended to be geographical distance.
 * **sum of deltas**:
     ```
-    df(a,b) = sum_j |d(a,j)-d(b,j)|
+    df(a,b) = sum_j |v(a,j)-v(b,j)|
     ```
-    This facility-facility distance is the best for **non-metric** problems.
+    This facility-facility distance is the best for **non-metric** problems. Compares the assignment costs.
 
 Solution-solution dissimilitudes:
 * **Mean geometric error**:
@@ -297,9 +297,9 @@ Solution-solution dissimilitudes:
     Is faster but may have poor results, it is prone to ties.
 * **Per client delta**:
     ```
-    D(A,B) = sum_j |d(A,j)-d(B,j)|
+    D(A,B) = sum_j |v(A,j)-v(B,j)|
     ```
-    Uses the distance to the clients as a vector which is compared, its cost is O(m) (number of clients) so may be good for problems with very large solutions.
+    Uses the client assignment costs as a vector which is compared, its cost is O(m) (number of clients) so may be good for problems with very large solutions.
 
 ## Local search
 
