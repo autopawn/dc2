@@ -3,7 +3,7 @@
 // final is expected to have a size >= 2*prob->target_sols 
 // cands is liberated.
 void update_final_solutions(problem *prob, solution **final, int *n_final,
-        solution **cands, int n_cands, int csize){
+        solution **cands, int n_cands, int csize, int first_restart){
     // The candidates should have the same number of solutins that csize
     assert(n_cands==0 || cands[0]->n_facs==csize);
     // Perform local search on the candidate solutions
@@ -19,8 +19,8 @@ void update_final_solutions(problem *prob, solution **final, int *n_final,
             n_cands0,n_cands);
     }
     // Save number of local optima found
-    if(prob->local_search){
-        prob->lastr_per_size_n_local_optima[csize] = n_cands;
+    if(first_restart && prob->local_search){
+        prob->firstr_per_size_n_local_optima[csize] = n_cands;
     }
     // Pick the best prob->target_sols candidates
     reduction_bests(prob,cands,&n_cands,prob->target_sols);
@@ -50,6 +50,8 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
     for(int r=0;r<prob->n_restarts;r++){
 
+        int first_restart = r==0;
+
         printf("\n");
         printf("== RESTART %d/%d ==\n",r+1,prob->n_restarts);
 
@@ -73,8 +75,8 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
             }
             
             // Save number of solutions after expansion
-            if(prob->local_search){
-                prob->lastr_per_size_n_sols[csize] = prev_n_sols;
+            if(first_restart && prob->local_search){
+                prob->firstr_per_size_n_sols[csize] = prev_n_sols;
             }
 
             // Apply the reduction strategies
@@ -84,8 +86,8 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
 
             // Save number of solutions after reduction
-            if(prob->local_search){
-                prob->lastr_per_size_n_sols_after_red[csize] = prev_n_sols;
+            if(first_restart && prob->local_search){
+                prob->firstr_per_size_n_sols_after_red[csize] = prev_n_sols;
             }
 
             int next_n_sols = 0;
@@ -103,7 +105,7 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
 
             // Put the prev generation after LS in the final solutions
             if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
-                update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols,csize);
+                update_final_solutions(prob,final_sols,&final_n_sols,prev_sols,prev_n_sols,csize,first_restart);
             }else{
                 for(int i=0;i<prev_n_sols;i++) solution_free(prev_sols[i]);
                 free(prev_sols);
@@ -116,8 +118,9 @@ solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rs
             // Increase csize
             csize += 1;
             // Update number of iterations
-            prob->lastr_n_iterations = csize;
+            if(first_restart) prob->firstr_n_iterations = csize;
         }
+        prob->total_n_iterations += csize;
 
         printf("\n");
     }

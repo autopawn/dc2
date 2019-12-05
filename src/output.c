@@ -16,13 +16,17 @@ void save_solutions(const char *file,
         const redstrategy *strategies, int n_strategies){
     FILE *fp;
     // Open output file
-    printf("Opening file \"%s\" for saving results...\n",file);
-    fp = fopen(file,"w");
-    if(fp==NULL){
-        fprintf(stderr,"ERROR: couldn't open file \"%s\"!\n",file);
-        exit(1);
+    if(file){
+        printf("Opening file \"%s\" for saving results...\n",file);
+        fp = fopen(file,"w");
+        if(fp==NULL){
+            fprintf(stderr,"ERROR: couldn't open file \"%s\"!\n",file);
+            exit(1);
+        }
+        printf("\n");
+    }else{
+        fp = stdout;
     }
-    printf("\n");
     // Print problem data
     problem_print(prob,fp);
     // Print reduction scheme
@@ -31,30 +35,38 @@ void save_solutions(const char *file,
     for(int i=0;i<n_strategies;i++) fprintf(fp," %s",strategies[i].nomenclature);
     fprintf(fp,"\n");
     // Print other useful information
+    fprintf(fp,"# INPUT_FILE: \"%s\"\n",input_file);
     fprintf(fp,"# CPU_TIME: %f\n",seconds);
     fprintf(fp,"# ELAPSED: %f\n",elapsed);
-    fprintf(fp,"# INPUT_FILE: \"%s\"\n",input_file);
+    fprintf(fp,"# TOTAL_ITERATIONS: %d\n",prob->total_n_iterations);
+    fprintf(fp,"\n");
+
+    /* LOCAL SEARCH INFO */
+    fprintf(fp,"== LOCAL SEARCH INFO ==\n");
+    fprintf(fp,"# LOCAL_SEARCH_CPU_TIME: %f\n",prob->local_search_seconds);
+    fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",prob->n_local_searches);
+    fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)prob->n_local_search_movements/(double)prob->n_local_searches);
     fprintf(fp,"\n");
     
-    /* LAST RESTART DATA */
-    fprintf(fp,"== LAST RESTART DATA ==\n");
-    fprintf(fp,"# ITERATIONS: %d\n",prob->lastr_n_iterations);
+    /* FIRST RESTART DATA */
+    fprintf(fp,"== FIRST RESTART INFO ==\n");
+    fprintf(fp,"# FIRST_ITERATIONS: %d\n",prob->firstr_n_iterations);
     //
-    fprintf(fp,"# PER_SIZE_SOLS:          ");
-    for(int i=0;i<prob->lastr_n_iterations;i++){
-        fprintf(fp," %6d",prob->lastr_per_size_n_sols[i]);
+    fprintf(fp,"# FIRST_PER_SIZE_SOLS:       ");
+    for(int i=0;i<prob->firstr_n_iterations;i++){
+        fprintf(fp," %6d",prob->firstr_per_size_n_sols[i]);
     }
     fprintf(fp,"\n");
     //
-    fprintf(fp,"# PER_SIZE_SOLS_AFTER_RED:");
-    for(int i=0;i<prob->lastr_n_iterations;i++){
-        fprintf(fp," %6d",prob->lastr_per_size_n_sols_after_red[i]);
+    fprintf(fp,"# FIRST_PER_SIZE_SOLS_RED:   ");
+    for(int i=0;i<prob->firstr_n_iterations;i++){
+        fprintf(fp," %6d",prob->firstr_per_size_n_sols_after_red[i]);
     }
     fprintf(fp,"\n");
     //
-    fprintf(fp,"# PER_SIZE_LOCAL_OPTIMA:  ");
-    for(int i=0;i<prob->lastr_n_iterations;i++){
-        fprintf(fp," %6d",prob->lastr_per_size_n_local_optima[i]);
+    fprintf(fp,"# FIRST_PER_SIZE_LOCAL_OPT:  ");
+    for(int i=0;i<prob->firstr_n_iterations;i++){
+        fprintf(fp," %6d",prob->firstr_per_size_n_local_optima[i]);
     }
     fprintf(fp,"\n");
     //
@@ -67,5 +79,8 @@ void save_solutions(const char *file,
         fprintf(fp,"\n");
         solution_print(prob,sols[i],fp);
     }
-    fclose(fp);
+    // Close file descriptor
+    if(fp!=stdout){
+        fclose(fp);
+    }
 }

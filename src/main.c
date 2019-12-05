@@ -128,17 +128,19 @@ int main(int argc, const char **argv){
     
     printf("\n");
 
+
+    // Perform precomputations
+    // (derivated attributes of the problem, like facility-facility distanceS)
+    printf("Performing precomputations.\n");
+    problem_precompute(prob,strategies,n_strategies);
+    printf("\n");
+
     // Print current run info:
     problem_print(prob,stdout);
     printf("# REDUCTION:");
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
     printf("\n");
-
-    // Perform precomputations
-    // (derivated attributes of the problem, like facility-facility distanceS)
-    printf("Performing precomputations.\n");
-    problem_precompute(prob,strategies,n_strategies);
     
     // Final solutions
     int final_n_sols;
@@ -159,11 +161,12 @@ int main(int argc, const char **argv){
     save_solutions(output_fname,
         prob,final_sols,final_n_sols,input_fname,
         seconds,elapsed_seconds,strategies,n_strategies);
+    
+    // Print output
+    save_solutions(NULL,
+        prob,final_sols,final_n_sols,input_fname,
+        seconds,elapsed_seconds,strategies,n_strategies);    
 
-    // Print solutions
-    for(int i=0;i<final_n_sols;i++){
-        solution_print(prob,final_sols[i],stdout);
-    }
     // Free memory
     for(int i=0;i<final_n_sols;i++){
         solution_free(final_sols[i]);

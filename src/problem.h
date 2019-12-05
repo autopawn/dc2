@@ -65,14 +65,23 @@ typedef struct {
     double **facs_distance[N_FACDIS_MODES];
 
     /* OUTPUT INFO */
-    // | Total number of iterations performed. Just the last restart when using restarts.
-    int lastr_n_iterations;
-    // | Number of solutions after expansion. Just the last restart when using restarts.
-    int *lastr_per_size_n_sols;
-    // | Number of solutions after reduction. Just the last restart when using restarts.
-    int *lastr_per_size_n_sols_after_red;
-    // | Number of different local optima found. Just the last restart when using restarts.
-    int *lastr_per_size_n_local_optima;
+    // | Total number of iterations performed. Just the first restart when using restarts.
+    int firstr_n_iterations;
+    // | Number of solutions after expansion. Just the first restart when using restarts.
+    int *firstr_per_size_n_sols;
+    // | Number of solutions after reduction. Just the first restart when using restarts.
+    int *firstr_per_size_n_sols_after_red;
+    // | Number of different local optima found. Just the first restart when using restarts.
+    int *firstr_per_size_n_local_optima;
+    // | Total number of iterations
+    int total_n_iterations;
+    // | Total number of local searches
+    long long int n_local_searches;
+    // | Total number of local search movements
+    long long int n_local_search_movements;
+    // | CPU time performing local search:
+    double local_search_seconds;
+
 } problem;
 
 // | Retrieves the value of assigning the client c to the facility f 

@@ -1,7 +1,7 @@
 #include "localsearch.h"
 
-void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
-    if(sol->n_facs==0) return;
+int solution_whitaker_hill_climbing(const problem *prob, solution *sol){
+    if(sol->n_facs==0) return 0;
     // Second nearest facility to each client
     int *phi2 = safe_malloc(sizeof(int)*prob->n_clis);
     // Array if a facility appears in the solution
@@ -17,6 +17,7 @@ void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
         used[sol->facs[i]] = 1;
     }
     // Each movement:
+    int n_moves = 0;
     while(1){
         // Clients nearest to the solution
         for(int i=0;i<prob->n_clis;i++){
@@ -48,12 +49,15 @@ void solution_whitaker_hill_climbing(const problem *prob, solution *sol){
         solution_add(prob,sol,best_ins);
         used[best_ins] = 1;
         assert(sol->value>old_value);
+        // Count one move:
+        n_moves += 1;
     }
 
     // Free memory
     free(v);
     free(used);
     free(phi2);
+    return n_moves;
 }
 
 void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols){
@@ -79,19 +83,22 @@ typedef struct {
     const problem *prob;
     solution **sols;
     int n_sols;
+    int n_moves;
 } hillclimb_thread_args;
 
 void *hillclimb_thread_execution(void *arg){
     hillclimb_thread_args *args = (hillclimb_thread_args *) arg;
     for(int r=args->thread_id;r<args->n_sols;r+=args->prob->n_threads){
         // Perform local search on the given solution
-        solution_whitaker_hill_climbing(args->prob,args->sols[r]);
+        args->n_moves += solution_whitaker_hill_climbing(args->prob,args->sols[r]);
     }
     return NULL;
 }
 
 // Perform local searches (in parallel).
-void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
+void solutions_hill_climbing(problem *prob, solution **sols, int n_sols){
+    // Start measuring time
+    clock_t start = clock();
     // Allocate memory for threads and arguments
     pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
     hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*prob->n_threads);
@@ -101,6 +108,7 @@ void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
         targs[i].prob = prob;
         targs[i].sols = sols;
         targs[i].n_sols = n_sols;
+        targs[i].n_moves = 0;
         int rc = pthread_create(&threads[i],NULL,hillclimb_thread_execution,&targs[i]);
         if(rc){
             fprintf(stderr,"ERROR: Error %d on pthread_create\n",rc);
@@ -108,10 +116,18 @@ void solutions_hill_climbing(const problem *prob, solution **sols, int n_sols){
         }
     }
     // Join threads
+    int n_moves = 0;
     for(int i=0;i<prob->n_threads;i++){ // Join threads
         pthread_join(threads[i],NULL);
+        n_moves += targs[i].n_moves;
     }
     // Free memory
     free(targs);
     free(threads);
+    // End measuring time
+    clock_t end = clock();
+    double seconds = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    prob->n_local_searches += n_sols;
+    prob->n_local_search_movements += n_moves;
+    prob->local_search_seconds += seconds;
 }

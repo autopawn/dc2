@@ -35,12 +35,12 @@ problem *problem_init(int n_facs, int n_clis){
         prob->facs_distance[mode] = NULL;
     }
     // Local optima found of each solution size.
-    prob->lastr_per_size_n_sols = safe_malloc(sizeof(int)*(prob->n_facs+2));
-    memset(prob->lastr_per_size_n_sols,0,     sizeof(int)*(prob->n_facs+2));
-    prob->lastr_per_size_n_sols_after_red = safe_malloc(sizeof(int)*(prob->n_facs+2));
-    memset(prob->lastr_per_size_n_sols_after_red,0,     sizeof(int)*(prob->n_facs+2));
-    prob->lastr_per_size_n_local_optima = safe_malloc(sizeof(int)*(prob->n_facs+2));
-    memset(prob->lastr_per_size_n_local_optima,0,     sizeof(int)*(prob->n_facs+2));
+    prob->firstr_per_size_n_sols = safe_malloc(sizeof(int)*(prob->n_facs+2));
+    memset(prob->firstr_per_size_n_sols,0,     sizeof(int)*(prob->n_facs+2));
+    prob->firstr_per_size_n_sols_after_red = safe_malloc(sizeof(int)*(prob->n_facs+2));
+    memset(prob->firstr_per_size_n_sols_after_red,0,     sizeof(int)*(prob->n_facs+2));
+    prob->firstr_per_size_n_local_optima = safe_malloc(sizeof(int)*(prob->n_facs+2));
+    memset(prob->firstr_per_size_n_local_optima,0,     sizeof(int)*(prob->n_facs+2));
     //
     return prob;
 }
@@ -64,9 +64,9 @@ void problem_free(problem *prob){
     free(prob->facility_cost);
     free(prob->client_weight);
     // Free number of local optima
-    free(prob->lastr_per_size_n_sols);
-    free(prob->lastr_per_size_n_sols_after_red);
-    free(prob->lastr_per_size_n_local_optima);
+    free(prob->firstr_per_size_n_sols);
+    free(prob->firstr_per_size_n_sols_after_red);
+    free(prob->firstr_per_size_n_local_optima);
     // Free problem
     free(prob);
 }
