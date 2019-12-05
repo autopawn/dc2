@@ -29,7 +29,7 @@ int segtree_pick(weight *segtree, int len){
     return p-len;
 }
 
-void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target){
+void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist){
     if(*n_sols<=n_target) return;
     // Sort solutions in decreasing order
     qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
@@ -41,12 +41,12 @@ void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, in
     for(int i=0;i<(*n_sols)*2;i++){
         pws[i] = 0;
     }
-    // The first solution is always picked (unless n_target==0)
-    picked[0] = (n_target>0);
+    // The first solution is always picked if elitist (unless n_target==0)
+    picked[0] = (elitist && n_target>0);
     int n_picked = picked[0];
     // Initial probabilities
-    for(int i=1;i<*n_sols;i++){
-        weight pw = 100000000/i;
+    for(int i=elitist;i<*n_sols;i++){
+        weight pw = 100000000/(i+1);
         if(pw<1) pw = 1;
         segtree_update(pws,*n_sols,i,pw);
     }

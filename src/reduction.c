@@ -11,12 +11,14 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
         reduction_bests(prob,sols,n_sols,rstrat.n_target);
     }
     else if(rstrat.method==REDUCTION_RANDOM_UNIFORM){
-        printf("randomly (uniform).\n");
-        reduction_random_uniform(prob,sols,n_sols,rstrat.n_target);
+        if(rstrat.elitist) printf("randomly (uniform, elitist).\n");
+        else printf("randomly (uniform).\n");
+        reduction_random_uniform(prob,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_RANDOM_RANK){
-        printf("randomly (by rank).\n");
-        reduction_random_rank(prob,sols,n_sols,rstrat.n_target);
+        if(rstrat.elitist) printf("randomly (by rank, elitist).\n");
+        else printf("randomly (by rank).\n");
+        reduction_random_rank(prob,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE){
         printf("simple diversity-based clustering.\n");
@@ -54,10 +56,10 @@ void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_ta
     *n_sols = n_target;
 }
 
-void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target){
+void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist){
     if(*n_sols<=n_target) return;
-    // Put target_n randomly selected solutions first on the array, but keep the best so far.
-    for(int i=1;i<n_target;i++){ // Fisher-Yates shuffle
+    // Put target_n randomly selected solutions first on the array, but keep the best so far if elitist.
+    for(int i=elitist;i<n_target;i++){ // Fisher-Yates shuffle
         int choice = i+rand()%(*n_sols-i);
         solution *aux = sols[i];
         sols[i] = sols[choice];

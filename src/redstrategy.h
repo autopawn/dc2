@@ -39,6 +39,7 @@ typedef struct {
     soldismode soldis;
     facdismode facdis;
     int arg;
+    int elitist; // For some strategies, if it keeps the best.
 } redstrategy;
 
 // Allocates an array of redstrategies from nomenclatures 

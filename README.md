@@ -239,7 +239,9 @@ The **simple** strategies are very fast and do not use a dissimilitude metric be
 | **Strategy** | **Description** |
 | :----------  | :-------------- |
 | `rand:<n>`   | Pick `n` solutions at random. <br> Uniform probability. |
+| `rand1:<n>`  | Same as `rand` but always pick the best solution.  |
 | `rank:<n>`   | Pick `n` solutions at random. <br> Probability proportional to the reciprocal of the rank <br> (the position in a list sorted by value). |
+| `rank1:<n>`  | Same as `rank` but always pick the best solution.  |
 | `best:<n>`   | Pick the best `n` solutions. |
 
 The **complex** strategies make use of a **dissimilitude** metric to compare between solutions and thus, pick an spacially different set of solutions.

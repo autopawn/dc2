@@ -16,10 +16,10 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
 void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_target);
 
 // Reduce the solutions, picking representatives at random, uniformly.
-void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target);
+void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist);
 
 // Reduce the solutions, with probabilities according to their rank.
-void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target);
+void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist);
 
 // Reduce the solutions, using Glover's simple diversity-based starting
 // The best_of_clusters flag is used to indentify if the best of each cluster is selected,

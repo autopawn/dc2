@@ -1,6 +1,6 @@
 #include "redstrategy.h"
 
-const char *default_redstrategies[] = {"rand:6000","sdce+:200"};
+const char *default_redstrategies[] = {"rand1:6000","sdce+:200"};
  
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
@@ -61,6 +61,8 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Set the strategy arg to -1 if not given:
     if(n_scan<4) strategy.arg = -1;
+    // Not elitist by default
+    strategy.elitist = 0;
 
     int invalid = 0;
     // Set the strategy method based on the abrev
@@ -72,9 +74,19 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         strategy.method = REDUCTION_RANDOM_UNIFORM;
         if(strategy_n_parts!=2) invalid = 1;
     }
+    else if(strcmp(abrev,"rand1")==0){
+        strategy.method = REDUCTION_RANDOM_UNIFORM;
+        if(strategy_n_parts!=2) invalid = 1;
+        strategy.elitist = 1;
+    }
     else if(strcmp(abrev,"rank")==0){
         strategy.method = REDUCTION_RANDOM_RANK;
         if(strategy_n_parts!=2) invalid = 1;
+    }
+    else if(strcmp(abrev,"rank1")==0){
+        strategy.method = REDUCTION_RANDOM_RANK;
+        if(strategy_n_parts!=2) invalid = 1;
+        strategy.elitist = 1;
     }
     else if(strcmp(abrev,"vrh")==0){
         strategy.method = REDUCTION_VRHEURISTIC;
