@@ -40,6 +40,14 @@ int main(int argc, const char **argv){
         int n_read = fscanf(fp,"%d",&fac);
         assert(n_read==1);
         solution_add(prob,solution,fac);
+        // Get the assign cost by the assignment made by the algorithm
+        double old_assign_cost = problem_assig_value(prob,solution->assigns[i],i);
+        // Get the assign cost by the assignment on the .opt solution
+        double opt_assign_cost = problem_assig_value(prob,fac,i);
+        // Assert that both are the same
+        assert(old_assign_cost==opt_assign_cost);
+        // Replace algorithm assignment with .opt assignment
+        solution->assigns[i] = fac;
     }
     fclose(fp);
 
