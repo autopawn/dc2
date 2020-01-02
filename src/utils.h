@@ -34,4 +34,7 @@ sem_t *dc_semaphore_init();
 // Semaphore destruction
 void dc_semaphore_free(sem_t *sem);
 
+// Memory usage
+void get_memory_usage(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem);
+
 #endif

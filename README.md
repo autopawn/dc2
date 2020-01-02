@@ -200,14 +200,14 @@ The following flags can be used to specify different behaviours:
 | Flag | Effect |
 | :--- | ------ |
 | `-b` | Don't perform Branch & Bound as additional filter. |
-| `-l` | Skip local searches | 
+| `-l` | Skip local searches |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> B&B bound is kept after restarts.  |
 | `-t<n>` | The number of threads to use. |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.
-| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent. <br> `-f4`: solution should be better than any possible parent (default) | 
+| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent. <br> `-f4`: solution should be better than any possible parent (default) |
 
 ## Reduction strategies
 
@@ -251,13 +251,13 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 | `sdce+:<n>:<di>` | Same as `scde` but the bests solutions of each cluster <br> are selected instead of the centroids.
 | `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `pcd`).
 
-The following table lists the complexities to select `Q` solutions from a set of size `P`.
+The following table lists the complexities to select `r` solutions from a set of size `q`.
 
 | **Strategy** | **Dissimilitudes** | **Memory** |
 | :----------  | :-------------: | :--------: |
-| `sdce` | `P Q` | `O(P)` |
-| `sdce+` | `P Q` | `O(P)` |
-| `vrh` | `2 P v` | `O(P v)` |
+| `sdce` | `q r` | `O(q)` |
+| `sdce+` | `q r` | `O(q)` |
+| `vrh` | `2 q v` | `O(q v)` |
 
 ### Dissimilitude metrics:
 
@@ -267,7 +267,7 @@ The following dissimilitude metrics are available:
 | :---- | ------- |
 | `mgemin` | Mean Geometric Error. <br> Using **min triangle** as facility-facility distance. |
 | `mgesum` | Mean Geometric Error. <br> Using **sum of deltas** as facility-facility distance. |
-| `haumin` | Hausdorff distance. <br> Using **min triangle** as facility-facility distance. | 
+| `haumin` | Hausdorff distance. <br> Using **min triangle** as facility-facility distance. |
 | `hausum` | Hausdorff distance. <br> Using **sum of deltas** as facility-facility distance. |
 | `pcd`    | Per client delta. <br> Doesn't use facility-facility distances. |
 
@@ -277,7 +277,7 @@ Facility-facility distances:
     df(a,b) = min_j d(a,j)+d(b,j)
     ```
     This facility-facility distance is the best for **metric** problems, but may be very bad for **non-metric** problems. Its intended to be geographical distance.
-    
+
     Precomputation of all them costs O(n^2 m).
 
 * **sum of deltas**:

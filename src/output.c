@@ -10,9 +10,9 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2){
     return secs;
 }
 
-void save_solutions(const char *file, 
+void save_solutions(const char *file,
         const problem *prob, solution **sols, int n_sols,
-        const char *input_file, float seconds, float elapsed,
+        const char *input_file, float seconds, float elapsed, int mem_usage,
         const redstrategy *strategies, int n_strategies){
     FILE *fp;
     // Open output file
@@ -38,6 +38,7 @@ void save_solutions(const char *file,
     fprintf(fp,"# INPUT_FILE: \"%s\"\n",input_file);
     fprintf(fp,"# CPU_TIME: %f\n",seconds);
     fprintf(fp,"# ELAPSED: %f\n",elapsed);
+    fprintf(fp,"# VIRT_MEM_PEAK_KB: %d\n",mem_usage);
     fprintf(fp,"# TOTAL_ITERATIONS: %d\n",prob->total_n_iterations);
     fprintf(fp,"\n");
 
@@ -47,7 +48,7 @@ void save_solutions(const char *file,
     fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",prob->n_local_searches);
     fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)prob->n_local_search_movements/(double)prob->n_local_searches);
     fprintf(fp,"\n");
-    
+
     /* FIRST RESTART DATA */
     fprintf(fp,"== FIRST RESTART INFO ==\n");
     fprintf(fp,"# FIRST_ITERATIONS: %d\n",prob->firstr_n_iterations);
@@ -71,7 +72,7 @@ void save_solutions(const char *file,
     fprintf(fp,"\n");
     //
     fprintf(fp,"\n");
-    
+
     /* SOLUTIONS DATA */
     fprintf(fp,"== SOLUTIONS DATA ==\n");
     fprintf(fp,"# OUTPUT_SOLUTIONS: %d\n",n_sols);

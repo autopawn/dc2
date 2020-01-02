@@ -10,8 +10,8 @@ void *safe_malloc(size_t size){
     return ptr;
 }
 
+// Thanks to user Thomas Mueller: https://stackoverflow.com/a/12996028
 uint hash_int(uint x){
-    // Thanks to https://stackoverflow.com/a/12996028
     x = ((x >> 16)^x)*0x45d9f3b;
     x = ((x >> 16)^x)*0x45d9f3b;
     x = (x >> 16)^x;
@@ -88,4 +88,51 @@ void dc_semaphore_free(sem_t *sem){
         free(sem);
     #endif
     assert(errno==0);
+}
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+// Thanks to user Anti Earth: https://stackoverflow.com/a/47531152
+/*
+ * Measures the current (and peak) resident and virtual memories
+ * usage of your linux C process, in kB
+ */
+void get_memory_usage(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem){
+    // stores each word in status file
+    static char memory_buffer[1024];
+    memory_buffer[0] = '\0';
+
+    // Initialize values to -1 if couldn't be read.
+    if(currRealMem) *currRealMem = -1;
+    if(peakRealMem) *peakRealMem = -1;
+    if(currVirtMem) *currVirtMem = -1;
+    if(peakVirtMem) *peakVirtMem = -1;
+
+    // linux file contains this-process info
+    FILE* file = fopen("/proc/self/status", "r");
+    if(file==NULL){
+        fprintf(stderr,"WARNING: couldn't read /proc/self/status to retrieve memory usage.\n");
+        return;
+    }
+
+    // read the entire file
+    while (fscanf(file, " %1023s", memory_buffer) == 1) {
+
+        if (currRealMem && strcmp(memory_buffer, "VmRSS:") == 0) {
+            if (fscanf(file, " %d", currRealMem)!=1) *currRealMem = -1;
+        }
+        if (peakRealMem && strcmp(memory_buffer, "VmHWM:") == 0) {
+            if (fscanf(file, " %d", peakRealMem)!=1) *peakRealMem = -1;
+        }
+        if (currVirtMem && strcmp(memory_buffer, "VmSize:") == 0) {
+            if (fscanf(file, " %d", currVirtMem)!=1) *currVirtMem = -1;
+        }
+        if (peakVirtMem && strcmp(memory_buffer, "VmPeak:") == 0) {
+            if (fscanf(file, " %d", peakVirtMem)!=1) *peakVirtMem = -1;
+        }
+    }
+    fclose(file);
 }

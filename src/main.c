@@ -115,17 +115,17 @@ int main(int argc, const char **argv){
     if(n_threads>0) prob->n_threads = n_threads;
     if(local_search>0) prob->local_search = local_search;
     if(restarts>0) prob->n_restarts = restarts;
-    
+
     // Set random seed
     if(random_seed==-1) random_seed = (int) time(NULL);
-    prob->random_seed = random_seed; 
+    prob->random_seed = random_seed;
 
     // Start counting time (cpu and elapsed)
     clock_t start = clock();
     struct timeval elapsed_start;
     gettimeofday(&elapsed_start,NULL);
     // ---@>
-    
+
     printf("\n");
 
 
@@ -141,7 +141,7 @@ int main(int argc, const char **argv){
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
     printf("\n");
-    
+
     // Final solutions
     int final_n_sols;
     solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
@@ -157,15 +157,20 @@ int main(int argc, const char **argv){
 
     printf("\n");
 
+    int virt_mem_usage_peak;
+    get_memory_usage(NULL,NULL,NULL,&virt_mem_usage_peak);
+
     // Save output
     save_solutions(output_fname,
         prob,final_sols,final_n_sols,input_fname,
-        seconds,elapsed_seconds,strategies,n_strategies);
-    
+        seconds,elapsed_seconds,virt_mem_usage_peak,
+        strategies,n_strategies);
+
     // Print output
     save_solutions(NULL,
         prob,final_sols,final_n_sols,input_fname,
-        seconds,elapsed_seconds,strategies,n_strategies);    
+        seconds,elapsed_seconds,virt_mem_usage_peak,
+        strategies,n_strategies);
 
     // Free memory
     for(int i=0;i<final_n_sols;i++){
