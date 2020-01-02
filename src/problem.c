@@ -24,7 +24,7 @@ problem *problem_init(int n_facs, int n_clis){
     //
     prob->facility_cost = safe_malloc(sizeof(double)*prob->n_facs);
     memset(prob->facility_cost,0,     sizeof(double)*prob->n_facs);
-    // 
+    //
     prob->distance = safe_malloc(sizeof(double*)*prob->n_facs);
     for(int i=0;i<prob->n_facs;i++){
         prob->distance[i] = safe_malloc(sizeof(double)*prob->n_clis);
@@ -71,6 +71,41 @@ void problem_free(problem *prob){
     free(prob);
 }
 
+typedef struct {
+    int thread_id;
+    const problem *prob;
+    int mode;
+} precomp_facs_dist_thread_args;
+
+void *precomp_facs_dist_thread_execution(void *arg){
+    precomp_facs_dist_thread_args *args = (precomp_facs_dist_thread_args *) arg;
+    // Compute facility-facility distances acording to mode
+    for(int a=args->thread_id;a<args->prob->n_facs;a+=args->prob->n_threads){
+        for(int b=a;b<args->prob->n_facs;b++){
+            double dist = 0;
+            if(args->mode==FACDIS_SUM_OF_DELTAS){
+                dist = 0;
+                for(int j=0;j<args->prob->n_clis;j++){
+                    double delta = problem_assig_value(args->prob,a,j) - problem_assig_value(args->prob,b,j);
+                    if(delta<0) delta = -delta;
+                    dist += delta;
+                }
+            }else if(args->mode==FACDIS_MIN_TRIANGLE){
+                dist = INFINITY;
+                for(int j=0;j<args->prob->n_clis;j++){
+                    double dist_sum = args->prob->distance[a][j]+args->prob->distance[b][j];
+                    if(dist_sum<dist) dist = dist_sum;
+                }
+            }else{
+                assert(!"Asked to precompute valid facility distance.");
+            }
+            args->prob->facs_distance[args->mode][a][b] = dist;
+            args->prob->facs_distance[args->mode][b][a] = dist;
+        }
+    }
+    return NULL;
+}
+
 void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
     // Precompute value of empty solution
     double empty_val = 0;
@@ -96,34 +131,32 @@ void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats){
     for(int r=0;r<n_rstrats;r++){
         int mode = redstrategy_required_facdis_mode(rstrats[r]);
         if(mode!=FACDIS_NONE && prob->facs_distance[mode]==NULL){
-            // Allocate distance matrix between facilities 
+            // Allocate distance matrix between facilities
             prob->facs_distance[mode] = safe_malloc(sizeof(double*)*prob->n_facs);
             for(int i=0;i<prob->n_facs;i++){
                 prob->facs_distance[mode][i] = safe_malloc(sizeof(double)*prob->n_facs);
             }
-            // Compute distance matrix 
-            for(int a=0;a<prob->n_facs;a++){
-                for(int b=a;b<prob->n_facs;b++){
-                    if(mode==FACDIS_SUM_OF_DELTAS){
-                        double dist = 0;
-                        for(int j=0;j<prob->n_clis;j++){
-                            double delta = problem_assig_value(prob,a,j) - problem_assig_value(prob,b,j);
-                            if(delta<0) delta = -delta;
-                            dist += delta;
-                        }
-                        prob->facs_distance[mode][a][b] = dist;
-                        prob->facs_distance[mode][b][a] = dist;
-                    }else if(mode==FACDIS_MIN_TRIANGLE){
-                        double dist = INFINITY;
-                        for(int j=0;j<prob->n_clis;j++){
-                            double dist_sum = prob->distance[a][j]+prob->distance[b][j];
-                            if(dist_sum<dist) dist = dist_sum;
-                        }
-                        prob->facs_distance[mode][a][b] = dist;
-                        prob->facs_distance[mode][b][a] = dist;
-                    }
+            // Allocate memory for threads and arguments
+            pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
+            precomp_facs_dist_thread_args *targs = safe_malloc(sizeof(precomp_facs_dist_thread_args)*prob->n_threads);
+            // Call threads to compute facility-facility distances
+            for(int i=0;i<prob->n_threads;i++){
+                targs[i].thread_id = i;
+                targs[i].prob = prob;
+                targs[i].mode = mode;
+                int rc = pthread_create(&threads[i],NULL,precomp_facs_dist_thread_execution,&targs[i]);
+                if(rc){
+                    fprintf(stderr,"ERROR: Error %d on pthread_create\n",rc);
+                    exit(1);
                 }
             }
+            // Join threads
+            for(int i=0;i<prob->n_threads;i++){ // Join threads
+                pthread_join(threads[i],NULL);
+            }
+            // Free memory
+            free(targs);
+            free(threads);
         }
     }
 }
