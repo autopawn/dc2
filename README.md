@@ -207,7 +207,7 @@ The following flags can be used to specify different behaviours:
 | `-t<n>` | The number of threads to use. |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.
-| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent. <br> `-f4`: solution should be better than any possible parent (default) |
+| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent (default). <br> `-f4`: solution should be better than any possible parent |
 
 ## Reduction strategies
 
