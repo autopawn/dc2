@@ -65,15 +65,15 @@ typedef struct {
 int is_filtered(const problem *prob, const solution *sol, double other){
     int not_equality = sol->n_facs<=prob->size_restriction_minimum || other<=-INFINITY;
     if(not_equality){
-        return sol->value < other; 
+        return sol->value < other;
     }else{
-        return sol->value <= other; 
+        return sol->value <= other;
     }
 }
 
 void *expand_thread_execution(void *arg){
     expand_thread_args *args = (expand_thread_args *) arg;
-    
+
     // Auxiliary arrays that could be useful
     int *phi2 = NULL;
     double *v = NULL;
@@ -96,10 +96,11 @@ void *expand_thread_execution(void *arg){
             for(int i=0;i<args->prob->n_clis;i++){
                 phi2[i] = solution_client_2nd_nearest(args->prob,new_sol,i);
             }
-            // Check if there's profit after picking the best facility for removal 
+            // Check if there's profit after picking the best facility for removal
             int f_rem;
             double delta_profit;
             solution_findout(args->prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
+            assert(new_sol->value+delta_profit >= fsol->origin->value-0.000001);
             filtered = is_filtered(args->prob,new_sol,new_sol->value+delta_profit);
         }
         // Filters that use fsol->origin
@@ -137,7 +138,7 @@ solution **new_expand_solutions(const problem *prob,
     int current_size = n_sols>0? sols[0]->n_facs : 0;
     // Compute the size of each futuresol (flexible array member must be added):
     size_t fsol_size = sizeof(futuresol)+sizeof(int)*(current_size+1);
-    // Allocate enough memory for the maximium amount of futuresols that can appear:   
+    // Allocate enough memory for the maximium amount of futuresols that can appear:
     void *futuresols = safe_malloc(fsol_size*n_sols*prob->n_facs);
     // Get the candidates to future solutions
     int n_futuresols = 0;
@@ -148,7 +149,7 @@ solution **new_expand_solutions(const problem *prob,
             n_futuresols += futuresol_init_from(fsol,sols[i],f);
         }
     }
-    
+
     { // Sort the futuresols in order to detect the similar ones faster:
         qsort(futuresols,n_futuresols,fsol_size,futuresol_cmp);
         int n_futuresols2 = 0;
@@ -165,7 +166,7 @@ solution **new_expand_solutions(const problem *prob,
                     last_fsol = next_pos;
                     n_futuresols2 += 1;
                 }else{
-                    /* If fsol doesn't create a new solution but creates it from a better (worst) one, in that case fsol replaces last_fsol. 
+                    /* If fsol doesn't create a new solution but creates it from a better (worst) one, in that case fsol replaces last_fsol.
                     Because, depending on the filter, the new solution should be better that the better (worst) one that generates it. */
                     int is_better = fsol->origin->value>last_fsol->origin->value;
                     if((prob->filter>=BETTER_THAN_ALL_PARENTS) == is_better){

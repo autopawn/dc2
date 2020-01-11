@@ -68,7 +68,7 @@ problem *load_simple_format(FILE *fp){
     prob->transport_cost = 1;
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = BETTER_THAN_SUBSETS;
+    prob->filter = BETTER_THAN_ALL_PARENTS;
     prob->lower_bound = -INFINITY;
     prob->branch_and_bound = 1;
 
@@ -261,7 +261,7 @@ problem *new_problem_load(const char *file){
         fprintf(stderr,"ERROR: couldn't open file \"%s\"!\n",file);
         exit(1);
     }
-    // Read first string to check if it is on SIMPLE format 
+    // Read first string to check if it is on SIMPLE format
     char buffer[400];
     if(fscanf(fp,"%s",buffer)!=1){
         fprintf(stderr,"ERROR: couldn't read first string!\n");
@@ -270,7 +270,7 @@ problem *new_problem_load(const char *file){
 
     fseek(fp,0,SEEK_SET); // Reset reading
     problem *prob;
-    
+
     // Check if it is simple format
     if(strcmp(buffer,"FILE:")==0){
         printf("SIMPLE format identified.\n");

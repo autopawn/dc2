@@ -229,8 +229,9 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
 
 void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
         const int *phi2, int *out_f_rem, double *out_profit){
-    // The cost for removing a facility decreases on the cost of the facility
+    // The gain for swaping decreases on the cost of the inserted facility
     double w = f_ins==-1? 0 : -prob->facility_cost[f_ins];
+    // The cost for swapping decreases on the cost of the removed facility
     for(int k=0;k<sol->n_facs;k++){
         v[sol->facs[k]] = -prob->facility_cost[sol->facs[k]];
     }
@@ -242,6 +243,7 @@ void solution_findout(const problem *prob, const solution *sol, int f_ins, doubl
         double delta = assig_f_ins_value - assig_phi1u_value;
         if(delta>=0){ // Profit by adding f_ins, because it is nearly.
             w += delta;
+            assert(f_ins!=-1 || delta<=0.000001);
         }else{ // Loss by removing phi1u, because it is nearly.
             assert(phi1u==-1 || v[phi1u]!=-INFINITY);
             if(phi1u==-1) continue; // phi1u not part of the solution.
