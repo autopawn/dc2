@@ -18,6 +18,8 @@ typedef enum {
     BETTER_THAN_SUBSETS = 4,
 } filter;
 
+#define FILTER_DEFAULT BETTER_THAN_ALL_PARENTS
+
 extern const char *filter_names[];
 
 typedef struct {
@@ -84,7 +86,7 @@ typedef struct {
 
 } problem;
 
-// | Retrieves the value of assigning the client c to the facility f 
+// | Retrieves the value of assigning the client c to the facility f
 static inline double problem_assig_value(const problem *prob, int f, int c){
     double cweight = prob->client_weight[c];
     if(f==-1){
