@@ -100,7 +100,6 @@ void *expand_thread_execution(void *arg){
             int f_rem;
             double delta_profit;
             solution_findout(args->prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
-            assert(new_sol->value+delta_profit >= fsol->origin->value-0.000001);
             filtered = is_filtered(args->prob,new_sol,new_sol->value+delta_profit);
         }
         // Filters that use fsol->origin
