@@ -12,6 +12,7 @@ SOURCES = src/main.c \
     src/problem.c \
     src/reduction.c \
     src/reduction_rank.c \
+    src/shuffle.c \
     src/solution.c
 
 SOURCES_OPT_CHECKER = src/main_opt_checker.c \

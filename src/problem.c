@@ -8,6 +8,12 @@ const char *filter_names[] = {
     "BETTER_THAN_SUBSETS",
 };
 
+const char *local_search_names[] = {
+    "NO_LOCAL_SEARCH",
+    "SWAP_BEST_IMPROVEMENT",
+    "SWAP_FIRST_IMPROVEMENT",
+};
+
 problem *problem_init(int n_facs, int n_clis){
     problem *prob = safe_malloc(sizeof(problem));
     memset(prob,0,              sizeof(problem));
@@ -177,7 +183,7 @@ void problem_print(const problem *prob, FILE *fp){
     fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",prob->precomp_client_optimal_gain);
     fprintf(fp,"# PRECOMP_EMPTY_VALUE: %lf\n",prob->precomp_empty_value);
     fprintf(fp,"# N_THREADS: %d\n",prob->n_threads);
-    fprintf(fp,"# LOCAL_SEACH: %d\n",prob->local_search);
+    fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[prob->local_search]);
     fprintf(fp,"# RANDOM_SEED: %d\n",prob->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",prob->n_restarts);
 }

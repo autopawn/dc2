@@ -9,7 +9,7 @@
 // NOTE: not all methods are in reduction.c, there are also methods in reduction_*.c files.
 
 // Perform a redunction indicated by the given redstrategy
-void reduce_by_redstrategy(problem *prob, const redstrategy rstrat, 
+void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
         solution **sols, int *n_sols);
 
 // Reduce the solutions, just picking the bests

@@ -8,7 +8,8 @@ typedef struct {
     int id1, id2;
 } dissimpair;
 
-// Compare dissimpairs by dissimilitude (<0 means a is more has less dissimilitude)
+
+// Compare dissimpairs by dissimilitude (<0 means a has less dissimilitude)
 int dissimpair_cmp(dissimpair a, dissimpair b){
     double delta = a.dissim - b.dissim;
     if(delta!=0) return delta;
@@ -25,6 +26,7 @@ typedef struct {
     lint size;
 } pairheap;
 
+// Initializes a heap of dissimpairs.
 pairheap *pairheap_init(lint size){
     pairheap *heap = safe_malloc(sizeof(pairheap));
     heap->size = size;
@@ -33,12 +35,13 @@ pairheap *pairheap_init(lint size){
     return heap;
 }
 
+// Free the memory required by a heap of dissimpairs.
 void pairheap_free(pairheap *heap){
     free(heap->elems);
     free(heap);
 }
 
-// Gets the smaller element in the heap
+// Gets the dissimpair of smaller dissimilitude of the heap, removing it.
 dissimpair pairheap_poll(pairheap *heap){
     assert(heap->len>0);
     dissimpair ret = heap->elems[0];
@@ -59,6 +62,7 @@ dissimpair pairheap_poll(pairheap *heap){
     return ret;
 }
 
+// Adds a dissimpair to the heap.
 void pairheap_add(pairheap *heap, dissimpair val){
     assert(heap->len<heap->size);
     heap->len += 1;
@@ -198,7 +202,7 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
     pairheap *heap = pairheap_init(2*(*n_sols)*vision_range);
     pthread_mutex_t heap_mutex;
     pthread_mutex_init(&heap_mutex,NULL);
-    
+
     // Create threads:
     pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
     sem_t **t_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);

@@ -8,7 +8,6 @@
 
 #define DEFAULT_TARGET_SOLS 1
 #define DEFAULT_THREADS 4
-#define DEFAULT_LOCAL_SEARCH 1
 
 typedef enum {
     NO_FILTER = 0,
@@ -19,6 +18,14 @@ typedef enum {
 } filter;
 
 #define FILTER_DEFAULT BETTER_THAN_ALL_PARENTS
+
+typedef enum {
+    NO_LOCAL_SEARCH = 0,
+    SWAP_BEST_IMPROVEMENT = 1,
+    SWAP_FIRST_IMPROVEMENT = 2,
+} localsearch;
+
+#define DEFAULT_LOCAL_SEARCH SWAP_BEST_IMPROVEMENT
 
 extern const char *filter_names[];
 

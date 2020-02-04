@@ -200,7 +200,8 @@ The following flags can be used to specify different behaviours:
 | Flag | Effect |
 | :--- | ------ |
 | `-b` | Don't perform Branch & Bound as additional filter. |
-| `-l` | Skip local searches |
+| `-l` | Skip local searches. |
+| `-L` | Perform local searches with first improvement rather than best improvement. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> B&B bound is kept after restarts.  |

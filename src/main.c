@@ -92,7 +92,10 @@ int main(int argc, const char **argv){
                 bnb = 0;
             }else if(argv[i][1]=='l' && strcmp(argv[i],"-l")==0){
                 // Disable local search
-                local_search = 0;
+                local_search = NO_LOCAL_SEARCH;
+            }else if(argv[i][1]=='L' && strcmp(argv[i],"-L")==0){
+                // First improvement local search
+                local_search = SWAP_FIRST_IMPROVEMENT;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);
