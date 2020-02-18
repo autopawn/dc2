@@ -89,7 +89,7 @@ typedef struct {
     pthread_mutex_t *heap_mutex;
     pairheap *heap;
     // Solutions (read only)
-    const problem *prob;
+    const rundata *run;
     int n_sols;
     const solution **sols;
     // Fast way of getting previous and next solutions
@@ -107,13 +107,13 @@ void *reductionvr_thread_execution(void *arg){
     { // Help building initial set of dissimilitude pairs
         dissimpair *pairs = safe_malloc(sizeof(dissimpair)*args->vision_range);
         int n_pairs = 0;
-        for(int i=args->thread_id;i<args->n_sols;i+=args->prob->n_threads){
+        for(int i=args->thread_id;i<args->n_sols;i+=args->run->n_threads){
             for(int j=1;j<=args->vision_range;j++){
                 if(i+j>=args->n_sols) break;
                 pairs[n_pairs].id1 = i;
                 pairs[n_pairs].id2 = i+j;
                 pairs[n_pairs].dissim = solution_dissimilitude(
-                    args->prob,args->sols[i],args->sols[i+j],
+                    args->run,args->sols[i],args->sols[i+j],
                     args->soldis,args->facdis);
                 n_pairs += 1;
             }
@@ -129,7 +129,7 @@ void *reductionvr_thread_execution(void *arg){
 
     { // Wake when required to compute new dissimilitudes
         dissimpair *pair_buffer = safe_malloc(sizeof(dissimpair)
-            *(1+args->vision_range/args->prob->n_threads));
+            *(1+args->vision_range/args->run->n_threads));
         int pair_buffer_len = 0;
         // Each time a solution is deleted
         while(1){
@@ -141,7 +141,7 @@ void *reductionvr_thread_execution(void *arg){
             // If main thread says the job is done, break
             if(*args->terminated) break;
             // Create new pairs
-            for(int i=args->thread_id;i<args->vision_range;i+=args->prob->n_threads){
+            for(int i=args->thread_id;i<args->vision_range;i+=args->run->n_threads){
                 int pair_a = args->prev_sols[args->vision_range-1-i];
                 int pair_b = args->next_sols[i];
                 if(pair_a!=-1 && pair_b!=-1){
@@ -149,7 +149,7 @@ void *reductionvr_thread_execution(void *arg){
                     dissimpair pair;
                     pair.id1 = pair_a;
                     pair.id2 = pair_b;
-                    pair.dissim = solution_dissimilitude(args->prob,
+                    pair.dissim = solution_dissimilitude(args->run,
                         args->sols[pair_a],args->sols[pair_b],
                         args->soldis,args->facdis);
                     // Add to pair buffer:
@@ -180,9 +180,10 @@ void *reductionvr_thread_execution(void *arg){
     return NULL;
 }
 
-void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
+void reduction_vr_heuristic(const rundata *run, solution **sols, int *n_sols,
         int n_target, soldismode soldis, facdismode facdis, int vision_range){
     assert(vision_range>0);
+
     // Ensure that the vision_range isn't larger than the number of solutions.
     if(vision_range>*n_sols) vision_range = *n_sols;
     // Sort solutions in decreasing order
@@ -204,13 +205,13 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
     pthread_mutex_init(&heap_mutex,NULL);
 
     // Create threads:
-    pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
-    sem_t **t_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
-    sem_t **c_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
-    reductionvr_thread_args *targs = safe_malloc(sizeof(reductionvr_thread_args)*prob->n_threads);
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+    sem_t **t_sems = safe_malloc(sizeof(sem_t *)*run->n_threads);
+    sem_t **c_sems = safe_malloc(sizeof(sem_t *)*run->n_threads);
+    reductionvr_thread_args *targs = safe_malloc(sizeof(reductionvr_thread_args)*run->n_threads);
     int terminated = 0; // NOTE: Only access before threads are waken.
     //
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         // Init semaphores
         t_sems[i] = dc_semaphore_init();
         c_sems[i] = dc_semaphore_init();
@@ -224,7 +225,7 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
         targs[i].heap_mutex = &heap_mutex;
         targs[i].heap = heap;
         // Solutions (read only)
-        targs[i].prob = prob;
+        targs[i].run = run;
         targs[i].n_sols = *n_sols;
         targs[i].sols = (const solution **) sols;
         // Fast way of getting previous and next solutions
@@ -238,7 +239,7 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
         // Initialize thread
         int rc = pthread_create(&threads[i],NULL,reductionvr_thread_execution,&targs[i]);
         if(rc){
-            printf("Error %d on thread creation\n",rc);
+            fprintf(stderr,"Error %d on thread creation\n",rc);
             exit(1);
         }
     }
@@ -254,7 +255,7 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
     nexts[*n_sols-1] = -1;
 
     // Wait for all threads to terminate the last job
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         sem_wait(c_sems[i]);
     }
     // ---@> At this point, all initial dissimilitude pairs are complete.
@@ -298,11 +299,11 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
                 }
             }
             // Wake threads to create new pairs
-            for(int i=0;i<prob->n_threads;i++){
+            for(int i=0;i<run->n_threads;i++){
                 sem_post(t_sems[i]);
             }
             // Wait for all threads to terminate their job
-            for(int i=0;i<prob->n_threads;i++){
+            for(int i=0;i<run->n_threads;i++){
                 sem_wait(c_sems[i]);
             }
         }
@@ -310,19 +311,19 @@ void reduction_vr_heuristic(const problem *prob, solution **sols, int *n_sols,
 
     // Wake threads for termination
     terminated = 1;
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         sem_post(t_sems[i]);
     }
 
     // Join threads
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         pthread_join(threads[i],NULL);
     }
     free(threads);
     free(targs);
 
     // Destroy semaphores
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         dc_semaphore_free(t_sems[i]);
         dc_semaphore_free(c_sems[i]);
     }

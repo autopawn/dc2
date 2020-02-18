@@ -1,9 +1,10 @@
 #include "localsearch.h"
 
-int solution_whitaker_hill_climbing(const problem *prob, solution *sol, shuffler *shuff){
+int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler *shuff){
     if(sol->n_facs==0) return 0;
+    const problem *prob = run->prob;
     // Is this first improvement?
-    int first_improvement = prob->local_search==SWAP_FIRST_IMPROVEMENT;
+    int first_improvement = run->local_search==SWAP_FIRST_IMPROVEMENT;
     assert(shuff!=NULL || !first_improvement);
     // First and Second nearest facility to each client
     int *phi1 = safe_malloc(sizeof(int)*prob->n_clis);
@@ -113,7 +114,7 @@ void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, i
     }
 }
 
-void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols){
+void solutions_delete_repeated(solution **sols, int *n_sols){
     // If there are 0 solutions, do nothing.
     if(*n_sols==0) return;
     // Sort solutions for easier comparison
@@ -133,7 +134,7 @@ void solutions_delete_repeated(const problem *prob, solution **sols, int *n_sols
 
 typedef struct {
     int thread_id;
-    const problem *prob;
+    const rundata *run;
     solution **sols;
     int n_sols;
     int n_moves;
@@ -142,31 +143,31 @@ typedef struct {
 
 void *hillclimb_thread_execution(void *arg){
     hillclimb_thread_args *args = (hillclimb_thread_args *) arg;
-    for(int r=args->thread_id;r<args->n_sols;r+=args->prob->n_threads){
+    for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
         // Perform local search on the given solution
-        args->n_moves += solution_whitaker_hill_climbing(args->prob,args->sols[r],args->shuff);
+        args->n_moves += solution_whitaker_hill_climbing(args->run,args->sols[r],args->shuff);
     }
     return NULL;
 }
 
 // Perform local searches (in parallel).
-void solutions_hill_climbing(problem *prob, solution **sols, int n_sols){
+void solutions_hill_climbing(rundata *run, solution **sols, int n_sols){
     // Start measuring time
     clock_t start = clock();
     // Allocate memory for threads and arguments
-    pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
-    hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*prob->n_threads);
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+    hillclimb_thread_args *targs = safe_malloc(sizeof(hillclimb_thread_args)*run->n_threads);
     // Call all threads to perform local search
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         // Set arguments for the thread
         targs[i].thread_id = i;
-        targs[i].prob = prob;
+        targs[i].run = run;
         targs[i].sols = sols;
         targs[i].n_sols = n_sols;
         targs[i].n_moves = 0;
         // Set random number generator for the thread
-        if(prob->local_search==SWAP_FIRST_IMPROVEMENT){
-            targs[i].shuff = shuffler_init(prob->n_facs);
+        if(run->local_search==SWAP_FIRST_IMPROVEMENT){
+            targs[i].shuff = shuffler_init(run->prob->n_facs);
         }else{
             targs[i].shuff = NULL;
         }
@@ -179,12 +180,12 @@ void solutions_hill_climbing(problem *prob, solution **sols, int n_sols){
     }
     // Join threads
     int n_moves = 0;
-    for(int i=0;i<prob->n_threads;i++){ // Join threads
+    for(int i=0;i<run->n_threads;i++){ // Join threads
         pthread_join(threads[i],NULL);
         n_moves += targs[i].n_moves;
     }
     // Free memory
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         if(targs[i].shuff!=NULL) shuffler_free(targs[i].shuff);
     }
     free(targs);
@@ -192,7 +193,7 @@ void solutions_hill_climbing(problem *prob, solution **sols, int n_sols){
     // End measuring time
     clock_t end = clock();
     double seconds = (double)(end - start) / (double)CLOCKS_PER_SEC;
-    prob->n_local_searches += n_sols;
-    prob->n_local_search_movements += n_moves;
-    prob->local_search_seconds += seconds;
+    run->n_local_searches += n_sols;
+    run->n_local_search_movements += n_moves;
+    run->local_search_seconds += seconds;
 }

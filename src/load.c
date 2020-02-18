@@ -68,9 +68,6 @@ problem *load_simple_format(FILE *fp){
     prob->transport_cost = 1;
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = FILTER_DEFAULT;
-    prob->lower_bound = -INFINITY;
-    prob->branch_and_bound = 1;
 
     //
     return prob;
@@ -152,11 +149,6 @@ problem *load_dc_format(FILE *fp, int dc_version){
             }
         }
     }
-
-    // Default parameters
-    prob->filter = FILTER_DEFAULT;
-    prob->lower_bound = -INFINITY;
-    prob->branch_and_bound = 1;
 
     return prob;
 }
@@ -246,9 +238,6 @@ problem *load_orlib_format(FILE *fp){
     }
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
-    prob->filter = FILTER_DEFAULT;
-    prob->lower_bound = -INFINITY;
-    prob->branch_and_bound = 1;
 
     //
     return prob;

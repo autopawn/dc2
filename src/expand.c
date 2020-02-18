@@ -52,7 +52,7 @@ int futuresol_init_from(futuresol *fsol, const solution *sol, int newf){
 
 typedef struct {
     int thread_id;
-    const problem *prob;
+    const rundata *run;
     int n_fsols;
     void *futuresols;
     size_t fsol_size;
@@ -73,44 +73,45 @@ int is_filtered(const problem *prob, const solution *sol, double other){
 
 void *expand_thread_execution(void *arg){
     expand_thread_args *args = (expand_thread_args *) arg;
+    const problem *prob = args->run->prob;
 
     // Auxiliary arrays that could be useful
     int *phi2 = NULL;
     double *v = NULL;
 
-    for(int r=args->thread_id;r<args->n_fsols;r+=args->prob->n_threads){
+    for(int r=args->thread_id;r<args->n_fsols;r+=args->run->n_threads){
         // Generate a new solution from the fsol, and then check if it passes filtering.
         futuresol *fsol = (futuresol *)(args->futuresols+args->fsol_size*r);
-        solution *new_sol = solution_copy(args->prob,fsol->origin);
-        solution_add(args->prob,new_sol,fsol->newf);
+        solution *new_sol = solution_copy(prob,fsol->origin);
+        solution_add(prob,new_sol,fsol->newf);
         int filtered = 0;
         // Must be better than any other other subset (minus 1 facility)
-        if(args->prob->filter >= BETTER_THAN_SUBSETS){
+        if(args->run->filter >= BETTER_THAN_SUBSETS){
             // Initialize useful arrays if they aren't already
             if(v==NULL){
-                v = safe_malloc(sizeof(double)*args->prob->n_facs);
-                for(int i=0;i<args->prob->n_facs;i++) v[i] = -INFINITY;
+                v = safe_malloc(sizeof(double)*prob->n_facs);
+                for(int i=0;i<prob->n_facs;i++) v[i] = -INFINITY;
             }
-            if(phi2==NULL) phi2 = safe_malloc(sizeof(int)*args->prob->n_clis);
+            if(phi2==NULL) phi2 = safe_malloc(sizeof(int)*prob->n_clis);
             // Find second nearest facility for each client
-            for(int i=0;i<args->prob->n_clis;i++){
-                phi2[i] = solution_client_2nd_nearest(args->prob,new_sol,i);
+            for(int i=0;i<prob->n_clis;i++){
+                phi2[i] = solution_client_2nd_nearest(prob,new_sol,i);
             }
             // Check if there's profit after picking the best facility for removal
             int f_rem;
             double delta_profit;
-            solution_findout(args->prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
-            filtered = is_filtered(args->prob,new_sol,new_sol->value+delta_profit);
+            solution_findout(prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
+            filtered = is_filtered(prob,new_sol,new_sol->value+delta_profit);
         }
         // Filters that use fsol->origin
         // Notice that if the filter is BETTER_THAN_ONE_PARENT, then fsol->origin is the worst parent
         // If it is BETTER_THAN_ALL_PARENTS, then fsol->origin is the best parent
-        else if(args->prob->filter >= BETTER_THAN_ONE_PARENT){
-            filtered = is_filtered(args->prob,new_sol,fsol->origin->value);
+        else if(args->run->filter >= BETTER_THAN_ONE_PARENT){
+            filtered = is_filtered(prob,new_sol,fsol->origin->value);
         }
         // If it must be better than the empty solution
-        else if(args->prob->filter == BETTER_THAN_EMPTY){
-            filtered = is_filtered(args->prob,new_sol,args->prob->precomp_empty_value);
+        else if(args->run->filter == BETTER_THAN_EMPTY){
+            filtered = is_filtered(prob,new_sol,args->run->precomp_empty_value);
         }
         // Delete the solution
         if(filtered){
@@ -131,8 +132,9 @@ void *expand_thread_execution(void *arg){
 // EXPANSION
 //#############################################################
 
-solution **new_expand_solutions(const problem *prob,
+solution **new_expand_solutions(const rundata *run,
         solution **sols, int n_sols, int *out_n_sols){
+    const problem *prob = run->prob;
     // Get the corrent size of the solutions on this expansion:
     int current_size = n_sols>0? sols[0]->n_facs : 0;
     // Compute the size of each futuresol (flexible array member must be added):
@@ -168,7 +170,7 @@ solution **new_expand_solutions(const problem *prob,
                     /* If fsol doesn't create a new solution but creates it from a better (worst) one, in that case fsol replaces last_fsol.
                     Because, depending on the filter, the new solution should be better that the better (worst) one that generates it. */
                     int is_better = fsol->origin->value>last_fsol->origin->value;
-                    if((prob->filter>=BETTER_THAN_ALL_PARENTS) == is_better){
+                    if((run->filter>=BETTER_THAN_ALL_PARENTS) == is_better){
                         memmove(last_fsol,fsol,fsol_size);
                     }
                 }
@@ -181,26 +183,26 @@ solution **new_expand_solutions(const problem *prob,
 
     solution **out_sols = safe_malloc(sizeof(solution*)*n_futuresols);
     { // Create new solutions [in parallel]
-        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*prob->n_threads);
-        for(int i=0;i<prob->n_threads;i++){
+        expand_thread_args *targs = safe_malloc(sizeof(expand_thread_args)*run->n_threads);
+        for(int i=0;i<run->n_threads;i++){
             targs[i].thread_id = i;
-            targs[i].prob = prob;
+            targs[i].run = run;
             targs[i].n_fsols = n_futuresols;
             targs[i].futuresols = futuresols;
             targs[i].fsol_size = fsol_size;
             targs[i].out_sols = out_sols;
         }
         // Generate threads in order to expand the solutions
-        pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
-        for(int i=0;i<prob->n_threads;i++){
+        pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+        for(int i=0;i<run->n_threads;i++){
             int rc = pthread_create(&threads[i],NULL,expand_thread_execution,&targs[i]);
             if(rc){
-                printf("Error %d on thread creation\n",rc);
+                fprintf(stderr,"Error %d on thread creation\n",rc);
                 exit(1);
             }
         }
         // Join threads
-        for(int i=0;i<prob->n_threads;i++){
+        for(int i=0;i<run->n_threads;i++){
             pthread_join(threads[i],NULL);
         }
         //

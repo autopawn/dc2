@@ -108,20 +108,31 @@ int main(int argc, const char **argv){
 
     redstrategy *strategies = redstrategy_init_from_nomenclatures(strategy_args,&n_strategies);
 
-    // Read problem and use console arguments
+    if(restarts<0) restarts = 1;
+
+    // Read problem and set size restrictions
     problem *prob = new_problem_load(input_fname);
-    if(target_n>=0) prob->target_sols = target_n;
-    if(filter_n>=0) prob->filter = filter_n;
-    if(bnb>=0) prob->branch_and_bound = bnb;
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
-    if(n_threads>0) prob->n_threads = n_threads;
-    if(local_search>0) prob->local_search = local_search;
-    if(restarts>0) prob->n_restarts = restarts;
+
+    // Create rundata (perform precomputations)
+    printf("\n");
+    printf("Performing precomputations.\n");
+    rundata *run = rundata_init(prob, strategies,n_strategies,restarts);
+
+    // Free problem (rundata kepps a copy)
+    problem_free(prob);
+
+    // Set console arguments
+    if(target_n>=0) run->target_sols = target_n;
+    if(filter_n>=0) run->filter = filter_n;
+    if(bnb>=0) run->branch_and_bound = bnb;
+    if(n_threads>0) run->n_threads = n_threads;
+    if(local_search>0) run->local_search = local_search;
 
     // Set random seed
     if(random_seed==-1) random_seed = (int) time(NULL);
-    prob->random_seed = random_seed;
+    run->random_seed = random_seed;
 
     // Start counting time (cpu and elapsed)
     clock_t start = clock();
@@ -129,17 +140,8 @@ int main(int argc, const char **argv){
     gettimeofday(&elapsed_start,NULL);
     // ---@>
 
-    printf("\n");
-
-
-    // Perform precomputations
-    // (derivated attributes of the problem, like facility-facility distanceS)
-    printf("Performing precomputations.\n");
-    problem_precompute(prob,strategies,n_strategies);
-    printf("\n");
-
     // Print current run info:
-    problem_print(prob,stdout);
+    rundata_print(run,stdout);
     printf("# REDUCTION:");
     for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
     printf("\n");
@@ -147,7 +149,7 @@ int main(int argc, const char **argv){
 
     // Final solutions
     int final_n_sols;
-    solution **final_sols = new_find_best_solutions(prob,strategies,n_strategies,
+    solution **final_sols = new_find_best_solutions(run,strategies,n_strategies,
         &final_n_sols);
 
     // End counting time
@@ -165,13 +167,13 @@ int main(int argc, const char **argv){
 
     // Save output
     save_solutions(output_fname,
-        prob,final_sols,final_n_sols,input_fname,
+        run,final_sols,final_n_sols,input_fname,
         seconds,elapsed_seconds,virt_mem_usage_peak,
         strategies,n_strategies);
 
     // Print output
     save_solutions(NULL,
-        prob,final_sols,final_n_sols,input_fname,
+        run,final_sols,final_n_sols,input_fname,
         seconds,elapsed_seconds,virt_mem_usage_peak,
         strategies,n_strategies);
 
@@ -179,8 +181,8 @@ int main(int argc, const char **argv){
     for(int i=0;i<final_n_sols;i++){
         solution_free(final_sols[i]);
     }
+    rundata_free(run);
     free(final_sols);
-    problem_free(prob);
     free(strategies);
     free(strategy_args);
 }

@@ -11,7 +11,7 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2){
 }
 
 void save_solutions(const char *file,
-        const problem *prob, solution **sols, int n_sols,
+        const rundata *run, solution **sols, int n_sols,
         const char *input_file, float seconds, float elapsed, int mem_usage,
         const redstrategy *strategies, int n_strategies){
     FILE *fp;
@@ -28,7 +28,7 @@ void save_solutions(const char *file,
         fp = stdout;
     }
     // Print problem data
-    problem_print(prob,fp);
+    rundata_print(run,fp);
     // Print reduction scheme
     fprintf(fp,"\n");
     fprintf(fp,"# REDUCTION:");
@@ -39,46 +39,54 @@ void save_solutions(const char *file,
     fprintf(fp,"# CPU_TIME: %f\n",seconds);
     fprintf(fp,"# ELAPSED: %f\n",elapsed);
     fprintf(fp,"# VIRT_MEM_PEAK_KB: %d\n",mem_usage);
-    fprintf(fp,"# TOTAL_ITERATIONS: %d\n",prob->total_n_iterations);
+    fprintf(fp,"# TOTAL_ITERATIONS: %d\n",run->total_n_iterations);
     fprintf(fp,"\n");
 
     /* LOCAL SEARCH INFO */
     fprintf(fp,"== LOCAL SEARCH INFO ==\n");
-    fprintf(fp,"# LOCAL_SEARCH_CPU_TIME: %f\n",prob->local_search_seconds);
-    fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",prob->n_local_searches);
-    fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)prob->n_local_search_movements/(double)prob->n_local_searches);
+    fprintf(fp,"# LOCAL_SEARCH_CPU_TIME: %f\n",run->local_search_seconds);
+    fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",run->n_local_searches);
+    fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)run->n_local_search_movements/(double)run->n_local_searches);
     fprintf(fp,"\n");
 
     /* FIRST RESTART DATA */
     fprintf(fp,"== FIRST RESTART INFO ==\n");
-    fprintf(fp,"# FIRST_ITERATIONS: %d\n",prob->firstr_n_iterations);
+    fprintf(fp,"# FIRST_ITERATIONS: %d\n",run->firstr_n_iterations);
     //
     fprintf(fp,"# FIRST_PER_SIZE_SOLS:       ");
-    for(int i=0;i<prob->firstr_n_iterations;i++){
-        fprintf(fp," %6d",prob->firstr_per_size_n_sols[i]);
+    for(int i=0;i<run->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->firstr_per_size_n_sols[i]);
     }
     fprintf(fp,"\n");
     //
     fprintf(fp,"# FIRST_PER_SIZE_SOLS_RED:   ");
-    for(int i=0;i<prob->firstr_n_iterations;i++){
-        fprintf(fp," %6d",prob->firstr_per_size_n_sols_after_red[i]);
+    for(int i=0;i<run->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->firstr_per_size_n_sols_after_red[i]);
     }
     fprintf(fp,"\n");
     //
     fprintf(fp,"# FIRST_PER_SIZE_LOCAL_OPT:  ");
-    for(int i=0;i<prob->firstr_n_iterations;i++){
-        fprintf(fp," %6d",prob->firstr_per_size_n_local_optima[i]);
+    for(int i=0;i<run->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->firstr_per_size_n_local_optima[i]);
     }
     fprintf(fp,"\n");
     //
     fprintf(fp,"\n");
+
+    /* EACH RESTART DATA */
+    fprintf(fp,"== PER RESTART INFO ==\n");
+    for(int i=0;i<run->n_restarts;i++){
+        fprintf(fp,"# RST %8d %lf %lf\n",i,run->restart_values[i],run->restart_times[i]);
+    }
+    fprintf(fp,"\n");
+
 
     /* SOLUTIONS DATA */
     fprintf(fp,"== SOLUTIONS DATA ==\n");
     fprintf(fp,"# OUTPUT_SOLUTIONS: %d\n",n_sols);
     for(int i=0;i<n_sols;i++){
         fprintf(fp,"\n");
-        solution_print(prob,sols[i],fp);
+        solution_print(run->prob,sols[i],fp);
     }
     // Close file descriptor
     if(fp!=stdout){

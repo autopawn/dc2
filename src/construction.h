@@ -9,7 +9,7 @@
 #include "bnb.h"
 #include "localsearch.h"
 
-solution **new_find_best_solutions(problem *prob, redstrategy *rstrats, int n_rstrats,
+solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rstrats,
         int *out_n_sols);
 
 #endif

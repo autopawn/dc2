@@ -26,9 +26,6 @@ int main(int argc, const char **argv){
     // Read problem
     problem *prob = new_problem_load(input_fname);
 
-    // Perform precomputations
-    problem_precompute(prob,NULL,0);
-
     // Create empty solution
     solution *solution = solution_empty(prob);
 

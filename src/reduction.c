@@ -1,6 +1,6 @@
 #include "reduction.h"
 
-void reduce_by_redstrategy(problem *prob, const redstrategy rstrat, 
+void reduce_by_redstrategy(const rundata *run, const redstrategy rstrat,
         solution **sols, int *n_sols){
     if(*n_sols<=rstrat.n_target) return;
 
@@ -8,31 +8,31 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
         *n_sols,rstrat.n_target);
     if(rstrat.method==REDUCTION_BESTS){
         printf("selecting bests.\n");
-        reduction_bests(prob,sols,n_sols,rstrat.n_target);
+        reduction_bests(run,sols,n_sols,rstrat.n_target);
     }
     else if(rstrat.method==REDUCTION_RANDOM_UNIFORM){
         if(rstrat.elitist) printf("randomly (uniform, elitist).\n");
         else printf("randomly (uniform).\n");
-        reduction_random_uniform(prob,sols,n_sols,rstrat.n_target,rstrat.elitist);
+        reduction_random_uniform(run,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_RANDOM_RANK){
         if(rstrat.elitist) printf("randomly (by rank, elitist).\n");
         else printf("randomly (by rank).\n");
-        reduction_random_rank(prob,sols,n_sols,rstrat.n_target,rstrat.elitist);
+        reduction_random_rank(run,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE){
         printf("simple diversity-based clustering.\n");
-        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
+        reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,0);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE_BESTS){
         printf("simple diversity-based clustering (bests).\n");
-        reduction_diversity_starting(prob,sols,n_sols,rstrat.n_target,
+        reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,1);
     }
     else if(rstrat.method==REDUCTION_VRHEURISTIC){
         printf("VR heuristic (vision range: %d).\n",rstrat.arg);
-        reduction_vr_heuristic(prob,sols,n_sols,rstrat.n_target,
+        reduction_vr_heuristic(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,rstrat.arg);
     }
     else{
@@ -42,7 +42,7 @@ void reduce_by_redstrategy(problem *prob, const redstrategy rstrat,
     }
 }
 
-void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_target){
+void reduction_bests(const rundata *run, solution **sols, int *n_sols, int n_target){
     // Sort solutions in decreasing order
     qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
     assert(*n_sols<2 || sols[0]->value>=sols[1]->value);
@@ -56,7 +56,7 @@ void reduction_bests(const problem *prob, solution **sols, int *n_sols, int n_ta
     *n_sols = n_target;
 }
 
-void reduction_random_uniform(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist){
+void reduction_random_uniform(const rundata *run, solution **sols, int *n_sols, int n_target, int elitist){
     if(*n_sols<=n_target) return;
     // Put target_n randomly selected solutions first on the array, but keep the best so far if elitist.
     for(int i=elitist;i<n_target;i++){ // Fisher-Yates shuffle

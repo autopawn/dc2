@@ -29,7 +29,7 @@ int segtree_pick(weight *segtree, int len){
     return p-len;
 }
 
-void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, int n_target, int elitist){
+void reduction_random_rank(const rundata *run, solution **sols, int *n_sols, int n_target, int elitist){
     if(*n_sols<=n_target) return;
     // Sort solutions in decreasing order
     qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
@@ -71,5 +71,5 @@ void reduction_random_rank(const problem *prob, solution **sols, int *n_sols, in
     *n_sols = n_final;
     // Free memory
     free(pws);
-    free(picked);   
+    free(picked);
 }

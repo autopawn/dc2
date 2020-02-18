@@ -5,6 +5,6 @@
 #include "problem.h"
 #include "solution.h"
 
-void branch_and_bound(problem *prob, solution **sols, int *n_sols);
+void branch_and_bound(rundata *run, solution **sols, int *n_sols);
 
 #endif

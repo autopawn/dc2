@@ -48,6 +48,11 @@ typedef struct {
     int size_restriction_minimum;
     // | Unless it is -1, the returned solutions must be of that size or smaller.
     int size_restriction_maximum;
+} problem;
+
+typedef struct {
+    // The current problem
+    problem *prob;
     // | Filter used after expanding the current solutions.
     filter filter;
     // | If B&B is active
@@ -90,8 +95,11 @@ typedef struct {
     long long int n_local_search_movements;
     // | CPU time performing local search:
     double local_search_seconds;
-
-} problem;
+    // | Time taken on each restart
+    double *restart_times;
+    // | Values on each restart
+    double *restart_values;
+} rundata;
 
 // | Retrieves the value of assigning the client c to the facility f
 static inline double problem_assig_value(const problem *prob, int f, int c){
@@ -106,13 +114,19 @@ static inline double problem_assig_value(const problem *prob, int f, int c){
 // Initializes a problem along with all the needed arrays.
 problem *problem_init(int n_facs, int n_clis);
 
+// Initializes a problem copying data from another one.
+problem *problem_copy(const problem *other);
+
 // Free a problem memory
 void problem_free(problem *prob);
 
-// Perform useful precomputations. Must be called before performing operations!
-void problem_precompute(problem *prob, redstrategy *rstrats, int n_rstrats);
+// Creates a rundata for the given problem and performs precomputations
+rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_restarts);
 
-// Prints a briefing of the problem
-void problem_print(const problem *prob, FILE *fp);
+// Free a rundata
+void rundata_free(rundata *run);
+
+// Prints a briefing of the rundata parameters
+void rundata_print(const rundata *run, FILE *fp);
 
 #endif

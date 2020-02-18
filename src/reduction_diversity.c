@@ -6,7 +6,7 @@ typedef struct {
     int *centroids;
     int *nearest_cluster;
     double *nearest_dist;
-    const problem *prob;
+    const rundata *run;
     int n_sols;
     solution **sols;
     soldismode soldis;
@@ -21,8 +21,8 @@ void *reductiondiv_thread_execution(void *arg){
         sem_wait(args->thread_sem);
         int centroid = args->centroids[t];
         // Help updating the dissimilitudes to each cluster
-        for(int r=args->thread_id;r<args->n_sols;r+=args->prob->n_threads){
-            double disim = solution_dissimilitude(args->prob,
+        for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
+            double disim = solution_dissimilitude(args->run,
                 args->sols[r],args->sols[centroid],args->soldis,args->facdis);
             if(disim<args->nearest_dist[r]){
                 args->nearest_cluster[r] = t;
@@ -34,7 +34,7 @@ void *reductiondiv_thread_execution(void *arg){
     return NULL;
 }
 
-void reduction_diversity_starting(const problem *prob, solution **sols, int *n_sols,
+void reduction_diversity_starting(const rundata *run, solution **sols, int *n_sols,
         int n_target, soldismode soldis, facdismode facdis, int bests_of_clusters){
     // Sort solutions in decreasing order
     qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
@@ -42,7 +42,7 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     // Indexes of selected centroids
     int *centroids = safe_malloc(sizeof(int)*n_target);
     int *is_centroid = safe_malloc(sizeof(int)*(*n_sols));
-    centroids[0] = 0; 
+    centroids[0] = 0;
     int n_centroids = 1;
     // Nearest cluster index and distance to it
     int *nearest_cluster = safe_malloc(sizeof(int)*(*n_sols));
@@ -55,11 +55,11 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     }
     is_centroid[0] = 1;
     // Create threads
-    pthread_t *threads = safe_malloc(sizeof(pthread_t)*prob->n_threads);
-    sem_t **t_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
-    sem_t **c_sems = safe_malloc(sizeof(sem_t *)*prob->n_threads);
-    reductiondiv_thread_args *targs = safe_malloc(sizeof(reductiondiv_thread_args)*prob->n_threads);
-    for(int i=0;i<prob->n_threads;i++){
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+    sem_t **t_sems = safe_malloc(sizeof(sem_t *)*run->n_threads);
+    sem_t **c_sems = safe_malloc(sizeof(sem_t *)*run->n_threads);
+    reductiondiv_thread_args *targs = safe_malloc(sizeof(reductiondiv_thread_args)*run->n_threads);
+    for(int i=0;i<run->n_threads;i++){
         // Init semaphores
         t_sems[i] = dc_semaphore_init();
         c_sems[i] = dc_semaphore_init();
@@ -70,7 +70,7 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
         targs[i].centroids = centroids;
         targs[i].nearest_cluster = nearest_cluster;
         targs[i].nearest_dist = nearest_dist;
-        targs[i].prob = prob;
+        targs[i].run = run;
         targs[i].n_sols = *n_sols;
         targs[i].sols = sols;
         targs[i].soldis = soldis;
@@ -85,10 +85,10 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     }
     for(int t=0;t<n_target;t++){
         // Allow threads to update the distances again
-        for(int i=0;i<prob->n_threads;i++) sem_post(t_sems[i]);
+        for(int i=0;i<run->n_threads;i++) sem_post(t_sems[i]);
         // Wait for all threads to have updated the centroids
-        for(int i=0;i<prob->n_threads;i++) sem_wait(c_sems[i]);
-        
+        for(int i=0;i<run->n_threads;i++) sem_wait(c_sems[i]);
+
         if(t==n_target-1) break;
 
         // Find the new centroid
@@ -111,14 +111,14 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     assert(n_centroids==n_target);
 
     // Join threads
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         pthread_join(threads[i],NULL);
     }
     free(threads);
     free(targs);
 
     // Destroy semaphores
-    for(int i=0;i<prob->n_threads;i++){
+    for(int i=0;i<run->n_threads;i++){
         dc_semaphore_free(c_sems[i]);
         dc_semaphore_free(t_sems[i]);
     }
@@ -150,7 +150,7 @@ void reduction_diversity_starting(const problem *prob, solution **sols, int *n_s
     int n_final = 0;
     for(int i=0;i<*n_sols;i++){
         if(is_centroid[i]){
-            sols[n_final] = sols[i]; 
+            sols[n_final] = sols[i];
             n_final += 1;
         }else{
             solution_free(sols[i]);
