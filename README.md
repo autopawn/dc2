@@ -200,8 +200,10 @@ The following flags can be used to specify different behaviours:
 | Flag | Effect |
 | :--- | ------ |
 | `-b` | Don't perform Branch & Bound as additional filter. |
-| `-l` | Skip local searches. |
+| `-l` | Skip local searches entirely. |
 | `-L` | Perform local searches with first improvement rather than best improvement. |
+| `-T` | Perform local search on every solution, not just terminal ones. |
+| `-d` | Don't allow local search to remove facilities instead of swapping. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
@@ -308,4 +310,4 @@ Solution-solution dissimilitudes:
 
 ## Local search
 
-The local searches are performed using Whitaker's fast swap heuristic.
+The local searches are performed using Whitaker's fast swap heuristic, but also adding the movement of removing facilities.

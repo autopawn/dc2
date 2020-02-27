@@ -36,6 +36,7 @@ solution *solution_empty(const problem *prob){
     for(int j=0;j<prob->n_clis;j++){
         sol->value += problem_assig_value(prob,-1,j);
     }
+    sol->terminal = 0;
     return sol;
 }
 
@@ -47,6 +48,7 @@ solution *solution_copy(const problem *prob, const solution *sol){
     sol2->assigns = safe_malloc(sizeof(int)*prob->n_clis);
     memcpy(sol2->assigns,sol->assigns,sizeof(int)*prob->n_clis);
     sol2->value = sol->value;
+    sol2->terminal = sol->terminal;
     return sol2;
 }
 

@@ -13,6 +13,8 @@ typedef struct {
     // ^ For each client, which facility it is assigned to. -1 means unnasigned.
     double value;
     // ^ Value of the solution (> is better)
+    int terminal;
+    // ^ If the solution is a terminal one (didn't generate better childs).
 } solution;
 
 // solution* comparison to sort solution pointers on decreasing value

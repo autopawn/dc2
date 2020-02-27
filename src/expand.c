@@ -6,7 +6,7 @@
 
 // Possible future solution that results from another one.
 typedef struct {
-    const solution *origin;
+    solution *origin;
     int newf;
     uint hash;
     int n_facs;
@@ -29,7 +29,7 @@ int futuresol_cmp(const void *a, const void *b){
 }
 
 // Inits a futuresol from a current sol and a new facility
-int futuresol_init_from(futuresol *fsol, const solution *sol, int newf){
+int futuresol_init_from(futuresol *fsol, solution *sol, int newf){
     fsol->origin = sol;
     fsol->newf = newf;
     fsol->n_facs = sol->n_facs;
@@ -210,10 +210,15 @@ solution **new_expand_solutions(const rundata *run,
         free(targs);
     }
 
+    // Set the terminal flag for the original solutions (revert with futuresols origins)
+    for(int i=0;i<n_sols;i++) sols[i]->terminal = 1;
+
     { // Eliminate NULLed out solutions
         int n_sols = 0;
         for(int r=0;r<n_futuresols;r++){
             if(out_sols[r]!=NULL){
+                futuresol *fsol = (futuresol *)(futuresols+fsol_size*r);
+                fsol->origin->terminal = 0; // origin is not terminal because it had a child.
                 out_sols[n_sols] = out_sols[r];
                 n_sols += 1;
             }
@@ -221,6 +226,7 @@ solution **new_expand_solutions(const rundata *run,
         out_sols = realloc(out_sols,sizeof(solution*)*(n_sols));
         *out_n_sols = n_sols;
     }
+
 
     free(futuresols);
     return out_sols;

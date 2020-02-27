@@ -7,9 +7,29 @@ void update_final_solutions(rundata *run, solution **final, int *n_final,
     // The candidates should have the same number of solutins that csize
     assert(n_cands==0 || cands[0]->n_facs==csize);
     // Perform local search on the candidate solutions
-    if(run->local_search && n_cands>0){
-        printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
-        solutions_hill_climbing(run,cands,n_cands);
+    if(run->local_search){
+        if(run->local_search_only_terminal){
+            // Run local search just on the terminal solutions
+            solution **terminals = safe_malloc(sizeof(solution *)*n_cands);
+            int n_terminal = 0;
+            for(int i=0;i<n_cands;i++){
+                if(cands[i]->terminal){
+                    terminals[n_terminal] = cands[i];
+                    n_terminal++;
+                }
+            }
+            if(n_terminal>0){
+                printf("Performing LS on \033[34;1m%d\033[0m terminal solutions.\n",n_terminal);
+                solutions_hill_climbing(run,terminals,n_terminal);
+            }
+            free(terminals);
+        }else{
+            // Run local search on all the solutions
+            if(n_cands>0){
+                printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
+                solutions_hill_climbing(run,cands,n_cands);
+            }
+        }
     }
     // Delete repeated solutions after local search
     int n_cands0 = n_cands;

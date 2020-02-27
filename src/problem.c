@@ -213,6 +213,8 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     run->target_sols  = DEFAULT_TARGET_SOLS;
     run->n_threads    = DEFAULT_THREADS;
     run->local_search = DEFAULT_LOCAL_SEARCH;
+    run->local_search_only_terminal = DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL;
+    run->local_search_remove_movement = DEFAULT_LOCAL_SEARCH_REMOVE_MOVEMENT;
 
     // Facility distances not yet computed
     for(int mode=0;mode<N_FACDIS_MODES;mode++){

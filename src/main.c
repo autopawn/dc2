@@ -11,7 +11,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-T] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -32,6 +32,8 @@ int main(int argc, const char **argv){
     int min_size = -1;
     int n_threads = -1;
     int local_search = -1;
+    int local_search_only_on_terminal = -1;
+    int local_search_remove_movement = -1;
     int bnb = -1;
 
     // Parse arguments
@@ -96,6 +98,12 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='L' && strcmp(argv[i],"-L")==0){
                 // First improvement local search
                 local_search = SWAP_FIRST_IMPROVEMENT;
+            }else if(argv[i][1]=='T' && strcmp(argv[i],"-T")==0){
+                // Perform local search on all solutions
+                local_search_only_on_terminal = 0;
+            }else if(argv[i][1]=='d' && strcmp(argv[i],"-d")==0){
+                // Don't allow local search to remove instead of swapping
+                local_search_remove_movement = 0;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);
@@ -128,7 +136,9 @@ int main(int argc, const char **argv){
     if(filter_n>=0) run->filter = filter_n;
     if(bnb>=0) run->branch_and_bound = bnb;
     if(n_threads>0) run->n_threads = n_threads;
-    if(local_search>0) run->local_search = local_search;
+    if(local_search>=0) run->local_search = local_search;
+    if(local_search_only_on_terminal>=0) run->local_search_only_terminal = local_search_only_on_terminal;
+    if(local_search_remove_movement>=0) run->local_search_remove_movement = local_search_remove_movement;
 
     // Set random seed
     if(random_seed==-1) random_seed = (int) time(NULL);

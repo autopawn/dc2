@@ -8,6 +8,8 @@
 
 #define DEFAULT_TARGET_SOLS 1
 #define DEFAULT_THREADS 4
+#define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
+#define DEFAULT_LOCAL_SEARCH_REMOVE_MOVEMENT 1
 
 typedef enum {
     NO_FILTER = 0,
@@ -69,6 +71,10 @@ typedef struct {
     int random_seed;
     // | Restarts
     int n_restarts;
+    // | If the local search is just done for terminal nodes
+    int local_search_only_terminal;
+    // | If the local has the remove movement
+    int local_search_remove_movement;
 
     /* PRECOMPUTATIONS */
     // | Precomputed value of empty solution

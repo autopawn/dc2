@@ -1,5 +1,7 @@
 #include "localsearch.h"
 
+#define NO_MOVEMENT (-2)
+
 int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler *shuff){
     if(sol->n_facs==0) return 0;
     const problem *prob = run->prob;
@@ -31,14 +33,17 @@ int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler 
     while(1){
         // Insertion candidate:
         double best_delta = 0;
-        int best_rem = -1;
-        int best_ins = -1;
+        int best_rem = NO_MOVEMENT;
+        int best_ins = NO_MOVEMENT;
 
         if(first_improvement) shuffler_reshuffle(shuff);
 
-        for(int k=0;k<prob->n_facs;k++){
-            int f_ins = first_improvement? shuffler_next(shuff) : k;
-            if(used[f_ins]) continue;
+        int k_start = run->local_search_remove_movement? -1 : 0;
+
+        for(int k=k_start;k<prob->n_facs;k++){
+            // Try to insert nothing first (-1)
+            int f_ins = (first_improvement && k>=0)? shuffler_next(shuff) : k;
+            if(f_ins>=0 && used[f_ins]) continue;
             // Find the best option for removal:
             int f_rem;
             double delta_profit;
@@ -52,14 +57,16 @@ int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler 
             }
         }
         // Stop when no movement results in a better solution:
-        if(best_ins==-1) break;
+        if(best_ins==NO_MOVEMENT) break;
         // Perform swap:
-        assert(best_rem!=-1);
+        assert(best_rem!=NO_MOVEMENT);
         double old_value = sol->value;
         solution_remove(prob,sol,best_rem,phi2);
         used[best_rem] = 0;
-        solution_add(prob,sol,best_ins);
-        used[best_ins] = 1;
+        if(best_ins!=-1){
+            solution_add(prob,sol,best_ins);
+            used[best_ins] = 1;
+        }
         assert(sol->value>old_value);
 
         // Update phi1 and phi2
@@ -82,21 +89,27 @@ void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, i
     for(int i=0;i<prob->n_clis;i++){
         // Update phi2
         int near[3];
-        if(sol->assigns[i]==f_ins){
-            near[0] = f_ins;
-            near[1] = phi1[i];
-            near[2] = phi2[i];
+        if(f_ins==-1){
+            near[0] = phi1[i];
+            near[1] = phi2[i];
+            near[2] = -2; // Unknown, may be f_ins or a phi3[i].
         }else{
-            double phi2_val = problem_assig_value(prob,phi2[i],i);
-            double best_ins_val = problem_assig_value(prob,f_ins,i);
-            if(best_ins_val>phi2_val){
-                near[0] = phi1[i];
-                near[1] = f_ins;
+            if(sol->assigns[i]==f_ins){
+                near[0] = f_ins;
+                near[1] = phi1[i];
                 near[2] = phi2[i];
             }else{
-                near[0] = phi1[i];
-                near[1] = phi2[i];
-                near[2] = -2; // Unknown, may be f_ins or a phi3[i].
+                double phi2_val = problem_assig_value(prob,phi2[i],i);
+                double best_ins_val = problem_assig_value(prob,f_ins,i);
+                if(best_ins_val>phi2_val){
+                    near[0] = phi1[i];
+                    near[1] = f_ins;
+                    near[2] = phi2[i];
+                }else{
+                    near[0] = phi1[i];
+                    near[1] = phi2[i];
+                    near[2] = -2; // Unknown, may be f_ins or a phi3[i].
+                }
             }
         }
         // Find phi2
