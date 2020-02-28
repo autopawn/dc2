@@ -99,11 +99,11 @@ int main(int argc, const char **argv){
                 // First improvement local search
                 local_search = SWAP_FIRST_IMPROVEMENT;
             }else if(argv[i][1]=='T' && strcmp(argv[i],"-T")==0){
-                // Perform local search on all solutions
-                local_search_only_on_terminal = 0;
+                // Perform local search only on terminal nodes
+                local_search_only_on_terminal = 1;
             }else if(argv[i][1]=='d' && strcmp(argv[i],"-d")==0){
-                // Don't allow local search to remove instead of swapping
-                local_search_remove_movement = 0;
+                // Allow local search to remove instead of swapping
+                local_search_remove_movement = 1;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);

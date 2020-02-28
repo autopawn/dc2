@@ -38,11 +38,16 @@ int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler 
 
         if(first_improvement) shuffler_reshuffle(shuff);
 
-        int k_start = run->local_search_remove_movement? -1 : 0;
+        int k_end = run->local_search_remove_movement? prob->n_facs+1 : prob->n_facs;
 
-        for(int k=k_start;k<prob->n_facs;k++){
-            // Try to insert nothing first (-1)
-            int f_ins = (first_improvement && k>=0)? shuffler_next(shuff) : k;
+        for(int k=0;k<k_end;k++){
+            int f_ins;
+            if(k==prob->n_facs){
+                f_ins = -1;
+            }else{
+                f_ins = (first_improvement)? shuffler_next(shuff) : k;
+            }
+
             if(f_ins>=0 && used[f_ins]) continue;
             // Find the best option for removal:
             int f_rem;

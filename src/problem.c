@@ -266,6 +266,9 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# PRECOMP_EMPTY_VALUE: %lf\n",run->precomp_empty_value);
     fprintf(fp,"# N_THREADS: %d\n",run->n_threads);
     fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[run->local_search]);
+    fprintf(fp,"# LOCAL_SEARCH_ONLY_TERMINAL: %d\n",run->local_search_only_terminal);
+    fprintf(fp,"# LOCAL_SEARCH_REMOVE_MOVEMENT: %d\n",run->local_search_remove_movement);
+    fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[run->local_search]);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
 }
