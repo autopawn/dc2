@@ -1,10 +1,10 @@
 #include "redstrategy.h"
 
 const char *default_redstrategies[] = {"rand1:6000","sdce+:200"};
- 
+
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
-    redstrategy *strategies; 
+    redstrategy *strategies;
     if(n_strategies==0){
         // Default strategies
         n_strategies = sizeof(default_redstrategies)/sizeof(default_redstrategies[0]);
@@ -51,7 +51,7 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     // Get the abreviations of the strategies:
     char abrev[400];
     char distm[400];
-    
+
     int n_scan = sscanf(nomenclature2,"%s %d %s %d",
             abrev,&strategy.n_target,distm,&strategy.arg);
     if(n_scan<2){
@@ -113,9 +113,9 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Identify the dissimilitude and distance strategies
     if(n_scan<3){
-        // Default dissimilitudes:
-        strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
-        strategy.facdis = FACDIS_NONE;
+        // Default dissimilitude: (autosum)
+        strategy.soldis = SOLDIS_AUTO;
+        strategy.facdis = FACDIS_SUM_OF_DELTAS;
     }else{
         if(strcmp(distm,"mgemin")==0){
             strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;
@@ -136,6 +136,14 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         else if(strcmp(distm,"pcd")==0){
             strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
             strategy.facdis = FACDIS_NONE;
+        }
+        else if(strcmp(distm,"autosum")==0){
+            strategy.soldis = SOLDIS_AUTO;
+            strategy.facdis = FACDIS_SUM_OF_DELTAS;
+        }
+        else if(strcmp(distm,"automin")==0){
+            strategy.soldis = SOLDIS_AUTO;
+            strategy.facdis = FACDIS_MIN_TRIANGLE;
         }
         else{
             fprintf(stderr,"ERROR: Invalid dissimilitude abrev \"%s\"!\n",distm);

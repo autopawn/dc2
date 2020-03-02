@@ -73,7 +73,7 @@ typedef struct {
     int n_restarts;
     // | If the local search is just done for terminal nodes
     int local_search_only_terminal;
-    // | If the local has the remove movement
+    // | If the local search has the remove movement
     int local_search_remove_movement;
 
     /* PRECOMPUTATIONS */

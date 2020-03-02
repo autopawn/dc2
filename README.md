@@ -250,9 +250,9 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 
 | **Strategy** | **Description** |
 | :----------  | --------------- |
-| `sdce:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based <br> clustering initialization method, enhanced. <br> Using the `<di>` dissimilitude metric (default: `pcd`).
+| `sdce:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based <br> clustering initialization method, enhanced. <br> Using the `<di>` dissimilitude metric (default: `autosum`).
 | `sdce+:<n>:<di>` | Same as `scde` but the bests solutions of each cluster <br> are selected instead of the centroids.
-| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `pcd`).
+| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `autosum`).
 
 The following table lists the complexities to select `r` solutions from a set of size `q`.
 
@@ -273,6 +273,8 @@ The following dissimilitude metrics are available:
 | `haumin` | Hausdorff distance. <br> Using **min triangle** as facility-facility distance. |
 | `hausum` | Hausdorff distance. <br> Using **sum of deltas** as facility-facility distance. |
 | `pcd`    | Per client delta. <br> Doesn't use facility-facility distances. |
+| `automum`   | Choose `mgesum` when p^2 <= 15*m and `pcd` otherwise. |
+| `automin`   | Choose `mgemin` when p^2 <= 15*m and `pcd` otherwise. |
 
 Facility-facility distances:
 * **min triangle**:

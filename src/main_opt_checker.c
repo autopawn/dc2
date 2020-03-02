@@ -13,6 +13,32 @@ format.
 #include <time.h>
 #include <sys/time.h>
 
+int solution_check_not_optimal_assigns(const problem *prob, const solution *sol){
+    int bad_assigns = 0;
+    for (int i=0; i<prob->n_clis; i++){
+        // Find the best value that client i could be assigned to
+        int best_f = -1;
+        double value_best = -INFINITY;
+        for(int k=0;k<sol->n_facs;k++){
+            int f = sol->facs[k];
+            double value_alt = problem_assig_value(prob,f,i);
+            if(best_f==-1 || value_alt>value_best){
+                value_best = value_alt;
+                best_f = f;
+            }
+        }
+        // Current facility value:
+        int c = sol->assigns[i];
+        double value_c = problem_assig_value(prob,c,i);
+        if(value_c < value_best){
+            fprintf(stderr,"WARNING: Not optimal assign. %d->%d should be %d->%d.\n",
+                c,i,best_f,i);
+            bad_assigns += 1;
+        }
+    }
+    return bad_assigns;
+}
+
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc!=3){
@@ -53,6 +79,9 @@ int main(int argc, const char **argv){
         printf("%d ",solution->assigns[i]);
     }
     printf("%.9lf\n",-solution->value);
+
+    // Perform one last additional check
+    assert(solution_check_not_optimal_assigns(prob,solution)==0);
 
     // Free memory
     solution_free(solution);

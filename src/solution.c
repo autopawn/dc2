@@ -136,6 +136,14 @@ void solution_free(solution *sol){
 double solution_dissimilitude(const rundata *run,
         const solution *sol1, const solution *sol2,
         soldismode sdismode, facdismode fdismode){
+    // The auto case picks the sdismode
+    if(sdismode==SOLDIS_AUTO){
+        if(sol1->n_facs*sol2->n_facs <= 15*run->prob->n_clis){
+            sdismode = SOLDIS_MEAN_GEOMETRIC_ERROR;
+        }else{
+            sdismode = SOLDIS_PER_CLIENT_DELTA;
+        }
+    }
     // Compute the dissimilitude according to the sdismode
     if(sdismode==SOLDIS_MEAN_GEOMETRIC_ERROR){
         // Expect the facility distances for this mode to be computed:

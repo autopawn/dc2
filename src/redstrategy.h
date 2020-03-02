@@ -13,8 +13,9 @@ typedef enum {
 
 typedef enum {
     SOLDIS_MEAN_GEOMETRIC_ERROR = 0, // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
-    SOLDIS_HAUSDORF = 1,          // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
-    SOLDIS_PER_CLIENT_DELTA = 2,  // D(A,B) = sum_j |v(A,j)-v(B,j)|
+    SOLDIS_HAUSDORF = 1,             // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
+    SOLDIS_PER_CLIENT_DELTA = 2,     // D(A,B) = sum_j |v(A,j)-v(B,j)|
+    SOLDIS_AUTO = 3,                 // MGE w/SUM_OF_DELTAS or PCD
 } soldismode;
 
 typedef enum {
@@ -28,7 +29,7 @@ typedef enum {
     REDUCTION_VRHEURISTIC,
     // | Enhanced Glover simple diversity-based starting method
     REDUCTION_GLOVER_SDCE,
-    // | EGLOVER_SDCE selecting the best solution of each cluster 
+    // | EGLOVER_SDCE selecting the best solution of each cluster
     REDUCTION_GLOVER_SDCE_BESTS,
 } reduction_method;
 
@@ -42,7 +43,7 @@ typedef struct {
     int elitist; // For some strategies, if it keeps the best.
 } redstrategy;
 
-// Allocates an array of redstrategies from nomenclatures 
+// Allocates an array of redstrategies from nomenclatures
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms);
 
 // Parses a nomenclature to generate a redstrategy
