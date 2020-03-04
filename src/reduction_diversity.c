@@ -6,6 +6,7 @@ typedef struct {
     int *centroids;
     int *nearest_cluster;
     double *nearest_dist;
+    double *current2oldcentroid_dist;
     const rundata *run;
     int n_sols;
     solution **sols;
@@ -20,13 +21,41 @@ void *reductiondiv_thread_execution(void *arg){
     for(int t=0;t<args->n_target;t++){
         sem_wait(args->thread_sem);
         int centroid = args->centroids[t];
+
+        // Help computing the distance of the new centroid to the old centroids
+        for(int k=args->thread_id;k<t;k+=args->run->n_threads){
+            int old_centroid = args->centroids[k];
+            if(k==args->nearest_cluster[centroid]){
+                // Make use of already computed distance to the old centroid
+                args->current2oldcentroid_dist[k] = args->nearest_dist[centroid];
+            }else{
+                double disim = solution_dissimilitude(args->run,
+                    args->sols[centroid],args->sols[old_centroid],args->soldis,args->facdis);
+                args->current2oldcentroid_dist[k] = disim;
+            }
+        }
+        sem_post(args->complete_sem);
+        sem_wait(args->thread_sem);
+
         // Help updating the dissimilitudes to each cluster
         for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
-            double disim = solution_dissimilitude(args->run,
-                args->sols[r],args->sols[centroid],args->soldis,args->facdis);
-            if(disim<args->nearest_dist[r]){
-                args->nearest_cluster[r] = t;
-                args->nearest_dist[r] = disim;
+            /* It is not necessary to compute the dissimilitude between the
+            new centroid and solution r if the distance between r and its old
+            centroid is smaller than half the distance between the new centroid
+            and this old centroid. */
+
+            // The cluster where r is
+            int r_cluster = args->nearest_cluster[r];
+            // Distance of new centroid to centroid of cluster r
+            double c = args->current2oldcentroid_dist[r_cluster];
+
+            if(t==0 || args->nearest_dist[r]>0.5*c){
+                double disim = solution_dissimilitude(args->run,
+                    args->sols[r],args->sols[centroid],args->soldis,args->facdis);
+                if(disim<args->nearest_dist[r]){
+                    args->nearest_cluster[r] = t;
+                    args->nearest_dist[r] = disim;
+                }
             }
         }
         sem_post(args->complete_sem);
@@ -47,6 +76,8 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
     // Nearest cluster index and distance to it
     int *nearest_cluster = safe_malloc(sizeof(int)*(*n_sols));
     double *nearest_dist = safe_malloc(sizeof(double)*(*n_sols));
+    // Distance of the last centroid to the previous centroid
+    double *current2oldcentroid_dist = safe_malloc(sizeof(double)*n_target);
     // Creation of the first cluster including all the solutions.
     for(int i=0;i<*n_sols;i++){
         nearest_cluster[i] = -1;
@@ -70,6 +101,7 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
         targs[i].centroids = centroids;
         targs[i].nearest_cluster = nearest_cluster;
         targs[i].nearest_dist = nearest_dist;
+        targs[i].current2oldcentroid_dist = current2oldcentroid_dist;
         targs[i].run = run;
         targs[i].n_sols = *n_sols;
         targs[i].sols = sols;
@@ -84,9 +116,16 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
         }
     }
     for(int t=0;t<n_target;t++){
-        // Allow threads to update the distances again
+        // -> EXEC
+
+        // Allow threads to compute current2oldcentroid_dist
         for(int i=0;i<run->n_threads;i++) sem_post(t_sems[i]);
-        // Wait for all threads to have updated the centroids
+        // Wait for all threads to finish
+        for(int i=0;i<run->n_threads;i++) sem_wait(c_sems[i]);
+
+        // Allow threads to update the centoids of each solution
+        for(int i=0;i<run->n_threads;i++) sem_post(t_sems[i]);
+        // Wait for all threads to finish
         for(int i=0;i<run->n_threads;i++) sem_wait(c_sems[i]);
 
         if(t==n_target-1) break;
@@ -160,6 +199,7 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
     *n_sols = n_target;
 
     // Free remaining arrays
+    free(current2oldcentroid_dist);
     free(nearest_dist);
     free(nearest_cluster);
     free(is_centroid);
