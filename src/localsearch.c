@@ -128,7 +128,7 @@ void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, i
 
         // Update phi1
         phi1[i] = sol->assigns[i];
-        assert(phi1[i]!=phi2[i]);
+        assert(phi1[i]!=phi2[i] || phi1[i]==-1);
     }
 }
 

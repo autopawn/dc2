@@ -46,10 +46,8 @@ void *reductiondiv_thread_execution(void *arg){
 
             // The cluster where r is
             int r_cluster = args->nearest_cluster[r];
-            // Distance of new centroid to centroid of cluster r
-            double c = args->current2oldcentroid_dist[r_cluster];
 
-            if(t==0 || args->nearest_dist[r]>0.5*c){
+            if(t==0 || args->nearest_dist[r]>0.5*args->current2oldcentroid_dist[r_cluster]){
                 double disim = solution_dissimilitude(args->run,
                     args->sols[r],args->sols[centroid],args->soldis,args->facdis);
                 if(disim<args->nearest_dist[r]){
@@ -116,7 +114,6 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
         }
     }
     for(int t=0;t<n_target;t++){
-        // -> EXEC
 
         // Allow threads to compute current2oldcentroid_dist
         for(int i=0;i<run->n_threads;i++) sem_post(t_sems[i]);
