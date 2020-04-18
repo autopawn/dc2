@@ -26,5 +26,5 @@ SOURCES_OPT_CHECKER = src/main_opt_checker.c \
 compile:
 	rm -rf bin || true
 	mkdir bin
-	gcc -g -O2 -Wall $(SOURCES) -lpthread -o bin/dc
-	gcc -g -O2 -Wall $(SOURCES_OPT_CHECKER) -lpthread -o bin/opt_checker
+	gcc -g -Ofast -march=native -flto -Wall $(SOURCES) -lpthread -o bin/dc
+	gcc -g -Ofast -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -o bin/opt_checker
