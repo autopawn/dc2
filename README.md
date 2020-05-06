@@ -204,6 +204,7 @@ The following flags can be used to specify different behaviours:
 | `-L` | Perform local searches with first improvement rather than best improvement. |
 | `-T` | Perform local search only on terminal solutions, not every solution. |
 | `-d` | Allow local search to remove facilities. |
+| `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
@@ -220,7 +221,7 @@ The default (and recommended) reduction strategy, is:
 ```
 rand1:6000 sdce+:200
 ```
-which picks 6000 solutions randomly and then applies scde to select 200.
+which picks 6000 solutions randomly and then applies `scde+` to select 200.
 
 **If you want to invest more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
 ```

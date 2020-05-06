@@ -50,6 +50,8 @@ typedef struct {
     int size_restriction_minimum;
     // | Unless it is -1, the returned solutions must be of that size or smaller.
     int size_restriction_maximum;
+    // | Verbose mode
+    int verbose;
 } problem;
 
 typedef struct {

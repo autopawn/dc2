@@ -19,14 +19,14 @@ void update_final_solutions(rundata *run, solution **final, int *n_final,
                 }
             }
             if(n_terminal>0){
-                printf("Performing LS on \033[34;1m%d\033[0m terminal solutions.\n",n_terminal);
+                if(run->prob->verbose) printf("Performing LS on \033[34;1m%d\033[0m terminal solutions.\n",n_terminal);
                 solutions_hill_climbing(run,terminals,n_terminal);
             }
             free(terminals);
         }else{
             // Run local search on all the solutions
             if(n_cands>0){
-                printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
+                if(run->prob->verbose) printf("Performing LS on \033[34;1m%d\033[0m solutions.\n",n_cands);
                 solutions_hill_climbing(run,cands,n_cands);
             }
         }
@@ -35,7 +35,8 @@ void update_final_solutions(rundata *run, solution **final, int *n_final,
     int n_cands0 = n_cands;
     solutions_delete_repeated(cands,&n_cands);
     if(n_cands0>n_cands){
-        printf("Reduced \033[34;1m%d\033[0m solutions to \033[34;1m%d\033[0m local optima.\n",
+        if(run->prob->verbose) printf(
+            "Reduced \033[34;1m%d\033[0m solutions to \033[34;1m%d\033[0m local optima.\n",
             n_cands0,n_cands);
     }
     // Save current restart best solution found
@@ -84,8 +85,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
         int first_restart = r==0;
 
-        printf("\n");
-        printf("== RESTART %d/%d ==\n",r+1,run->n_restarts);
+        if(run->prob->verbose) printf("\n== RESTART %d/%d ==\n",r+1,run->n_restarts);
 
         // The previous generation
         int prev_n_sols = 1;
@@ -95,14 +95,13 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
         int csize = 0; // Last base computed
         while(prev_n_sols>0){
 
-            printf("\n");
-            printf("Base has \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m.\n",prev_n_sols,csize);
+            if(run->prob->verbose) printf("\nBase has \033[31;1m%d\033[0m solutions of size \033[32;1m%d\033[0m.\n",prev_n_sols,csize);
             // Apply branch and bound
             if(run->branch_and_bound){
                 int n_sols0 = prev_n_sols;
                 branch_and_bound(run,prev_sols,&prev_n_sols);
                 if(prev_n_sols < n_sols0){
-                    printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,prev_n_sols);
+                    if(run->prob->verbose) printf("Pruned \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, by B&B.\n",n_sols0,prev_n_sols);
                 }
             }
 
@@ -128,7 +127,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
             // Expand solutions from the previous generation
             if(csize<prob->n_facs && prev_n_sols>0){
                 if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
-                    printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
+                    if(run->prob->verbose) printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
                     next_n_sols = prev_n_sols;
                     next_sols = new_expand_solutions(run,prev_sols,prev_n_sols,&next_n_sols);
                 }
@@ -139,6 +138,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
             if(prob->size_restriction_minimum==-1 || csize>=prob->size_restriction_minimum){
                 update_final_solutions(run,final_sols,&final_n_sols,prev_sols,prev_n_sols,csize,r);
             }else{
+                // Free solution memory
                 for(int i=0;i<prev_n_sols;i++) solution_free(prev_sols[i]);
                 free(prev_sols);
             }
@@ -157,7 +157,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
         clock_t restart_end = clock();
         run->restart_times[r] = (double)(restart_end - restart_start) / (double)CLOCKS_PER_SEC;
 
-        printf("\n");
+        if(run->prob->verbose) printf("\n");
 
     }
 

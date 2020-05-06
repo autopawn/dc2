@@ -4,39 +4,43 @@ void reduce_by_redstrategy(const rundata *run, const redstrategy rstrat,
         solution **sols, int *n_sols){
     if(*n_sols<=rstrat.n_target) return;
 
-    printf("Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",
-        *n_sols,rstrat.n_target);
+    if(run->prob->verbose) printf(
+            "Reducing \033[31;1m%d\033[0m -> \033[31;1m%d\033[0m solutions, ",*n_sols,rstrat.n_target);
     if(rstrat.method==REDUCTION_BESTS){
-        printf("selecting bests.\n");
+        if(run->prob->verbose) printf("selecting bests.\n");
         reduction_bests(run,sols,n_sols,rstrat.n_target);
     }
     else if(rstrat.method==REDUCTION_RANDOM_UNIFORM){
-        if(rstrat.elitist) printf("randomly (uniform, elitist).\n");
-        else printf("randomly (uniform).\n");
+        if(run->prob->verbose){
+            if(rstrat.elitist) printf("randomly (uniform, elitist).\n");
+            else printf("randomly (uniform).\n");
+        }
         reduction_random_uniform(run,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_RANDOM_RANK){
-        if(rstrat.elitist) printf("randomly (by rank, elitist).\n");
-        else printf("randomly (by rank).\n");
+        if(run->prob->verbose){
+            if(rstrat.elitist) printf("randomly (by rank, elitist).\n");
+            else printf("randomly (by rank).\n");
+        }
         reduction_random_rank(run,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE){
-        printf("simple diversity-based clustering.\n");
+        if(run->prob->verbose) printf("simple diversity-based clustering.\n");
         reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,0);
     }
     else if(rstrat.method==REDUCTION_GLOVER_SDCE_BESTS){
-        printf("simple diversity-based clustering (bests).\n");
+        if(run->prob->verbose) printf("simple diversity-based clustering (bests).\n");
         reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,1);
     }
     else if(rstrat.method==REDUCTION_VRHEURISTIC){
-        printf("VR heuristic (vision range: %d).\n",rstrat.arg);
+        if(run->prob->verbose) printf("VR heuristic (vision range: %d).\n",rstrat.arg);
         reduction_vr_heuristic(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,rstrat.arg);
     }
     else{
-        printf("???.\n");
+        if(run->prob->verbose) printf("???.\n");
         fprintf(stderr,"ERROR: Reduction method not yet implemented.\n");
         exit(1);
     }

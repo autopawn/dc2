@@ -35,6 +35,7 @@ int main(int argc, const char **argv){
     int local_search_only_on_terminal = -1;
     int local_search_remove_movement = -1;
     int bnb = -1;
+    int verbose = -1;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -104,6 +105,9 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='d' && strcmp(argv[i],"-d")==0){
                 // Allow local search to remove instead of swapping
                 local_search_remove_movement = 1;
+            }else if(argv[i][1]=='V' && strcmp(argv[i],"-V")==0){
+                // Non verbose mode
+                verbose = 0;
             }else{
                 fprintf(stderr,"ERROR: argument \"%s\" not recognized.\n",argv[i]);
                 exit(1);
@@ -122,14 +126,15 @@ int main(int argc, const char **argv){
     problem *prob = new_problem_load(input_fname);
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
+    if(verbose>=0)  prob->verbose = verbose;
 
     // Create rundata (perform precomputations)
-    printf("\n");
-    printf("Performing precomputations.\n");
+    if(prob->verbose) printf("\nPerforming precomputations.\n");
     rundata *run = rundata_init(prob, strategies,n_strategies,restarts);
 
     // Free problem (rundata kepps a copy)
     problem_free(prob);
+    prob = NULL;
 
     // Set console arguments
     if(target_n>=0) run->target_sols = target_n;
@@ -151,11 +156,13 @@ int main(int argc, const char **argv){
     // ---@>
 
     // Print current run info:
-    rundata_print(run,stdout);
-    printf("# REDUCTION:");
-    for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
-    printf("\n");
-    printf("\n");
+    if(run->prob->verbose){
+        rundata_print(run,stdout);
+        printf("# REDUCTION:");
+        for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
+        printf("\n");
+        printf("\n");
+    }
 
     // Final solutions
     int final_n_sols;
@@ -170,7 +177,7 @@ int main(int argc, const char **argv){
     float elapsed_seconds = get_delta_seconds(elapsed_start,elapsed_end);
     // ---@>
 
-    printf("\n");
+    if(run->prob->verbose) printf("\n");
 
     int virt_mem_usage_peak;
     get_memory_usage(NULL,NULL,NULL,&virt_mem_usage_peak);

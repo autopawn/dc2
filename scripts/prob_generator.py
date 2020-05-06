@@ -10,7 +10,7 @@ import numpy as np
 def main():
     # Parse input arguments
     if len(sys.argv)!=3:
-        print("usage: %s <n> <output>"%argv[0])
+        print("usage: %s <n> <output>"%sys.argv[0])
         sys.exit(1);
     n = int(sys.argv[1])
     m = int(1+n*(np.random.random()*1.5+0.5))

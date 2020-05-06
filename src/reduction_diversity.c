@@ -4,6 +4,7 @@ typedef struct {
     int thread_id;
     int n_target;
     int *centroids;
+    int *is_centroid;
     int *nearest_cluster;
     double *nearest_dist;
     double *current2oldcentroid_dist;
@@ -44,7 +45,9 @@ void *reductiondiv_thread_execution(void *arg){
             centroid is smaller than half the distance between the new centroid
             and this old centroid. */
 
-            // The cluster where r is
+            if(args->is_centroid[r]) continue;
+
+            // The cluster where r currently is
             int r_cluster = args->nearest_cluster[r];
 
             if(t==0 || args->nearest_dist[r]>0.5*args->current2oldcentroid_dist[r_cluster]){
@@ -69,6 +72,7 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
     // Indexes of selected centroids
     int *centroids = safe_malloc(sizeof(int)*n_target);
     int *is_centroid = safe_malloc(sizeof(int)*(*n_sols));
+    // Pick solution 0 as first centroid
     centroids[0] = 0;
     int n_centroids = 1;
     // Nearest cluster index and distance to it
@@ -96,6 +100,7 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
         // Thread args
         targs[i].thread_id = i;
         targs[i].n_target = n_target;
+        targs[i].is_centroid = is_centroid;
         targs[i].centroids = centroids;
         targs[i].nearest_cluster = nearest_cluster;
         targs[i].nearest_dist = nearest_dist;
@@ -120,7 +125,7 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
         // Wait for all threads to finish
         for(int i=0;i<run->n_threads;i++) sem_wait(c_sems[i]);
 
-        // Allow threads to update the centoids of each solution
+        // Allow threads to update the centroids of each solution
         for(int i=0;i<run->n_threads;i++) sem_post(t_sems[i]);
         // Wait for all threads to finish
         for(int i=0;i<run->n_threads;i++) sem_wait(c_sems[i]);
