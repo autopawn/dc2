@@ -11,7 +11,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-T] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-T] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -36,6 +36,7 @@ int main(int argc, const char **argv){
     int local_search_remove_movement = -1;
     int bnb = -1;
     int verbose = -1;
+    int branching = -2;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -61,6 +62,14 @@ int main(int argc, const char **argv){
                    fprintf(stderr,"ERROR: expected number of restarts on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
+            }else if(argv[i][1]=='B'){
+                // Set branching factor
+                int n_read = sscanf(argv[i],"-B%d",&branching);
+                if(n_read<1){
+                   fprintf(stderr,"ERROR: expected branching factor on argument \"%s\".\n",argv[i]);
+                   exit(1);
+                }
+                assert(branching>=-2);
             }else if(argv[i][1]=='t'){
                 // Number of threads
                 int n_read = sscanf(argv[i],"-t%d",&n_threads);
@@ -126,10 +135,9 @@ int main(int argc, const char **argv){
     problem *prob = new_problem_load(input_fname);
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
-    if(verbose>=0)  prob->verbose = verbose;
 
     // Create rundata (perform precomputations)
-    if(prob->verbose) printf("\nPerforming precomputations.\n");
+    if(verbose!=0) printf("\nPerforming precomputations.\n");
     rundata *run = rundata_init(prob, strategies,n_strategies,restarts);
 
     // Free problem (rundata kepps a copy)
@@ -144,6 +152,8 @@ int main(int argc, const char **argv){
     if(local_search>=0) run->local_search = local_search;
     if(local_search_only_on_terminal>=0) run->local_search_only_terminal = local_search_only_on_terminal;
     if(local_search_remove_movement>=0) run->local_search_remove_movement = local_search_remove_movement;
+    if(verbose>=0) run->verbose = verbose;
+    if(branching>-2) run->branching_factor = branching;
 
     // Set random seed
     if(random_seed==-1) random_seed = (int) time(NULL);
@@ -156,7 +166,7 @@ int main(int argc, const char **argv){
     // ---@>
 
     // Print current run info:
-    if(run->prob->verbose){
+    if(run->verbose){
         rundata_print(run,stdout);
         printf("# REDUCTION:");
         for(int i=0;i<n_strategies;i++) printf(" %s",strategies[i].nomenclature);
@@ -177,7 +187,7 @@ int main(int argc, const char **argv){
     float elapsed_seconds = get_delta_seconds(elapsed_start,elapsed_end);
     // ---@>
 
-    if(run->prob->verbose) printf("\n");
+    if(run->verbose) printf("\n");
 
     int virt_mem_usage_peak;
     get_memory_usage(NULL,NULL,NULL,&virt_mem_usage_peak);

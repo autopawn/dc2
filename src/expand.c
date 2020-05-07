@@ -36,7 +36,7 @@ int futuresol_init_from(futuresol *fsol, solution *sol, int newf){
     // Copy facilitites, check if f already exists, init hash.
     fsol -> hash = hash_int(newf);
     for(int k=0;k<sol->n_facs;k++){
-        if(sol->facs[k]==newf) return 0; // If the solution candidate is not new
+        if(sol->facs[k]==newf) return 0; // If the solution candidate is not new // TODO: make faster when sols->nfacs is near n
         fsol->facs[k] = sol->facs[k];
         // Include solution on the hash
         fsol->hash = fsol->hash ^ hash_int(fsol->facs[k]);
@@ -139,16 +139,40 @@ solution **new_expand_solutions(const rundata *run,
     int current_size = n_sols>0? sols[0]->n_facs : 0;
     // Compute the size of each futuresol (flexible array member must be added):
     size_t fsol_size = sizeof(futuresol)+sizeof(int)*(current_size+1);
+
+    // ==== Generate futuresols depending on the branching factor
+    assert(run->branching_factor>=-1);
+    int branching = run->branching_factor==-1? prob->n_facs-current_size : run->branching_factor;
+    if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
     // Allocate enough memory for the maximium amount of futuresols that can appear:
-    void *futuresols = safe_malloc(fsol_size*n_sols*prob->n_facs);
-    // Get the candidates to future solutions
+    void *futuresols = safe_malloc(fsol_size*n_sols*branching);
     int n_futuresols = 0;
-    for(int i=0;i<n_sols;i++){
-        assert(sols[i]->n_facs==current_size); // All solutions are expected to have the same size.
-        for(int f=0;f<prob->n_facs;f++){
-            futuresol *fsol = (futuresol *)(futuresols+fsol_size*n_futuresols);
-            n_futuresols += futuresol_init_from(fsol,sols[i],f);
+
+    // Get the candidates to future solutions
+    if(branching >= prob->n_facs-current_size){
+        // Full branching, all children
+        for(int i=0;i<n_sols;i++){
+            assert(sols[i]->n_facs==current_size); // All solutions are expected to have the same size.
+            for(int f=0;f<prob->n_facs;f++){
+                futuresol *fsol = (futuresol *)(futuresols+fsol_size*n_futuresols);
+                n_futuresols += futuresol_init_from(fsol,sols[i],f);
+            }
         }
+    }else{
+        // Pick children at random
+        shuffler *shuf = shuffler_init(prob->n_facs);
+        for(int i=0;i<n_sols;i++){
+            shuffler_reshuffle(shuf);
+            int n_childs = 0;
+            while(n_childs<branching){
+                int f = (int) shuffler_next(shuf);
+                futuresol *fsol = (futuresol *)(futuresols+fsol_size*n_futuresols);
+                int new_found = futuresol_init_from(fsol,sols[i],f);
+                n_childs     += new_found;
+                n_futuresols += new_found;
+            }
+        }
+        shuffler_free(shuf);
     }
 
     { // Sort the futuresols in order to detect the similar ones faster:
@@ -156,6 +180,7 @@ solution **new_expand_solutions(const rundata *run,
         int n_futuresols2 = 0;
         if(n_futuresols>0){
             futuresol *last_fsol = (futuresol *)(futuresols);
+            n_futuresols2 = 1;
             for(int r=1;r<n_futuresols;r++){
                 futuresol *fsol = (futuresol *)(futuresols+fsol_size*r);
                 // Compare fsol with the last_fsol:

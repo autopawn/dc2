@@ -28,6 +28,7 @@ void *safe_malloc(size_t size);
 uint hash_int(uint x);
 void add_to_sorted(int *array, int *len, int val);
 void rem_of_sorted(int *array, int *len, int val);
+int elem_in_sorted(int *array, int len, int val);
 
 // Semaphore initialization
 sem_t *dc_semaphore_init();

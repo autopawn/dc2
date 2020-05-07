@@ -44,6 +44,21 @@ void rem_of_sorted(int *array, int *len, int val){
     *len -= 1;
 }
 
+int elem_in_sorted(int *array, int len, int val){
+    int a = 0;
+    int b = len;
+    while(a<b){
+        int c = (a+b)/2;
+        if(array[c]==val) return 1;
+        if(val<array[c]){
+            b = c;
+        }else{
+            a = c+1;
+        }
+    }
+    return 0;
+}
+
 sem_t *dc_semaphore_init(){
     sem_t *sem;
     assert(errno==0);

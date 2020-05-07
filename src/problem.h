@@ -10,6 +10,7 @@
 #define DEFAULT_THREADS 4
 #define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 0
 #define DEFAULT_LOCAL_SEARCH_REMOVE_MOVEMENT 0
+#define DEFAULT_BRANCHING_FACTOR (-1)
 
 typedef enum {
     NO_FILTER = 0,
@@ -50,8 +51,6 @@ typedef struct {
     int size_restriction_minimum;
     // | Unless it is -1, the returned solutions must be of that size or smaller.
     int size_restriction_maximum;
-    // | Verbose mode
-    int verbose;
 } problem;
 
 typedef struct {
@@ -77,7 +76,9 @@ typedef struct {
     int local_search_only_terminal;
     // | If the local search has the remove movement
     int local_search_remove_movement;
-
+    /* Maximum number of solutions that will be generated at random from each solution on the pool.
+    if -1, then all solutions will be generated*/
+    int branching_factor;
     /* PRECOMPUTATIONS */
     // | Precomputed value of empty solution
     double precomp_empty_value;
@@ -85,6 +86,9 @@ typedef struct {
     double precomp_client_optimal_gain;
     // | Precomputed distance matrices between facilities (for each mode)
     double **facs_distance[N_FACDIS_MODES];
+
+    // | Verbose mode
+    int verbose;
 
     /* OUTPUT INFO */
     // | Total number of iterations performed. Just the first restart when using restarts.

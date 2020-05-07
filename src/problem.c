@@ -37,8 +37,6 @@ problem *problem_init(int n_facs, int n_clis){
     prob->client_gain = 0;
     prob->unassigned_cost = INFINITY;
 
-    prob->verbose = 1;
-
     return prob;
 }
 
@@ -50,7 +48,6 @@ problem *problem_copy(const problem *other){
     prob->unassigned_cost = other->unassigned_cost;
     prob->size_restriction_minimum = other->size_restriction_minimum;
     prob->size_restriction_maximum = other->size_restriction_maximum;
-    prob->verbose = other->verbose;
     //
     memcpy(prob->client_weight,other->client_weight,sizeof(double)*prob->n_clis);
     //
@@ -213,6 +210,9 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     // Default values
     run->lower_bound = -INFINITY;
 
+    run->verbose = 1;
+    run->branching_factor = DEFAULT_BRANCHING_FACTOR;
+
     run->target_sols  = DEFAULT_TARGET_SOLS;
     run->n_threads    = DEFAULT_THREADS;
     run->local_search = DEFAULT_LOCAL_SEARCH;
@@ -259,7 +259,6 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# UNASSIGNED_COST: %lf\n",prob->unassigned_cost);
     fprintf(fp,"# SIZE_RESTRICTION_MINIMUM: %d\n",prob->size_restriction_minimum);
     fprintf(fp,"# SIZE_RESTRICTION_MAXIMUM: %d\n",prob->size_restriction_maximum);
-    fprintf(fp,"# VERBOSE: %d\n",prob->verbose);
     fprintf(fp,"\n");
     fprintf(fp,"== RUN DATA ==\n");
     fprintf(fp,"# FILTER: %s (%d)\n",filter_names[run->filter],(int)run->filter);
@@ -272,6 +271,8 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[run->local_search]);
     fprintf(fp,"# LOCAL_SEARCH_ONLY_TERMINAL: %d\n",run->local_search_only_terminal);
     fprintf(fp,"# LOCAL_SEARCH_REMOVE_MOVEMENT: %d\n",run->local_search_remove_movement);
+    fprintf(fp,"# BRANCHING FACTOR: %d\n",run->branching_factor);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
+    fprintf(fp,"# VERBOSE: %d\n",run->verbose);
 }
