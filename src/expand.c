@@ -30,6 +30,7 @@ int futuresol_cmp(const void *a, const void *b){
 
 // Inits a futuresol from a current sol and a new facility
 int futuresol_init_from(futuresol *fsol, solution *sol, int newf){
+    assert(sol!=NULL);
     fsol->origin = sol;
     fsol->newf = newf;
     fsol->n_facs = sol->n_facs;
@@ -145,7 +146,7 @@ solution **new_expand_solutions(const rundata *run,
     int branching = run->branching_factor==-1? prob->n_facs-current_size : run->branching_factor;
     if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
     // Allocate enough memory for the maximium amount of futuresols that can appear:
-    void *futuresols = safe_malloc(fsol_size*n_sols*branching);
+    void *futuresols = safe_malloc(fsol_size*(n_sols*branching+1));
     int n_futuresols = 0;
 
     // Get the candidates to future solutions
