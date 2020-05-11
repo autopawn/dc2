@@ -11,7 +11,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-T] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-A] [-x] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -33,7 +33,8 @@ int main(int argc, const char **argv){
     int n_threads = -1;
     int local_search = -1;
     int local_search_only_on_terminal = -1;
-    int local_search_remove_movement = -1;
+    int local_search_rem_movement = -1;
+    int local_search_add_movement = -1;
     int bnb = -1;
     int verbose = -1;
     int branching = -2;
@@ -108,12 +109,13 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='L' && strcmp(argv[i],"-L")==0){
                 // First improvement local search
                 local_search = SWAP_FIRST_IMPROVEMENT;
-            }else if(argv[i][1]=='T' && strcmp(argv[i],"-T")==0){
-                // Perform local search only on terminal nodes
-                local_search_only_on_terminal = 1;
-            }else if(argv[i][1]=='d' && strcmp(argv[i],"-d")==0){
-                // Allow local search to remove instead of swapping
-                local_search_remove_movement = 1;
+            }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
+                // Perform local search on all nodes
+                local_search_only_on_terminal = 0;
+            }else if(argv[i][1]=='x' && strcmp(argv[i],"-x")==0){
+                // Don't allow local search to perform movements that change the size
+                local_search_rem_movement = 0;
+                local_search_add_movement = 0;
             }else if(argv[i][1]=='V' && strcmp(argv[i],"-V")==0){
                 // Non verbose mode
                 verbose = 0;
@@ -151,7 +153,8 @@ int main(int argc, const char **argv){
     if(n_threads>0) run->n_threads = n_threads;
     if(local_search>=0) run->local_search = local_search;
     if(local_search_only_on_terminal>=0) run->local_search_only_terminal = local_search_only_on_terminal;
-    if(local_search_remove_movement>=0) run->local_search_remove_movement = local_search_remove_movement;
+    if(local_search_rem_movement>=0) run->local_search_rem_movement = local_search_rem_movement;
+    if(local_search_add_movement>=0) run->local_search_add_movement = local_search_add_movement;
     if(verbose>=0) run->verbose = verbose;
     if(branching>-2) run->branching_factor = branching;
 

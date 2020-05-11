@@ -100,8 +100,8 @@ void *expand_thread_execution(void *arg){
             }
             // Check if there's profit after picking the best facility for removal
             int f_rem;
-            double delta_profit;
-            solution_findout(prob,new_sol,-1,v,phi2,&f_rem,&delta_profit);
+            double delta_profit,delta_profit_worem;
+            solution_findout(prob,new_sol,-1,v,phi2,&f_rem,&delta_profit,&delta_profit_worem);
             filtered = is_filtered(prob,new_sol,new_sol->value+delta_profit);
         }
         // Filters that use fsol->origin

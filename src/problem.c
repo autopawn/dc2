@@ -217,7 +217,8 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     run->n_threads    = DEFAULT_THREADS;
     run->local_search = DEFAULT_LOCAL_SEARCH;
     run->local_search_only_terminal = DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL;
-    run->local_search_remove_movement = DEFAULT_LOCAL_SEARCH_REMOVE_MOVEMENT;
+    run->local_search_rem_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
+    run->local_search_add_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
 
     // Facility distances not yet computed
     for(int mode=0;mode<N_FACDIS_MODES;mode++){
@@ -270,7 +271,8 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# N_THREADS: %d\n",run->n_threads);
     fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[run->local_search]);
     fprintf(fp,"# LOCAL_SEARCH_ONLY_TERMINAL: %d\n",run->local_search_only_terminal);
-    fprintf(fp,"# LOCAL_SEARCH_REMOVE_MOVEMENT: %d\n",run->local_search_remove_movement);
+    fprintf(fp,"# LOCAL_SEARCH_REM_MOVEMENT: %d\n",run->local_search_rem_movement);
+    fprintf(fp,"# LOCAL_SEARCH_ADD_MOVEMENT: %d\n",run->local_search_add_movement);
     fprintf(fp,"# BRANCHING FACTOR: %d\n",run->branching_factor);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);

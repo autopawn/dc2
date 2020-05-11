@@ -8,8 +8,8 @@
 
 #define DEFAULT_TARGET_SOLS 1
 #define DEFAULT_THREADS 4
-#define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 0
-#define DEFAULT_LOCAL_SEARCH_REMOVE_MOVEMENT 0
+#define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
+#define DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED 1
 #define DEFAULT_BRANCHING_FACTOR (-1)
 
 typedef enum {
@@ -75,7 +75,9 @@ typedef struct {
     // | If the local search is just done for terminal nodes
     int local_search_only_terminal;
     // | If the local search has the remove movement
-    int local_search_remove_movement;
+    int local_search_rem_movement;
+    // | If the local search has the add movement
+    int local_search_add_movement;
     /* Maximum number of solutions that will be generated at random from each solution on the pool.
     if -1, then all solutions will be generated*/
     int branching_factor;

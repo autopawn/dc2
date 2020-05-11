@@ -27,4 +27,5 @@ compile:
 	rm -rf bin || true
 	mkdir bin
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES) -lpthread -o bin/dc
+	gcc -g -Wall $(SOURCES) -lpthread -D DEBUG -o bin/dc_debug
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -o bin/opt_checker

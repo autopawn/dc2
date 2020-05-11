@@ -1,7 +1,10 @@
 #include "shuffle.h"
 
+#include <assert.h>
+
 #define RANXOSHI256_IMPLEMENTATION
 #include "lib/ranxoshi256.h"
+
 
 shuffler *shuffler_init(int len){
     // Allocate memory and initialize numbers

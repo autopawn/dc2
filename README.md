@@ -201,10 +201,12 @@ The following flags can be used to specify different behaviours:
 | :--- | ------ |
 | `-b` | Don't perform Branch & Bound as additional filter. |
 | `-l` | Skip local searches entirely. |
-| `-L` | Perform local searches with first improvement rather than best improvement. |
-| `-T` | Perform local search only on terminal solutions, not every solution. |
-| `-d` | Allow local search to remove facilities. |
+| `-A` | Perform local search on all solutions, not only terminal. |
+| `-x` | Don't allow local search to perform movements that change the number of facilities. |
 | `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
+| `-L` | Perform local searches with first improvement rather than best improvement. <br>
+         Warning: movement choice may be arbitrary for problems without a fixed size restriction <br>
+         for solution without -x. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
