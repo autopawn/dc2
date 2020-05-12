@@ -279,6 +279,7 @@ The following dissimilitude metrics are available:
 | `pcd`    | Per client delta. <br> Doesn't use facility-facility distances. |
 | `automum`   | Choose `mgesum` when p^2 <= 15*m and `pcd` otherwise. |
 | `automin`   | Choose `mgemin` when p^2 <= 15*m and `pcd` otherwise. |
+| `indexval`  | Number of different facility indexes, also use difference in solution value to break ties. |
 
 Facility-facility distances:
 * **min triangle**:

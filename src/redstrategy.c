@@ -145,6 +145,10 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
             strategy.soldis = SOLDIS_AUTO;
             strategy.facdis = FACDIS_MIN_TRIANGLE;
         }
+        else if(strcmp(distm,"indexval")==0){
+            strategy.soldis = SOLDIS_INDEXES_VALUE;
+            strategy.facdis = FACDIS_NONE;
+        }
         else{
             fprintf(stderr,"ERROR: Invalid dissimilitude abrev \"%s\"!\n",distm);
             exit(1);

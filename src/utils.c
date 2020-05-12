@@ -59,6 +59,28 @@ int elem_in_sorted(int *array, int len, int val){
     return 0;
 }
 
+int diff_sorted(int *arr1, int len1, int *arr2, int len2){
+    int diff = 0;
+    int i1 = 0;
+    int i2 = 0;
+    while(i1<len1 && i2<len2){
+        int v1 = arr1[i1];
+        int v2 = arr2[i2];
+        if(v1==v2){
+            i1 += 1;
+            i2 += 1;
+        }else if(v1<v2){
+            diff += 1;
+            i1 += 1;
+        }else{
+            diff += 1;
+            i2 += 1;
+        }
+    }
+    diff += (i1<i2)? i2-i1 : i1-i2;
+    return diff;
+}
+
 sem_t *dc_semaphore_init(){
     sem_t *sem;
     assert(errno==0);

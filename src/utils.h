@@ -30,6 +30,9 @@ void add_to_sorted(int *array, int *len, int val);
 void rem_of_sorted(int *array, int *len, int val);
 int elem_in_sorted(int *array, int len, int val);
 
+// Retrieves on how many values both sorted arrays differ; in O(len1+len2) time
+int diff_sorted(int *arr1, int len1, int *arr2, int len2);
+
 // Semaphore initialization
 sem_t *dc_semaphore_init();
 // Semaphore destruction

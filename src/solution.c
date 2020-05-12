@@ -203,6 +203,13 @@ double solution_dissimilitude(const rundata *run,
             total += delta;
         }
         return total;
+    }else if(sdismode==SOLDIS_INDEXES_VALUE){
+        int delta = diff_sorted(sol1->facs,sol1->n_facs,sol2->facs,sol2->n_facs);
+        double value_delta = sol1->value - sol2->value;
+        if(value_delta<0) value_delta *= -1;
+        // Use the number of different indexes as dissimilitude and the value to break ties
+        double delta_val = 67108864*delta + value_delta;
+        return delta_val;
     }
     // Error if it was an invalid soldismode
     fprintf(stderr,"ERROR: Invalid soldismode!\n");

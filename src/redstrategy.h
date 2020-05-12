@@ -12,10 +12,11 @@ typedef enum {
 } facdismode;
 
 typedef enum {
-    SOLDIS_MEAN_GEOMETRIC_ERROR = 0, // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
-    SOLDIS_HAUSDORF = 1,             // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
-    SOLDIS_PER_CLIENT_DELTA = 2,     // D(A,B) = sum_j |v(A,j)-v(B,j)|
-    SOLDIS_AUTO = 3,                 // MGE w/SUM_OF_DELTAS or PCD
+    SOLDIS_MEAN_GEOMETRIC_ERROR = 0,  // D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
+    SOLDIS_HAUSDORF             = 1,  // D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
+    SOLDIS_PER_CLIENT_DELTA     = 2,  // D(A,B) = sum_j |v(A,j)-v(B,j)|
+    SOLDIS_AUTO                 = 3,  // MGE w/SUM_OF_DELTAS or PCD
+    SOLDIS_INDEXES_VALUE        = 4,  // Number of different indexes, solution value to break ties.
 } soldismode;
 
 typedef enum {
