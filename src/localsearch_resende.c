@@ -69,7 +69,7 @@ void fastmat_pack(fastmat *mat){ // Note: It doesn't merge repeated apparances (
 void fastmat_add(fastmat *mat, int y, int x, double v){
     // Find current cell
     assert(y>=0 && x>=0 && y<mat->size_y && x<mat->size_x);
-    assert(v>=1e-6);
+    assert(v>=-1e-6);
     mat->cells[y][x].value += v;
     mat->cells[y][x].n_clis += 1;
     if(mat->cells[y][x].n_clis==1){ // Add nonzero to the list
