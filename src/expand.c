@@ -84,7 +84,7 @@ void *expand_thread_execution(void *arg){
         // Generate a new solution from the fsol, and then check if it passes filtering.
         futuresol *fsol = (futuresol *)(args->futuresols+args->fsol_size*r);
         solution *new_sol = solution_copy(prob,fsol->origin);
-        solution_add(prob,new_sol,fsol->newf);
+        solution_add(prob,new_sol,fsol->newf,NULL);
         int filtered = 0;
         // Must be better than any other other subset (minus 1 facility)
         if(args->run->filter >= BETTER_THAN_SUBSETS){
@@ -204,7 +204,7 @@ solution **new_expand_solutions(const rundata *run,
         }
         // Update the futuresols, and realloc to reduce memory usage
         n_futuresols = n_futuresols2;
-        futuresols = realloc(futuresols,fsol_size*n_futuresols);
+        futuresols = safe_realloc(futuresols,fsol_size*n_futuresols);
     }
 
     solution **out_sols = safe_malloc(sizeof(solution*)*n_futuresols);
@@ -249,7 +249,7 @@ solution **new_expand_solutions(const rundata *run,
                 n_sols += 1;
             }
         }
-        out_sols = realloc(out_sols,sizeof(solution*)*(n_sols));
+        out_sols = safe_realloc(out_sols,sizeof(solution*)*(n_sols));
         *out_n_sols = n_sols;
     }
 

@@ -62,7 +62,7 @@ int main(int argc, const char **argv){
         int fac;
         int n_read = fscanf(fp,"%d",&fac);
         assert(n_read==1);
-        solution_add(prob,solution,fac);
+        solution_add(prob,solution,fac,NULL);
         // Get the assign cost by the assignment made by the algorithm
         double old_assign_cost = problem_assig_value(prob,solution->assigns[i],i);
         // Get the assign cost by the assignment on the .opt solution

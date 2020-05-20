@@ -200,13 +200,14 @@ The following flags can be used to specify different behaviours:
 | Flag | Effect |
 | :--- | ------ |
 | `-b` | Don't perform Branch & Bound as additional filter. |
-| `-l` | Skip local searches entirely. |
 | `-A` | Perform local search on all solutions, not only terminal. |
 | `-x` | Don't allow local search to perform movements that change the number of facilities. |
 | `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
+| `-l` | Skip local searches entirely. |
 | `-L` | Perform local searches with first improvement rather than best improvement. <br>
-         Warning: movement choice may be arbitrary for problems without a fixed size restriction <br>
-         for solution without -x. |
+         **Warning**: movement choice may be arbitrary for problems without a unique size restriction <br>
+         without `-x`. |
+| `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
@@ -317,4 +318,9 @@ Solution-solution dissimilitudes:
 
 ## Local search
 
-The local searches are performed using Whitaker's fast swap heuristic, but also adding the movement of removing facilities.
+The local searches are performed using Whitaker's fast swap heuristic, adapted for SPLP.
+Resende and Werneck local search is optional, in some cases it can speed up the local searches in up to 3 order of magnitude.
+
+First improvement strategy may be arbitrary for Whitaker's method when the solution size is not restricted and it's not yet implemented for Resende and Werneck.
+
+Also Resende and Werneck's method is not made for instances that can left clients unassinged; this is a TODO.

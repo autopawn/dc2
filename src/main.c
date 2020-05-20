@@ -8,10 +8,12 @@
 #include <time.h>
 #include <sys/time.h>
 
+#define VALUE_NOT_SET
+
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-A] [-x] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-A] [-W] [-x] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -24,20 +26,21 @@ int main(int argc, const char **argv){
     const char *output_fname = argv[argc-1];
 
     // Problem arguments to be changed by command line arguments
-    int random_seed = -1;
-    int restarts = -1;
-    int target_n = -1;
-    int filter_n = -1;
-    int max_size = -1;
-    int min_size = -1;
-    int n_threads = -1;
-    int local_search = -1;
-    int local_search_only_on_terminal = -1;
-    int local_search_rem_movement = -1;
-    int local_search_add_movement = -1;
-    int bnb = -1;
-    int verbose = -1;
-    int branching = -2;
+    const int UNSET = -2;
+    int random_seed = UNSET;
+    int restarts = UNSET;
+    int target_n = UNSET;
+    int filter_n = UNSET;
+    int max_size = UNSET;
+    int min_size = UNSET;
+    int n_threads = UNSET;
+    int local_search = UNSET;
+    int local_search_only_on_terminal = UNSET;
+    int local_search_rem_movement = UNSET;
+    int local_search_add_movement = UNSET;
+    int bnb = UNSET;
+    int verbose = UNSET;
+    int branching = UNSET;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -105,10 +108,16 @@ int main(int argc, const char **argv){
                 bnb = 0;
             }else if(argv[i][1]=='l' && strcmp(argv[i],"-l")==0){
                 // Disable local search
+                assert(local_search==UNSET);
                 local_search = NO_LOCAL_SEARCH;
             }else if(argv[i][1]=='L' && strcmp(argv[i],"-L")==0){
                 // First improvement local search
+                assert(local_search==UNSET);
                 local_search = SWAP_FIRST_IMPROVEMENT;
+            }else if(argv[i][1]=='W' && strcmp(argv[i],"-W")==0){
+                // Resende and Werneck's local search
+                assert(local_search==UNSET);
+                local_search = SWAP_RESENDE_WERNECK;
             }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
                 // Perform local search on all nodes
                 local_search_only_on_terminal = 0;
@@ -139,27 +148,27 @@ int main(int argc, const char **argv){
     if(max_size>=0) prob->size_restriction_maximum = max_size;
 
     // Create rundata (perform precomputations)
-    if(verbose!=0) printf("\nPerforming precomputations.\n");
-    rundata *run = rundata_init(prob, strategies,n_strategies,restarts);
+    int precomp_nearly_indexes = (local_search==SWAP_RESENDE_WERNECK);
+    rundata *run = rundata_init(prob, strategies,n_strategies,restarts,precomp_nearly_indexes);
 
     // Free problem (rundata kepps a copy)
     problem_free(prob);
     prob = NULL;
 
     // Set console arguments
-    if(target_n>=0) run->target_sols = target_n;
-    if(filter_n>=0) run->filter = filter_n;
-    if(bnb>=0) run->branch_and_bound = bnb;
+    if(target_n!=UNSET) run->target_sols = target_n;
+    if(filter_n!=UNSET) run->filter = filter_n;
+    if(bnb!=UNSET) run->branch_and_bound = bnb;
     if(n_threads>0) run->n_threads = n_threads;
-    if(local_search>=0) run->local_search = local_search;
-    if(local_search_only_on_terminal>=0) run->local_search_only_terminal = local_search_only_on_terminal;
-    if(local_search_rem_movement>=0) run->local_search_rem_movement = local_search_rem_movement;
-    if(local_search_add_movement>=0) run->local_search_add_movement = local_search_add_movement;
-    if(verbose>=0) run->verbose = verbose;
-    if(branching>-2) run->branching_factor = branching;
+    if(local_search!=UNSET) run->local_search = local_search;
+    if(local_search_only_on_terminal!=UNSET) run->local_search_only_terminal = local_search_only_on_terminal;
+    if(local_search_rem_movement!=UNSET) run->local_search_rem_movement = local_search_rem_movement;
+    if(local_search_add_movement!=UNSET) run->local_search_add_movement = local_search_add_movement;
+    if(verbose!=UNSET) run->verbose = verbose;
+    if(branching!=UNSET) run->branching_factor = branching;
 
     // Set random seed
-    if(random_seed==-1) random_seed = (int) time(NULL);
+    if(random_seed==UNSET) random_seed = (int) time(NULL);
     run->random_seed = random_seed;
 
     // Start counting time (cpu and elapsed)

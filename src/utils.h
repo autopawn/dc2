@@ -25,6 +25,8 @@ typedef unsigned int uint;
 
 // Auxiliar functions:
 void *safe_malloc(size_t size);
+void *safe_realloc(void *original, size_t size);
+
 uint hash_int(uint x);
 void add_to_sorted(int *array, int *len, int val);
 void rem_of_sorted(int *array, int *len, int val);

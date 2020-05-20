@@ -23,9 +23,10 @@ typedef enum {
 #define FILTER_DEFAULT BETTER_THAN_ALL_PARENTS
 
 typedef enum {
-    NO_LOCAL_SEARCH = 0,
-    SWAP_BEST_IMPROVEMENT = 1,
-    SWAP_FIRST_IMPROVEMENT = 2,
+    NO_LOCAL_SEARCH        = 0,
+    SWAP_BEST_IMPROVEMENT  = 1, // Whitaker's
+    SWAP_FIRST_IMPROVEMENT = 2, // Whitaker's
+    SWAP_RESENDE_WERNECK   = 3,
 } localsearch;
 
 #define DEFAULT_LOCAL_SEARCH SWAP_BEST_IMPROVEMENT
@@ -88,6 +89,8 @@ typedef struct {
     double precomp_client_optimal_gain;
     // | Precomputed distance matrices between facilities (for each mode)
     double **facs_distance[N_FACDIS_MODES];
+    // | Precomputed facility indexes by proximity for each client for Resende and Werneck's local search
+    int **nearly_indexes;
 
     // | Verbose mode
     int verbose;
@@ -135,7 +138,7 @@ problem *problem_copy(const problem *other);
 void problem_free(problem *prob);
 
 // Creates a rundata for the given problem and performs precomputations
-rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_restarts);
+rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_restarts, int precomp_nearly_indexes);
 
 // Free a rundata
 void rundata_free(rundata *run);

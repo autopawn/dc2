@@ -52,7 +52,7 @@ solution *solution_copy(const problem *prob, const solution *sol){
     return sol2;
 }
 
-void solution_add(const problem *prob, solution *sol, int newf){
+void solution_add(const problem *prob, solution *sol, int newf, int *affected){
     // Check if f is already on the solution:
     for(int f=0;f<sol->n_facs;f++){
         if(sol->facs[f]==newf){
@@ -60,7 +60,7 @@ void solution_add(const problem *prob, solution *sol, int newf){
         }
     }
     // Extend array of facilities
-    sol->facs = realloc(sol->facs,sizeof(int)*(sol->n_facs+1));
+    sol->facs = safe_realloc(sol->facs,sizeof(int)*(sol->n_facs+1));
     // Add facility to the solution
     add_to_sorted(sol->facs,&sol->n_facs,newf);
     // | New value after adding the new facility.
@@ -84,7 +84,7 @@ void solution_add(const problem *prob, solution *sol, int newf){
     sol->value = value2;
 }
 
-void solution_remove(const problem *prob, solution *sol, int remf, int *phi2){
+void solution_remove(const problem *prob, solution *sol, int remf, int *phi2, int *affected){
     rem_of_sorted(sol->facs,&sol->n_facs,remf);
     // New value after adding the new facility
     double value2 = 0;

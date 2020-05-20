@@ -12,6 +12,7 @@ const char *local_search_names[] = {
     "NO_LOCAL_SEARCH",
     "SWAP_BEST_IMPROVEMENT",
     "SWAP_FIRST_IMPROVEMENT",
+    "SWAP_RESENDE_WERNECK",
 };
 
 problem *problem_init(int n_facs, int n_clis){
@@ -84,7 +85,13 @@ void rundata_free(rundata *data){
             free(data->facs_distance[mode]);
         }
     }
-
+    // Free nearly indexes if it is in use
+    if(data->nearly_indexes){
+        for(int i=0;i<data->prob->n_clis;i++){
+            free(data->nearly_indexes[i]);
+        }
+        free(data->nearly_indexes);
+    }
     // Free first restart data
     free(data->firstr_per_size_n_sols);
     free(data->firstr_per_size_n_sols_after_red);
@@ -97,6 +104,9 @@ void rundata_free(rundata *data){
     // Free rundata
     free(data);
 }
+
+// ============================================================================
+// Facility-facility distance precomputation thread execution
 
 typedef struct {
     int thread_id;
@@ -134,7 +144,59 @@ void *precomp_facs_dist_thread_execution(void *arg){
     return NULL;
 }
 
-void rundata_precompute(rundata *run, redstrategy *rstrats, int n_rstrats){
+// ============================================================================
+// Nearly indexes thread execution
+
+typedef struct {
+    int thread_id;
+    rundata *run;
+} precomp_nearly_indexes_args;
+
+typedef struct {
+    double value;
+    int indx;
+} distpair;
+
+// Compare distpairs by distance
+int distpair_cmp(const void *a,const void *b){
+    const distpair *aa = a;
+    const distpair *bb = b;
+    double diff = bb->value - aa->value;
+    assert(!isnan(diff));
+    if(diff<0) return -1;
+    if(diff==0) return 0;
+    return 1;
+}
+
+void *precomp_nearly_indexes_thread_execution(void *arg){
+    precomp_nearly_indexes_args *args = (precomp_nearly_indexes_args *) arg;
+    const rundata *run = args->run;
+    const problem *prob = run->prob;
+    // Compute facility indexes sorted by proximity, client-wise.
+    for(int i=args->thread_id;i<prob->n_clis;i+=args->run->n_threads){
+        // Initialize array of distpairs with distances and facility indexes
+        distpair *pairs = safe_malloc(sizeof(distpair)*prob->n_facs);
+        for(int f=0;f<prob->n_facs;f++){
+            pairs[f].value = problem_assig_value(prob,f,i);
+            pairs[f].indx = f;
+        }
+        // Sort pairs by distance
+        qsort(pairs,prob->n_facs,sizeof(distpair),distpair_cmp);
+        assert(prob->n_facs==0 || pairs[0].value >= pairs[prob->n_facs-1].value);
+        // Initialize nearly indexes list
+        for(int k=0;k<prob->n_facs;k++){
+            run->nearly_indexes[i][k] = pairs[k].indx;
+        }
+        assert(prob->n_facs==0 || problem_assig_value(prob,run->nearly_indexes[i][0],i) >= problem_assig_value(prob,run->nearly_indexes[i][prob->n_facs-1],i));
+        // Free pairs data structure
+        free(pairs);
+    }
+    return NULL;
+}
+
+// ============================================================================
+
+void rundata_precompute(rundata *run, redstrategy *rstrats, int n_rstrats, int precomp_nearly_indexes){
     const problem *prob = run->prob;
     // Precompute value of empty solution
     double empty_val = 0;
@@ -157,9 +219,14 @@ void rundata_precompute(rundata *run, redstrategy *rstrats, int n_rstrats){
     }
 
     // Precompute facility distances
+    int notification = 0;
     for(int r=0;r<n_rstrats;r++){
         int mode = redstrategy_required_facdis_mode(rstrats[r]);
         if(mode!=FACDIS_NONE && run->facs_distance[mode]==NULL){
+            if(!notification && run->verbose!=0){
+                printf("\nPrecomputing facility-facility distances.\n");
+                notification = 1;
+            }
             // Allocate distance matrix between facilities
             run->facs_distance[mode] = safe_malloc(sizeof(double*)*prob->n_facs);
             for(int i=0;i<prob->n_facs;i++){
@@ -188,10 +255,43 @@ void rundata_precompute(rundata *run, redstrategy *rstrats, int n_rstrats){
             free(threads);
         }
     }
+
+    // Precompute facility indexes by proximity to each client
+    if(precomp_nearly_indexes){
+        if(run->nearly_indexes==NULL){
+            printf("\nPrecomputing nearly indexes.\n");
+            // Initialize memory for the nearly_indexes
+            run->nearly_indexes = safe_malloc(sizeof(int*)*prob->n_clis);
+            for(int i=0;i<prob->n_clis;i++){
+                run->nearly_indexes[i] = safe_malloc(sizeof(int)*prob->n_facs);
+            }
+            // Allocate memory for threads and arguments
+            pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+            precomp_nearly_indexes_args *targs = safe_malloc(sizeof(precomp_nearly_indexes_args)*run->n_threads);
+            // Call threads to compute facility-facility distances
+            for(int i=0;i<run->n_threads;i++){
+                targs[i].thread_id = i;
+                targs[i].run = run;
+                int rc = pthread_create(&threads[i],NULL,precomp_nearly_indexes_thread_execution,&targs[i]);
+                if(rc){
+                    fprintf(stderr,"ERROR: Error %d on pthread_create\n",rc);
+                    exit(1);
+                }
+            }
+            // Join threads
+            for(int i=0;i<run->n_threads;i++){ // Join threads
+                pthread_join(threads[i],NULL);
+            }
+            // Free memory
+            free(targs);
+            free(threads);
+        }
+    }
+
 }
 
 // Creates a rundata for the given problem and performs precomputations
-rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_restarts){
+rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_restarts, int precomp_nearly_indexes){
     rundata *run = safe_malloc(sizeof(rundata));
 
     run->prob = problem_copy(prob);
@@ -224,6 +324,8 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     for(int mode=0;mode<N_FACDIS_MODES;mode++){
         run->facs_distance[mode] = NULL;
     }
+    // Nearly indexes for each client not yet computed
+    run->nearly_indexes = NULL;
 
     // First restart data
     run->firstr_per_size_n_sols = safe_malloc(sizeof(int)*(prob->n_facs+2));
@@ -243,7 +345,7 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     }
 
     // Perform precomputations
-    rundata_precompute(run,rstrats,n_rstrats);
+    rundata_precompute(run,rstrats,n_rstrats,precomp_nearly_indexes);
 
     return run;
 }

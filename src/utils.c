@@ -10,6 +10,16 @@ void *safe_malloc(size_t size){
     return ptr;
 }
 
+void *safe_realloc(void *original, size_t size){
+    assert(errno==0);
+    void *ptr = realloc(original,size);
+    if((size>0 && ptr==NULL) || errno!=0){
+        fprintf(stderr,"ERROR (on realloc): %s\n",strerror(errno));
+        exit(1);
+    }
+    return ptr;
+}
+
 // Thanks to user Thomas Mueller: https://stackoverflow.com/a/12996028
 uint hash_int(uint x){
     x = ((x >> 16)^x)*0x45d9f3b;

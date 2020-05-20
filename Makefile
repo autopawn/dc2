@@ -2,6 +2,8 @@ SOURCES = src/main.c \
     src/bnb.c \
     src/expand.c \
     src/localsearch.c \
+    src/localsearch_resende.c \
+    src/localsearch_whitaker.c \
     src/output.c \
     src/redstrategy.c \
     src/reduction_diversity.c \
@@ -27,5 +29,5 @@ compile:
 	rm -rf bin || true
 	mkdir bin
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES) -lpthread -o bin/dc
-	gcc -g -Wall $(SOURCES) -lpthread -D DEBUG -o bin/dc_debug
+	gcc -g -pedantic -Wall $(SOURCES) -lpthread -D DEBUG -o bin/dc_debug
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -o bin/opt_checker
