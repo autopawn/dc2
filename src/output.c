@@ -49,6 +49,10 @@ void save_solutions(const char *file,
     fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)run->n_local_search_movements/(double)run->n_local_searches);
     fprintf(fp,"\n");
 
+    /* PATH RELINKING INFO */
+    fprintf(fp,"== PATH RELINKING INFO ==\n");
+    fprintf(fp,"# PATH_RELINKING_CPU_TIME: %f\n",run->path_relinking_seconds);
+
     /* FIRST RESTART DATA */
     fprintf(fp,"== FIRST RESTART INFO ==\n");
     fprintf(fp,"# FIRST_ITERATIONS: %d\n",run->firstr_n_iterations);

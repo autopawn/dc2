@@ -11,6 +11,7 @@
 #define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
 #define DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED 1
 #define DEFAULT_BRANCHING_FACTOR (-1)
+#define DEFAULT_PATH_RELINKING 0
 
 typedef enum {
     NO_FILTER = 0,
@@ -82,6 +83,9 @@ typedef struct {
     /* Maximum number of solutions that will be generated at random from each solution on the pool.
     if -1, then all solutions will be generated*/
     int branching_factor;
+    // If PR is enabled
+    int path_relinking;
+
     /* PRECOMPUTATIONS */
     // | Precomputed value of empty solution
     double precomp_empty_value;
@@ -116,6 +120,8 @@ typedef struct {
     double *restart_times;
     // | Values on each restart
     double *restart_values;
+    // | CPU time performing path relinking:
+    double path_relinking_seconds;
 } rundata;
 
 // | Retrieves the value of assigning the client c to the facility f

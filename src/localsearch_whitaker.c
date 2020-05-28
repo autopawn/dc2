@@ -2,8 +2,15 @@
 
 #define NO_MOVEMENT (-2)
 
-int solution_whitaker_hill_climbing(const rundata *run, solution *sol, shuffler *shuff){
+int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const solution *target, shuffler *shuff){
+    solution *sol = *solp;
     const problem *prob = run->prob;
+
+    // NOTE: FOR NOW, PATH RELINKING IS NOT IMPLEMENTED FOR WHITAKER'S FAST EXCHANGE
+    if(target){
+        fprintf(stderr,"ERROR: Path relinking not yet implemented for Whitaker's local search.\n");
+        exit(1);
+    }
 
     // Is this first improvement?
     int first_improvement = run->local_search==SWAP_FIRST_IMPROVEMENT;

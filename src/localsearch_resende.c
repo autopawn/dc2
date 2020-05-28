@@ -118,7 +118,7 @@ void fastmat_clean(fastmat *mat){
 
 void update_structures(
         const rundata *run, const solution *sol, int u,
-        const int *phi1, const int *phi2, const int *used,
+        const int *phi1, const int *phi2, const availmoves *avail,
         double *loss, double *gain, fastmat *extra, int undo){
     //
     const problem *prob = run->prob;
@@ -126,36 +126,58 @@ void update_structures(
     int fr    = sol->assigns[u];
     double d_phi1 = -problem_assig_value(prob,phi1[u],u);
     double d_phi2 = -problem_assig_value(prob,phi2[u],u);
-    assert(fr>=0 && used[fr]);
+    assert(fr>=0 && avail->used[fr]);
     assert(d_phi2>=d_phi1);
     assert(phi1[u]==fr);
 
-    if(!undo){
-        loss[fr] += d_phi2 - d_phi1;
-    }else{
-        loss[fr] -= d_phi2 - d_phi1;
-        assert(loss[fr]>=-1e-6);
+    if(avail->avail_rems[fr]){
+        if(!undo){
+            loss[fr] += d_phi2 - d_phi1;
+        }else{
+            loss[fr] -= d_phi2 - d_phi1;
+            assert(loss[fr]>=-1e-6);
+        }
     }
 
+    // Choose between numerating possible insertions using proximity order or available insertions
+    int proximity_mode = prob->n_facs/sol->n_facs <= avail->n_insertions;
+
+
     for(int k=0;k<prob->n_facs;k++){
-        int fi = run->nearly_indexes[u][k];
-        if(used[fi]) continue;
-        double d_fi = -problem_assig_value(prob,fi,u);
-        if(d_fi >= d_phi2) break;
+        int fi;
+        double d_fi;
+
+        if(proximity_mode){
+            fi = run->nearly_indexes[u][k];
+            if(!avail->avail_inss[fi]) continue;
+
+            d_fi = -problem_assig_value(prob,fi,u);
+            if(d_fi >= d_phi2) break;
+        }else{
+            if(k >= avail->n_insertions) break;
+
+            fi = avail->insertions[k];
+            assert(avail->avail_inss[fi]);
+
+            d_fi = -problem_assig_value(prob,fi,u);
+            if(d_fi >= d_phi2) continue;
+        }
+
+
         if(d_fi < d_phi1){
             if(!undo){
                 gain[fi] += d_phi1 - d_fi;
-                fastmat_add(extra,fi,fr,d_phi2-d_phi1);
+                if(avail->avail_rems[fr]) fastmat_add(extra,fi,fr,d_phi2-d_phi1);
             }else{
                 gain[fi] -= d_phi1 - d_fi;
                 assert(gain[fi]>=-1e-6);
-                fastmat_rem(extra,fi,fr,d_phi2-d_phi1);
+                if(avail->avail_rems[fr]) fastmat_rem(extra,fi,fr,d_phi2-d_phi1);
             }
         }else{
             if(!undo){
-                fastmat_add(extra,fi,fr,d_phi2-d_fi);
+                if(avail->avail_rems[fr]) fastmat_add(extra,fi,fr,d_phi2-d_fi);
             }else{
-                fastmat_rem(extra,fi,fr,d_phi2-d_fi);
+                if(avail->avail_rems[fr]) fastmat_rem(extra,fi,fr,d_phi2-d_fi);
             }
         }
     }
@@ -163,18 +185,18 @@ void update_structures(
 
 double find_best_neighboor(
         const rundata *run,
-        const double *loss, const double *gain, fastmat *extra, const int *used,
+        const double *loss, const double *gain, fastmat *extra, const availmoves *avail,
         int size_increase, int size_decrease, int *out_fins, int *out_frem){
     //
     const problem *prob = run->prob;
     //
     int best_fins = NO_MOVEMENT;
     int best_frem = NO_MOVEMENT;
-    double best_delta = 0;
+    double best_delta = (avail->path_relinking)? -INFINITY :  0;
     // Consider just simple insertions without deletions
     if(size_increase){
-        for(int fi=0;fi<prob->n_facs;fi++){
-            if(used[fi]) continue;
+        for(int t=0;t<avail->n_insertions;t++){
+            int fi = avail->insertions[t];
             double delta = gain[fi] - prob->facility_cost[fi];
             if(delta > best_delta){
                 best_fins  = fi;
@@ -185,8 +207,8 @@ double find_best_neighboor(
     }
     // Consider just a simple removal without insertions
     if(size_decrease){
-        for(int fr=0;fr<prob->n_facs;fr++){
-            if(!used[fr]) continue;
+        for(int t=0;t<avail->n_removals;t++){
+            int fr = avail->removals[t];
             double delta = prob->facility_cost[fr] - loss[fr];
             if(delta > best_delta){
                 best_fins = -1;
@@ -202,8 +224,8 @@ double find_best_neighboor(
         int fi = co.y;
         int fr = co.x;
         assert(extra->cells[co.y][co.x].n_clis>0);
-        assert(used[fr]);
-        assert(!used[fi]);
+        assert(avail->used[fr]);
+        assert(!avail->used[fi]);
         double delta = gain[fi] - loss[fr] + extrav - prob->facility_cost[fi] + prob->facility_cost[fr];
         if(delta > best_delta){
             best_fins = fi;
@@ -217,7 +239,8 @@ double find_best_neighboor(
     return best_delta;
 }
 
-int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fastmat *zeroini_mat){
+int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,const solution *target, fastmat *zeroini_mat){
+    solution *sol = *solp;
     const problem *prob = run->prob;
     if(sol->n_facs<2) return 0;
     // First and Second nearest facility to each client
@@ -239,10 +262,9 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
         gain[i] = 0;
         loss[i] = 0;
     }
-    // Whether a facility is present or not in the solution
-    int *used = safe_malloc(sizeof(int)*prob->n_facs);
-    for(int i=0;i<prob->n_facs;i++) used[i] = 0;
-    for(int i=0;i<sol->n_facs;i++) used[sol->facs[i]] = 1;
+
+    // Available moves
+    availmoves *avail = availmoves_init(prob,sol,target);
 
     // Array of affected clients
     int n_affected = prob->n_clis;
@@ -258,6 +280,12 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
 
     int *affected_mask = malloc(sizeof(int)*prob->n_clis);
 
+    // Best solution found so far (if doing path relinking):
+    solution *best_sol = NULL;
+    if(avail->path_relinking){
+        best_sol = solution_copy(prob,sol);
+    }
+
     while(1){
         best_rem = NO_MOVEMENT;
         best_ins = NO_MOVEMENT;
@@ -265,7 +293,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
         // Update structures for affected clients
         for(int i=0;i<n_affected;i++){
             int u = affected[i];
-            update_structures(run,sol,u,phi1,phi2,used,loss,gain,extra,0);
+            update_structures(run,sol,u,phi1,phi2,avail,loss,gain,extra,0);
         }
 
         // Check movements that are allowed and not allowed
@@ -274,7 +302,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
 
-        best_delta = find_best_neighboor(run,loss,gain,extra,used,
+        best_delta = find_best_neighboor(run,loss,gain,extra,avail,
                 allow_size_increase,allow_size_decrease,&best_ins,&best_rem);
 
         // Stop when no movement results in a better solution:
@@ -283,7 +311,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
             break;
         }
 
-        assert(best_rem<0 || used[best_rem]);
+        assert(best_rem<0 || avail->used[best_rem]);
         // Update array of affected users
         n_affected = 0;
         for(int u=0;u<prob->n_clis;u++){
@@ -300,7 +328,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
             int u = affected[i];
             assert(affected_mask[u]);
             // Undo update structures
-            update_structures(run,sol,u,phi1,phi2,used,loss,gain,extra,1);
+            update_structures(run,sol,u,phi1,phi2,avail,loss,gain,extra,1);
         }
         // Pack the list of nonzeros from the extra fastmat
         fastmat_pack(extra);
@@ -312,17 +340,28 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
         double old_value = sol->value;
         if(best_rem!=-1){
             solution_remove(prob,sol,best_rem,phi2,affected_mask);
-            used[best_rem] = 0;
         }
         if(best_ins!=-1){
             solution_add(prob,sol,best_ins,affected_mask);
-            used[best_ins] = 1;
         }
-        assert(sol->value>old_value);
+        availmoves_register_move(avail,best_ins,best_rem);
+
+        // Update best solution so far (if doing path relinking)
+        if(avail->path_relinking){
+            assert(best_sol);
+            if(best_sol->value < sol->value){
+                solution_free(best_sol);
+                best_sol = solution_copy(prob,sol);
+            }
+        }
+
+        assert(avail->path_relinking || sol->value>old_value);
         #ifdef DEBUG
-            double error_pred = (sol->value-old_value)-best_delta;
-            if(error_pred<0) error_pred *= -1;
-            assert(error_pred<1e-5 || isnan(error_pred));
+            if(best_delta!=-INFINITY){
+                double error_pred = (sol->value-old_value)-best_delta;
+                if(error_pred<0) error_pred *= -1;
+                assert(error_pred<1e-5 || isnan(error_pred));
+            }
         #endif
 
         // Update phi1 and phi2
@@ -331,19 +370,27 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution *sol, fas
         // Count one move:
         n_moves += 1;
     }
-    assert(best_delta==0);
+    assert(best_delta==0 || best_delta==-INFINITY);
 
     free(affected_mask);
 
     // Clean the fastmat for reuse
     fastmat_clean(extra);
 
+    assert((avail->path_relinking!=0) != (best_sol==NULL));
+
     free(affected);
-    free(used);
+    availmoves_free(avail);
     free(loss);
     free(gain);
     free(phi2);
     free(phi1);
+
+    // Set sol to best_sol in case we are doing path relinking
+    if(best_sol!=NULL){
+        *solp = best_sol;
+        solution_free(sol);
+    }
 
     return n_moves;
 }

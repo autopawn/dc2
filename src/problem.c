@@ -306,12 +306,13 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     run->n_local_searches         = 0;
     run->n_local_search_movements = 0;
     run->local_search_seconds     = 0;
+    run->path_relinking_seconds   = 0;
 
     // Default values
     run->lower_bound = -INFINITY;
-
-    run->verbose = 1;
+    run->verbose     = 1;
     run->branching_factor = DEFAULT_BRANCHING_FACTOR;
+    run->path_relinking   = DEFAULT_PATH_RELINKING;
 
     run->target_sols  = DEFAULT_TARGET_SOLS;
     run->n_threads    = DEFAULT_THREADS;
@@ -376,6 +377,7 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# LOCAL_SEARCH_REM_MOVEMENT: %d\n",run->local_search_rem_movement);
     fprintf(fp,"# LOCAL_SEARCH_ADD_MOVEMENT: %d\n",run->local_search_add_movement);
     fprintf(fp,"# BRANCHING FACTOR: %d\n",run->branching_factor);
+    fprintf(fp,"# PATH_RELINKING: %d\n",run->path_relinking);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
     fprintf(fp,"# VERBOSE: %d\n",run->verbose);

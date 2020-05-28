@@ -65,6 +65,11 @@ void solutions_delete_repeated(solution **sols, int *n_sols){
     *n_sols = n_final;
 }
 
+
+// ============================================================================
+// ======== LOCAL SEARCH
+// ============================================================================
+
 typedef struct {
     int thread_id;
     const rundata *run;
@@ -81,14 +86,14 @@ void *hillclimb_thread_execution(void *arg){
             fastmat *mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
             for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
                 // Perform local search on the given solution
-                args->n_moves += solution_resendewerneck_hill_climbing(args->run,args->sols[r],mat);
+                args->n_moves += solution_resendewerneck_hill_climbing(args->run,&args->sols[r],NULL,mat);
             }
             fastmat_free(mat);
         }
     }else{
         for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
             // Perform local search on the given solution
-            args->n_moves += solution_whitaker_hill_climbing(args->run,args->sols[r],args->shuff);
+            args->n_moves += solution_whitaker_hill_climbing(args->run,&args->sols[r],NULL,args->shuff);
         }
     }
     return NULL;
@@ -140,4 +145,261 @@ void solutions_hill_climbing(rundata *run, solution **sols, int n_sols){
     run->n_local_searches += n_sols;
     run->n_local_search_movements += n_moves;
     run->local_search_seconds += seconds;
+}
+
+
+// ============================================================================
+// ======== PATH RELINKING
+// ============================================================================
+
+typedef struct {
+    int thread_id;
+    const rundata *run;
+    solution **pool;
+    int n_pool;
+    solution **result;
+} path_relinking_thread_args;
+
+void *path_relinking_thread_execution(void *arg){
+    path_relinking_thread_args *args = (path_relinking_thread_args *) arg;
+
+    if(args->run->local_search==SWAP_RESENDE_WERNECK){
+        fastmat *mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
+
+        int c_pair = 0;
+        for(int i=0;i<args->n_pool;i++){
+            for(int j=i+1;j<args->n_pool;j++){
+                // Check if this pair should be linked by the current thread
+                if(c_pair%args->run->n_threads==args->thread_id){
+
+                    // Pick initial and ending solution from the pair according to solution value
+                    const solution *sol_ini, *sol_end;
+                    if(args->pool[i]->value >= args->pool[j]->value){
+                        sol_ini = args->pool[i];
+                        sol_end = args->pool[j];
+                    }else{
+                        sol_ini = args->pool[j];
+                        sol_end = args->pool[i];
+                    }
+
+                    // Perform path relinking
+                    solution *sol = solution_copy(args->run->prob,sol_ini);
+                    solution_resendewerneck_hill_climbing(args->run,&sol,sol_end,mat);
+
+                    args->result[c_pair] = sol;
+                }
+                c_pair += 1;
+            }
+        }
+
+        assert(c_pair== args->n_pool*(args->n_pool-1)/2);
+
+        fastmat_free(mat);
+    }else{
+        assert(0);
+    }
+
+
+    return NULL;
+}
+
+// Perform path relinking searches from the current solutions that won't be modified (in parallel).
+void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
+    // Start measuring time
+    clock_t start = clock();
+    // Allocate memory for resulting set of solutions
+    int n_resulting = (*n_sols)*((*n_sols)-1)/2;
+    solution **resulting = malloc(sizeof(solution*)*n_resulting);
+
+    // Allocate memory for threads and arguments
+    pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
+    path_relinking_thread_args *targs = safe_malloc(sizeof(path_relinking_thread_args)*run->n_threads);
+
+    // Call all threads to perform local search
+    for(int i=0;i<run->n_threads;i++){
+        // Set arguments for the thread
+        targs[i].thread_id = i;
+        targs[i].run = run;
+        targs[i].pool = (*sols);
+        targs[i].n_pool = (*n_sols);
+        targs[i].result = resulting;
+
+        // Create thread
+        int rc = pthread_create(&threads[i],NULL,path_relinking_thread_execution,&targs[i]);
+        if(rc){
+            fprintf(stderr,"ERROR: Error %d on pthread_create\n",rc);
+            exit(1);
+        }
+    }
+
+    // Join threads
+    for(int i=0;i<run->n_threads;i++){
+        pthread_join(threads[i],NULL);
+    }
+
+    // Free memory
+    free(targs);
+    free(threads);
+
+    // End measuring time
+    clock_t end = clock();
+    double seconds = (double)(end - start) / (double)CLOCKS_PER_SEC;
+    run->path_relinking_seconds += seconds;
+
+    // Delete similar solutions
+    solutions_delete_repeated(resulting,&n_resulting);
+
+    // Delete original solutions
+    for(int i=0;i<(*n_sols);i++){
+        solution_free((*sols)[i]);
+    }
+    free(*sols);
+
+    // Replace the original solution array for the array of resulting solutions
+    *sols = resulting;
+    *n_sols = n_resulting;
+}
+
+
+// ============================================================================
+// ======== AVAIL MOVES
+// ============================================================================
+
+availmoves *availmoves_init(const problem *prob, const solution *sol, const solution *tgt){
+    // Allowed insertions
+    int *inss = safe_malloc(sizeof(int)*prob->n_facs);
+    for(int i=0;i<prob->n_facs;i++) inss[i] = 1;
+    for(int k=0;k<sol->n_facs;k++)  inss[sol->facs[k]] = 0; // can't insert if already in solution
+
+    // Allowed removals
+    int *rems = safe_malloc(sizeof(int)*prob->n_facs);
+    for(int i=0;i<prob->n_facs;i++) rems[i] = 0;
+    for(int k=0;k<sol->n_facs;k++)  rems[sol->facs[k]] = 1; // can only remove if already present
+
+    int *used = safe_malloc(sizeof(int)*prob->n_facs);
+    for(int i=0;i<prob->n_facs;i++) used[i] = 0;
+    for(int k=0;k<sol->n_facs;k++)  used[sol->facs[k]] = 1;
+
+    // Restrict movements more if tgt
+    if(tgt){
+        // Create array to directly know if tgt has a facility
+        int *tgt_used = safe_malloc(sizeof(int)*prob->n_facs);
+        for(int i=0;i<prob->n_facs;i++) tgt_used[i] = 0;
+        for(int k=0;k<tgt->n_facs;k++)  tgt_used[tgt->facs[k]] = 1;
+        // Update inss and rems
+        for(int i=0;i<prob->n_facs;i++){
+            inss[i] = inss[i] && tgt_used[i]; // can only insert if tgt has it
+            rems[i] = rems[i] && !tgt_used[i]; // can only remove if tgt doens't have it
+        }
+        //
+        free(tgt_used);
+    }
+
+    // == Initialize availmoves
+    availmoves *av = safe_malloc(sizeof(availmoves));
+
+    av->avail_inss = inss;
+    av->avail_rems = rems;
+
+    av->n_insertions = 0;
+    av->insertions = safe_malloc(sizeof(int)*prob->n_facs);
+    for(int i=0;i<prob->n_facs;i++){
+        if(inss[i]){
+            av->insertions[av->n_insertions] = i;
+            av->n_insertions++;
+        }
+    }
+
+    av->n_removals = 0;
+    av->removals = safe_malloc(sizeof(int)*prob->n_facs);
+    for(int i=0;i<prob->n_facs;i++){
+        if(rems[i]){
+            av->removals[av->n_removals] = i;
+            av->n_removals++;
+        }
+    }
+
+    av->used = used;
+
+    // Won't recover indexes unless tgt is NULL
+    av->path_relinking = (tgt!=NULL);
+
+    return av;
+}
+
+void availmoves_register_move(availmoves *av, int f_ins, int f_rem){
+    // Update used array
+    if(f_ins>=0){
+        assert(!av->used[f_ins]);
+        av->used[f_ins] = 1;
+    }
+    if(f_rem>=0){
+        assert(av->used[f_rem]);
+        av->used[f_rem] = 0;
+    }
+
+    // Remove insertion option
+    if(f_ins>=0){
+
+        assert(av->avail_inss[f_ins]);
+        av->avail_inss[f_ins] = 0;
+
+        int ins_indx = -1;
+        for(int i=0;i<av->n_insertions;i++){
+            if(av->insertions[i]==f_ins){
+                ins_indx = i;
+                break;
+            }
+        }
+        assert(ins_indx>=0);
+        av->insertions[ins_indx] = av->insertions[av->n_insertions-1];
+        av->n_insertions -= 1;
+    }
+
+    // Remove removal option
+    if(f_rem>=0){
+        assert(av->avail_rems[f_rem]);
+        av->avail_rems[f_rem] = 0;
+
+        int rem_indx = -1;
+        for(int i=0;i<av->n_removals;i++){
+            if(av->removals[i]==f_rem){
+                rem_indx = i;
+                break;
+            }
+        }
+        assert(rem_indx>=0);
+        av->removals[rem_indx] = av->removals[av->n_removals-1];
+        av->n_removals -= 1;
+
+    }
+
+    // Add new options if recovering indexes is allowed
+    if(!av->path_relinking){
+        // Add removal option for insertion
+        if(f_ins>=0){
+            assert(!av->avail_rems[f_ins]);
+            av->avail_rems[f_ins] = 1;
+
+            av->removals[av->n_removals] = f_ins;
+            av->n_removals += 1;
+        }
+        // Add insertion option for removal
+        if(f_rem>=0){
+            assert(!av->avail_inss[f_rem]);
+            av->avail_inss[f_rem] = 1;
+
+            av->insertions[av->n_insertions] = f_rem;
+            av->n_insertions += 1;
+        }
+    }
+}
+
+void availmoves_free(availmoves *av){
+    free(av->removals);
+    free(av->insertions);
+    free(av->used);
+    free(av->avail_rems);
+    free(av->avail_inss);
+    free(av);
 }

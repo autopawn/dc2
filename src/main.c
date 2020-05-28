@@ -13,7 +13,7 @@
 int main(int argc, const char **argv){
     // Print information if arguments are invalid
     if(argc<3){
-        fprintf(stderr,"usage: %s [-r<n>] [-n<n>] [-R<n>] [-B<n>] [-t<n>] [-f<n>] [-s<n>] [-S<n>] [-b] [-l] [-A] [-W] [-x] {strategy:n} <input> <output>\n",argv[0]);
+        fprintf(stderr,"usage: %s [OPTIONS] {strategy:n} <input> <output>\n",argv[0]);
         exit(1);
     }
 
@@ -41,6 +41,7 @@ int main(int argc, const char **argv){
     int bnb = UNSET;
     int verbose = UNSET;
     int branching = UNSET;
+    int path_relinking = UNSET;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -125,6 +126,9 @@ int main(int argc, const char **argv){
                 // Don't allow local search to perform movements that change the size
                 local_search_rem_movement = 0;
                 local_search_add_movement = 0;
+            }else if(argv[i][1]=='P' && strcmp(argv[i],"-P")==0){
+                // Enable path relinking
+                path_relinking = 1;
             }else if(argv[i][1]=='V' && strcmp(argv[i],"-V")==0){
                 // Non verbose mode
                 verbose = 0;
@@ -166,6 +170,7 @@ int main(int argc, const char **argv){
     if(local_search_add_movement!=UNSET) run->local_search_add_movement = local_search_add_movement;
     if(verbose!=UNSET) run->verbose = verbose;
     if(branching!=UNSET) run->branching_factor = branching;
+    if(path_relinking!=UNSET) run->path_relinking = 1;
 
     // Set random seed
     if(random_seed==UNSET) random_seed = (int) time(NULL);
