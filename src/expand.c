@@ -143,7 +143,22 @@ solution **new_expand_solutions(const rundata *run,
 
     // ==== Generate futuresols depending on the branching factor
     assert(run->branching_factor>=-1);
-    int branching = run->branching_factor==-1? prob->n_facs-current_size : run->branching_factor;
+    int branching = run->branching_factor;
+    if(run->branching_factor==0){
+        if(current_size==0){
+            branching = 1;
+        }else{
+            branching = (int) ceilf(log2f((float)prob->n_facs/(float)current_size));
+            if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
+        }
+    }else if(run->branching_factor==-1){
+        branching = prob->n_facs-current_size;
+    }
+    // Generation 0 branching
+    if(current_size==0){
+        branching = prob->n_facs;
+    }
+
     if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
     // Allocate enough memory for the maximium amount of futuresols that can appear:
     void *futuresols = safe_malloc(fsol_size*(n_sols*branching+1));

@@ -28,6 +28,6 @@ SOURCES_OPT_CHECKER = src/main_opt_checker.c \
 compile:
 	rm -rf bin || true
 	mkdir bin
-	gcc -g -O4 -march=native -flto -Wall $(SOURCES) -lpthread -o bin/dc
-	gcc -g -pedantic -Wall $(SOURCES) -lpthread -D DEBUG -o bin/dc_debug
-	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -o bin/opt_checker
+	gcc -g -O4 -march=native -flto -Wall $(SOURCES) -lpthread -lm -o bin/dc
+	gcc -g -pedantic -Wall $(SOURCES) -lpthread -lm -D DEBUG -o bin/dc_debug
+	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -lm -o bin/opt_checker

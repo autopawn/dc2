@@ -208,10 +208,11 @@ The following flags can be used to specify different behaviours:
          **Warning**: movement choice may be arbitrary for problems without a unique size restriction <br>
          without `-x`. |
 | `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. |
+| `-P`    | Use path relinking on terminal solutions; for now `-W` is required. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
-| `-B<n>` | Instead of creating every child of each solution, just build `n` at random. <br> This happens before filtering. |
+| `-B<n>` | Instead of creating every child of each solution, just build `n` at random. <br> This happens before filtering. <br> `-B0` builds `ceil(log2(m/p))` where `p` is the solution size. |
 | `-t<n>` | The number of threads to use. |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.
@@ -324,3 +325,9 @@ Resende and Werneck local search is optional, in some cases it can speed up the 
 First improvement strategy may be arbitrary for Whitaker's method when the solution size is not restricted and it's not yet implemented for Resende and Werneck.
 
 Also Resende and Werneck's method is not made for instances that can left clients unassinged; this is a TODO.
+
+# TODOs:
+
+- [ ] Make PR work with Whitaker's local search.
+- [ ] Implement first improvement strategy for Resende and Werneck's local search.
+- [ ] Resende and Werneck's local search compatible with problems that can left clients unnasigned (no p-median or SPLP).

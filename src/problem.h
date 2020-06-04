@@ -81,7 +81,8 @@ typedef struct {
     // | If the local search has the add movement
     int local_search_add_movement;
     /* Maximum number of solutions that will be generated at random from each solution on the pool.
-    if -1, then all solutions will be generated*/
+    if -1, then all solutions will be generated
+    if 0, then ceil(log2(m/p)) solutions will be generated */
     int branching_factor;
     // If PR is enabled
     int path_relinking;
