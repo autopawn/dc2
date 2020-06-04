@@ -331,3 +331,4 @@ Also Resende and Werneck's method is not made for instances that can left client
 - [ ] Make PR work with Whitaker's local search.
 - [ ] Implement first improvement strategy for Resende and Werneck's local search.
 - [ ] Resende and Werneck's local search compatible with problems that can left clients unnasigned (no p-median or SPLP).
+- [ ] Speed-up mge for similar solutions.
