@@ -174,7 +174,8 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
                     if(run->verbose) printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
                     next_n_sols = prev_n_sols;
-                    next_sols = new_expand_solutions(run,prev_sols,prev_n_sols,&next_n_sols);
+                    int pool_size = n_rstrats>0? rstrats[n_rstrats-1].n_target : prob->n_facs;
+                    next_sols = new_expand_solutions(run,prev_sols,prev_n_sols,&next_n_sols,pool_size);
                 }
             }
 

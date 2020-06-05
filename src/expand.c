@@ -134,7 +134,7 @@ void *expand_thread_execution(void *arg){
 //#############################################################
 
 solution **new_expand_solutions(const rundata *run,
-        solution **sols, int n_sols, int *out_n_sols){
+        solution **sols, int n_sols, int *out_n_sols, int pool_size){
     const problem *prob = run->prob;
     // Get the corrent size of the solutions on this expansion:
     int current_size = n_sols>0? sols[0]->n_facs : 0;
@@ -146,18 +146,18 @@ solution **new_expand_solutions(const rundata *run,
     int branching = run->branching_factor;
     if(run->branching_factor==0){
         if(current_size==0){
-            branching = 1;
+            branching = 1 + (int) roundf(log2f(1.0+prob->n_facs));
         }else{
-            branching = (int) ceilf(log2f((float)prob->n_facs/(float)current_size));
-            if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
+            branching = 1 + (int) roundf(log2f((float)prob->n_facs/(float)current_size));
         }
     }else if(run->branching_factor==-1){
         branching = prob->n_facs-current_size;
     }
-    // Generation 0 branching
+    // Generation 0 branching is greater because generation 0 has the disadvantage of having pool size 1.
     if(current_size==0){
-        branching = prob->n_facs;
+        branching = pool_size * branching;
     }
+    if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
 
     if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
     // Allocate enough memory for the maximium amount of futuresols that can appear:
