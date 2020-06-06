@@ -153,21 +153,56 @@ double solution_dissimilitude(const rundata *run,
         }
         // Add distance from each facility in sol1 to sol2.
         double disim = 0;
-        for(int t=0;t<2;t++){
-            for(int i1=0;i1<sol1->n_facs;i1++){
+        int i1 = 0;
+        int i2 = 0;
+        // Make use of the fact that facilities are sorted in both solutions
+        while(i1<sol1->n_facs || i2<sol2->n_facs){
+            int s1f = i1<sol1->n_facs? sol1->facs[i1] : INT_MAX;
+            int s2f = i2<sol2->n_facs? sol2->facs[i2] : INT_MAX;
+            if(s1f==s2f){
+                // No delta added, same facility
+                i1 += 1;
+                i2 += 1;
+            }else if(s1f<s2f){
+                // Add delta from s1f to sol2
                 double min_dist = INFINITY;
-                int f1 = sol1->facs[i1];
-                for(int i2=0;i2<sol2->n_facs;i2++){
-                    int f2 = sol2->facs[i2];
-                    double dist = run->facs_distance[fdismode][f1][f2];
+                for(int k=0;k<sol2->n_facs;k++){
+                    int f2 = sol2->facs[k];
+                    double dist = run->facs_distance[fdismode][s1f][f2];
                     if(dist<min_dist) min_dist = dist;
                 }
                 disim += min_dist;
+                //
+                i1 += 1;
+            }else{
+                // Add delta from s2f to sol1
+                double min_dist = INFINITY;
+                for(int k=0;k<sol1->n_facs;k++){
+                    int f1 = sol1->facs[k];
+                    double dist = run->facs_distance[fdismode][s2f][f1];
+                    if(dist<min_dist) min_dist = dist;
+                }
+                disim += min_dist;
+                //
+                i2 += 1;
             }
-            // Swap solutions for 2nd iteration:
-            const solution *aux = sol1; sol1 = sol2; sol2 = aux;
         }
         return disim;
+        // double disim = 0;
+        // for(int t=0;t<2;t++){
+        //     for(int i1=0;i1<sol1->n_facs;i1++){
+        //         double min_dist = INFINITY;
+        //         int f1 = sol1->facs[i1];
+        //         for(int i2=0;i2<sol2->n_facs;i2++){
+        //             int f2 = sol2->facs[i2];
+        //             double dist = run->facs_distance[fdismode][f1][f2];
+        //             if(dist<min_dist) min_dist = dist;
+        //         }
+        //         disim += min_dist;
+        //     }
+        //     // Swap solutions for 2nd iteration:
+        //     const solution *aux = sol1; sol1 = sol2; sol2 = aux;
+        // }
     }
     else if(sdismode==SOLDIS_HAUSDORF){ // Based on https://github.com/mavillan/py-hausdorff
         // Expect the facility distances for this mode to be computed:

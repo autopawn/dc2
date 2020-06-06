@@ -1,6 +1,8 @@
 #ifndef DC_SOLUTION_H
 #define DC_SOLUTION_H
 
+#include <limits.h>
+
 #include "utils.h"
 #include "problem.h"
 
