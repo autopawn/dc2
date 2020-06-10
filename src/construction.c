@@ -44,7 +44,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
     assert(n_cands==0 || cands[0]->n_facs==csize);
     // Perform local search on the candidate solutions
     if(run->local_search){
-        if(run->local_search_only_terminal && csize<run->prob->size_restriction_maximum){
+        if(run->local_search_only_terminal && (csize<run->prob->size_restriction_maximum || run->prob->size_restriction_maximum==-1)){
             // Run local search just on the terminal solutions
             solution **terminals = safe_malloc(sizeof(solution *)*n_cands);
             int n_terminal = 0;

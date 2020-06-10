@@ -259,7 +259,9 @@ void rundata_precompute(rundata *run, redstrategy *rstrats, int n_rstrats, int p
     // Precompute facility indexes by proximity to each client
     if(precomp_nearly_indexes){
         if(run->nearly_indexes==NULL){
-            printf("\nPrecomputing nearly indexes.\n");
+            if(run->verbose!=0){
+                printf("\nPrecomputing nearly indexes.\n");
+            }
             // Initialize memory for the nearly_indexes
             run->nearly_indexes = safe_malloc(sizeof(int*)*prob->n_clis);
             for(int i=0;i<prob->n_clis;i++){

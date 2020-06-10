@@ -188,6 +188,7 @@ double solution_dissimilitude(const rundata *run,
             }
         }
         return disim;
+        // // OLDER VERSION
         // double disim = 0;
         // for(int t=0;t<2;t++){
         //     for(int i1=0;i1<sol1->n_facs;i1++){
