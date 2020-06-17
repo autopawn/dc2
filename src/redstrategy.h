@@ -41,7 +41,10 @@ typedef struct {
     soldismode soldis;
     facdismode facdis;
     int arg;
-    int elitist; // For some strategies, if it keeps the best.
+    // For some strategies, if it keeps the better solution so far:
+    int elitist;
+    // If this redstrategy will be used for path relinking (1) or on the construction process (0)
+    int for_path_relinking;
 } redstrategy;
 
 // Allocates an array of redstrategies from nomenclatures

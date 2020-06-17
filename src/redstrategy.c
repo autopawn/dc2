@@ -20,12 +20,19 @@ redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms)
         }
     }
     // Check that strategy n_targets are decreasing
-    for(int i=1;i<n_strategies;i++){
-        if(strategies[i-1].n_target<=strategies[i].n_target){
-            fprintf(stderr,"ERROR: strategy n_targets must decrease!\n");
-            exit(1);
+    for(int t=0;t<=1;t++){ // For not PR and for PR
+        int current_n_target = INT_MAX;
+        for(int i=0;i<n_strategies;i++){
+            if(strategies[i].for_path_relinking == t){
+                if(strategies[i].n_target>=current_n_target){
+                    fprintf(stderr,"ERROR: strategy n_targets must decrease!\n");
+                    exit(1);
+                }
+                current_n_target = strategies[i].n_target;
+            }
         }
     }
+
     *n_noms = n_strategies;
     return strategies;
 }
@@ -33,6 +40,16 @@ redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms)
 redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     redstrategy strategy;
     strategy.nomenclature = nomenclature;
+
+    // Check if reduction method starts with '_', meaning that it is intended for path relinking
+    if(nomenclature[0]=='_'){
+        strategy.for_path_relinking = 1;
+        nomenclature = &nomenclature[1];
+    }else{
+        strategy.for_path_relinking = 0;
+    }
+
+    //
 
     int nomlen = strlen(nomenclature);
     assert(nomlen<400);
@@ -55,7 +72,7 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
     int n_scan = sscanf(nomenclature2,"%s %d %s %d",
             abrev,&strategy.n_target,distm,&strategy.arg);
     if(n_scan<2){
-        fprintf(stderr,"ERROR: Invalid reduction format \"%s\"!\n",nomenclature);
+        fprintf(stderr,"ERROR: Invalid reduction format \"%s\"!\n",strategy.nomenclature);
         exit(1);
     }
 
@@ -107,7 +124,7 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         exit(1);
     }
     if(invalid){
-        fprintf(stderr,"ERROR: Invalid reduction arguments \"%s\"!\n",nomenclature);
+        fprintf(stderr,"ERROR: Invalid reduction arguments \"%s\"!\n",strategy.nomenclature);
         exit(1);
     }
 

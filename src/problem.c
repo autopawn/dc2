@@ -15,6 +15,12 @@ const char *local_search_names[] = {
     "SWAP_RESENDE_WERNECK",
 };
 
+const char *path_relinking_names[] = {
+    "NO_PATH_RELINKING",
+    "PATH_RELINKING_1_STEP",
+    "PATH_RELINKING_UNTIL_NO_BETTER",
+};
+
 problem *problem_init(int n_facs, int n_clis){
     problem *prob = safe_malloc(sizeof(problem));
     prob->n_facs = n_facs;
@@ -379,7 +385,7 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# LOCAL_SEARCH_REM_MOVEMENT: %d\n",run->local_search_rem_movement);
     fprintf(fp,"# LOCAL_SEARCH_ADD_MOVEMENT: %d\n",run->local_search_add_movement);
     fprintf(fp,"# BRANCHING FACTOR: %d\n",run->branching_factor);
-    fprintf(fp,"# PATH_RELINKING: %d\n",run->path_relinking);
+    fprintf(fp,"# PATH_RELINKING: %s\n",path_relinking_names[run->path_relinking]);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
     fprintf(fp,"# VERBOSE: %d\n",run->verbose);

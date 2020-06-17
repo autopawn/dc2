@@ -9,6 +9,8 @@ typedef struct {
     int n_prpool;
 } solmemory;
 
+// free solutions in the sols array, but some may be saved in the solmem final solutions
+// if they are better than the current ones on it.
 void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols, int n_sols, int restart){
     // Save current restart best solution found
     for(int i=0;i<n_sols;i++){
@@ -25,7 +27,7 @@ void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols
         solmem->n_final += 1;
     }
     // Remove repeated solutions
-    solutions_delete_repeated(solmem->final,&solmem->n_final);
+    solutions_sort_and_delete_repeated(solmem->final,&solmem->n_final);
     // Pick the best prob->target_sols for final solutions
     reduction_bests(run,solmem->final,&solmem->n_final,run->target_sols);
     // Update the lower bound
@@ -68,7 +70,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
         }
         // Delete repeated solutions after local search
         int n_cands0 = n_cands;
-        solutions_delete_repeated(cands,&n_cands);
+        solutions_sort_and_delete_repeated(cands,&n_cands);
         if(n_cands0>n_cands){
             if(run->verbose) printf(
                 "Reduced \033[34;1m%d\033[0m solutions to \033[34;1m%d\033[0m local optima.\n",
@@ -77,7 +79,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
     }
 
     // Copy terminal solutions on the PR pool
-    if(run->path_relinking){
+    if(run->path_relinking!=NO_PATH_RELINKING){
         // Count number of terminal solutions
         int n_terminal = 0;
         for(int i=0;i<n_cands;i++){
@@ -120,7 +122,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
     for(int r=0;r<run->n_restarts;r++){
 
         // Initialize PR pool
-        if(run->path_relinking){
+        if(run->path_relinking!=NO_PATH_RELINKING){
             solmem.n_prpool  = 0;
             solmem.prpool    = safe_malloc(sizeof(solution *)*1);
         }
@@ -157,7 +159,9 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
             // Apply the reduction strategies
             for(int i=0;i<n_rstrats;i++){
-                reduce_by_redstrategy(run,rstrats[i],prev_sols,&prev_n_sols);
+                if(!rstrats[i].for_path_relinking){ // Only apply reductions not intended for path relinking
+                    reduce_by_redstrategy(run,rstrats[i],prev_sols,&prev_n_sols);
+                }
             }
 
 
@@ -200,33 +204,81 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
         }
         run->total_n_iterations += csize;
 
-        // Turn the PR pool into
-        if(run->path_relinking){
+        // Apply post-optimization to the PR pool
+        if(run->path_relinking!=NO_PATH_RELINKING){
 
-            // Perform path relinking on the terminal solutions
-            if(run->verbose) printf("\nPerforming Path Relinking on \033[34;1m%d\033[0m terminal solutions.\n",solmem.n_prpool);
-            solutions_path_relinking(run,&solmem.prpool,&solmem.n_prpool);
+            if(run->verbose) printf("\nPerforming Post-optimization on \033[34;1m%d\033[0m terminal solutions:\n",solmem.n_prpool);
 
-            if(run->verbose) printf("PR resulted in \033[34;1m%d\033[0m different solutions.\n",solmem.n_prpool);
+            while(1){
 
-            // Perform local search on the resulting solutions
-            if(run->local_search){
-                if(run->verbose) printf("Performing LS on \033[34;1m%d\033[0m resulting solutions.\n",solmem.n_prpool);
-                solutions_hill_climbing(run,solmem.prpool,solmem.n_prpool);
-                // Delete repeated solutions after local search
-                int n_prpool0 = solmem.n_prpool;
-                solutions_delete_repeated(solmem.prpool,&solmem.n_prpool);
-                if(n_prpool0>solmem.n_prpool){
-                    if(run->verbose) printf(
-                        "Reduced \033[34;1m%d\033[0m temrinal solutions to \033[34;1m%d\033[0m local optima.\n",
-                        n_prpool0,solmem.n_prpool);
+                // Find current best solution value
+                double prev_best_sol_value = -INFINITY;
+                for(int i=0;i<solmem.n_prpool;i++){
+                    if(solmem.prpool[i]->value > prev_best_sol_value) prev_best_sol_value = solmem.prpool[i]->value;
                 }
+
+                // Apply the reduction strategies
+                for(int i=0;i<n_rstrats;i++){
+                    if(rstrats[i].for_path_relinking){ // Only apply reductions not intended for path relinking
+                        reduce_by_redstrategy(run,rstrats[i],solmem.prpool,&solmem.n_prpool);
+                    }
+                }
+
+
+                // Perform path relinking on the terminal solutions
+                if(run->verbose) printf("Performing Path Relinking on \033[34;1m%d\033[0m terminal solutions.\n",solmem.n_prpool);
+                solutions_path_relinking(run,&solmem.prpool,&solmem.n_prpool);
+
+                if(run->verbose) printf("PR resulted in \033[34;1m%d\033[0m different solutions.\n",solmem.n_prpool);
+
+                // Perform local search on the resulting solutions
+                if(run->local_search){
+                    if(run->verbose) printf("Performing LS on \033[34;1m%d\033[0m resulting solutions.\n",solmem.n_prpool);
+                    solutions_hill_climbing(run,solmem.prpool,solmem.n_prpool);
+                    // Delete repeated solutions after local search
+                    int n_prpool0 = solmem.n_prpool;
+                    solutions_sort_and_delete_repeated(solmem.prpool,&solmem.n_prpool);
+                    if(n_prpool0>solmem.n_prpool){
+                        if(run->verbose) printf(
+                            "Reduced \033[34;1m%d\033[0m terminal solutions to \033[34;1m%d\033[0m local optima.\n",
+                            n_prpool0,solmem.n_prpool);
+                    }
+                }
+
+                // Check for terminating conditions and save best solution found on this iteration
+                if(run->path_relinking==PATH_RELINKING_1_STEP){
+                    // Make PR only happen once with PATH_RELINKING_1_STEP
+                    break;
+                }else if(run->path_relinking==PATH_RELINKING_UNTIL_NO_BETTER){
+                    // Find new best solution value
+                    solution *new_best_solution = NULL;
+                    double new_best_sol_value   = -INFINITY;
+                    for(int i=0;i<solmem.n_prpool;i++){
+                        if(solmem.prpool[i]->value > new_best_sol_value){
+                            new_best_sol_value = solmem.prpool[i]->value;
+                            new_best_solution  = solmem.prpool[i];
+                        }
+                    }
+                    // Add best solution to final solutions, just in case
+                    if(new_best_solution){
+                        solution **singleton_best = safe_malloc(sizeof(solution *)*1);
+                        singleton_best[0] = solution_copy(run->prob,new_best_solution);
+
+                        // free solutions in the sols array, but some may be saved in the solmem final solutions
+                        // if they are better than the current ones on it.
+                        solmemory_merge_with_final(run,&solmem,singleton_best,1,r);
+                    }
+
+                    // No better solution was found
+                    if(new_best_sol_value<=prev_best_sol_value) break;
+                }
+
             }
 
 
-            // == Update array of best solutions
+            // free solutions in the sols array, but some may be saved in the solmem final solutions
+            // if they are better than the current ones on it.// == Update array of best solutions
             solmemory_merge_with_final(run,&solmem,solmem.prpool,solmem.n_prpool,r);
-
         }
 
         clock_t restart_end = clock();

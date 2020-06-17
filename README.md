@@ -208,7 +208,8 @@ The following flags can be used to specify different behaviours:
          **Warning**: movement choice may be arbitrary for problems without a unique size restriction <br>
          without `-x`. |
 | `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. |
-| `-P`    | Use path relinking on terminal solutions; for now `-W` is required. |
+| `-P`    | Use path relinking on terminal solutions once; for now `-W` is required. |
+| `-M`    | Use path relinking on terminal solutions until no better solution is found; for now `-W` is required. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
@@ -226,7 +227,7 @@ The default (and recommended) reduction strategy, is:
 ```
 rand1:6000 sdce+:200
 ```
-which picks 6000 solutions randomly and then applies `scde+` to select 200.
+which picks 6000 solutions randomly and then applies `sdce+` to select 200.
 
 **If you want to invest more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
 ```

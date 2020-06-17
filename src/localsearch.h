@@ -42,8 +42,8 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp, c
 int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const solution *target, shuffler *shuff);
 
 
-// Delete repeated solutions on the given array
-void solutions_delete_repeated(solution **sols, int *n_sols);
+// Sort the given array and delete repeated solutions
+void solutions_sort_and_delete_repeated(solution **sols, int *n_sols);
 
 // Perform local searches (in parallel).
 void solutions_hill_climbing(rundata *run, solution **sols, int n_sols);

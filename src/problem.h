@@ -11,7 +11,6 @@
 #define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
 #define DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED 1
 #define DEFAULT_BRANCHING_FACTOR (-1)
-#define DEFAULT_PATH_RELINKING 0
 
 typedef enum {
     NO_FILTER = 0,
@@ -31,6 +30,15 @@ typedef enum {
 } localsearch;
 
 #define DEFAULT_LOCAL_SEARCH SWAP_BEST_IMPROVEMENT
+
+typedef enum {
+    NO_PATH_RELINKING              = 0,
+    PATH_RELINKING_1_STEP          = 1,
+    PATH_RELINKING_UNTIL_NO_BETTER = 2,
+} pathrelinkingmode;
+
+#define DEFAULT_PATH_RELINKING NO_PATH_RELINKING
+
 
 extern const char *filter_names[];
 
@@ -85,7 +93,7 @@ typedef struct {
     if 0, then ceil(log2(m/p)) solutions will be generated */
     int branching_factor;
     // If PR is enabled
-    int path_relinking;
+    pathrelinkingmode path_relinking;
 
     /* PRECOMPUTATIONS */
     // | Precomputed value of empty solution

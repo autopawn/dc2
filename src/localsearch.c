@@ -47,7 +47,7 @@ void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, i
     }
 }
 
-void solutions_delete_repeated(solution **sols, int *n_sols){
+void solutions_sort_and_delete_repeated(solution **sols, int *n_sols){
     // If there are 0 solutions, do nothing.
     if(*n_sols==0) return;
     // Sort solutions for easier comparison
@@ -209,7 +209,7 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
     clock_t start = clock();
     // Allocate memory for resulting set of solutions
     int n_resulting = (*n_sols)*((*n_sols)-1)/2;
-    solution **resulting = malloc(sizeof(solution*)*n_resulting);
+    solution **resulting = safe_malloc(sizeof(solution*)*n_resulting);
 
     // Allocate memory for threads and arguments
     pthread_t *threads = safe_malloc(sizeof(pthread_t)*run->n_threads);
@@ -247,7 +247,7 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
     run->path_relinking_seconds += seconds;
 
     // Delete similar solutions
-    solutions_delete_repeated(resulting,&n_resulting);
+    solutions_sort_and_delete_repeated(resulting,&n_resulting);
 
     // Delete original solutions
     for(int i=0;i<(*n_sols);i++){

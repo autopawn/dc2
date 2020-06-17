@@ -127,8 +127,13 @@ int main(int argc, const char **argv){
                 local_search_rem_movement = 0;
                 local_search_add_movement = 0;
             }else if(argv[i][1]=='P' && strcmp(argv[i],"-P")==0){
-                // Enable path relinking
-                path_relinking = 1;
+                // Enable 1 path relinking
+                assert(path_relinking==UNSET);
+                path_relinking = PATH_RELINKING_1_STEP;
+            }else if(argv[i][1]=='M' && strcmp(argv[i],"-M")==0){
+                // Enable path relinking until no better solution is found made
+                assert(path_relinking==UNSET);
+                path_relinking = PATH_RELINKING_UNTIL_NO_BETTER;
             }else if(argv[i][1]=='V' && strcmp(argv[i],"-V")==0){
                 // Non verbose mode
                 verbose = 0;
@@ -170,7 +175,17 @@ int main(int argc, const char **argv){
     if(local_search_add_movement!=UNSET) run->local_search_add_movement = local_search_add_movement;
     if(verbose!=UNSET) run->verbose = verbose;
     if(branching!=UNSET) run->branching_factor = branching;
-    if(path_relinking!=UNSET) run->path_relinking = 1;
+    if(path_relinking!=UNSET) run->path_relinking = path_relinking;
+
+    // Check that there is no reduction for path relinking if we are not using it
+    if(run->path_relinking==NO_PATH_RELINKING){
+        for(int i=0;i<n_strategies;i++){
+            if(strategies[i].for_path_relinking){
+                fprintf(stderr,"ERROR: \"%s\" reduction but no path relinking.\n",strategies[i].nomenclature);
+                exit(1);
+            }
+        }
+    }
 
     // Set random seed
     if(random_seed==UNSET) random_seed = (int) time(NULL);

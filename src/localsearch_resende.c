@@ -268,7 +268,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
 
     // Array of affected clients
     int n_affected = prob->n_clis;
-    int *affected = malloc(sizeof(int)*prob->n_clis);
+    int *affected = safe_malloc(sizeof(int)*prob->n_clis);
     for(int i=0;i<n_affected;i++){
         affected[i] = i;
     }
@@ -278,7 +278,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
     int best_rem, best_ins;
     double best_delta = 0;
 
-    int *affected_mask = malloc(sizeof(int)*prob->n_clis);
+    int *affected_mask = safe_malloc(sizeof(int)*prob->n_clis);
 
     // Best solution found so far (if doing path relinking):
     solution *best_sol = NULL;
