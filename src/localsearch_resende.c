@@ -18,6 +18,8 @@ typedef struct {
     double value;
     // number of clients adding to this value (when 0, the value should be 0)
     int n_clis;
+    // position on the nonzero array, if it is a nonzero
+    int nonzero_index;
 } cell;
 
 // the fastmat
@@ -40,6 +42,7 @@ fastmat *fastmat_init(int size_y, int size_x){
         for(int x=0;x<size_x;x++){
             mat->cells[y][x].value  = 0;
             mat->cells[y][x].n_clis = 0;
+            mat->cells[y][x].nonzero_index = -1;
         }
     }
     mat->size_y = size_y;
@@ -48,21 +51,6 @@ fastmat *fastmat_init(int size_y, int size_x){
     mat->nonzeros = safe_malloc(sizeof(coord)*mat->s_nonzeros);
     mat->n_nonzeros = 0;
     return mat;
-}
-
-// Delete coords that point to a cell with value 0 from the nonzeros array.
-// Should be called after removing values.
-void fastmat_pack(fastmat *mat){ // Note: It doesn't merge repeated apparances (but they shall not appear).
-    int new_n_nonzeros = 0;
-    for(int i=0;i<mat->n_nonzeros;i++){
-        coord co = mat->nonzeros[i];
-        assert(mat->cells[co.y][co.x].n_clis>=0);
-        if(mat->cells[co.y][co.x].n_clis>0){
-            mat->nonzeros[new_n_nonzeros] = mat->nonzeros[i];
-            new_n_nonzeros += 1;
-        }
-    }
-    mat->n_nonzeros = new_n_nonzeros;
 }
 
 // Adds a value on the given position in the fastmatrix
@@ -77,6 +65,7 @@ void fastmat_add(fastmat *mat, int y, int x, double v){
         coord *co = &mat->nonzeros[mat->n_nonzeros];
         co->y = y;
         co->x = x;
+        mat->cells[y][x].nonzero_index = mat->n_nonzeros;
         mat->n_nonzeros++;
     }
 }
@@ -93,6 +82,18 @@ void fastmat_rem(fastmat *mat, int y, int x, double v){
         #endif
         // This may be required due rounding errors
         mat->cells[y][x].value = 0;
+
+        // Delete this entry from the nonzeros array, swap with the last nonzero
+        int c_index = mat->cells[y][x].nonzero_index;
+
+        mat->nonzeros[c_index] = mat->nonzeros[mat->n_nonzeros-1];
+        int co_y = mat->nonzeros[c_index].y;
+        int co_x = mat->nonzeros[c_index].x;
+        mat->cells[co_y][co_x].nonzero_index = c_index;
+
+        mat->cells[y][x].nonzero_index = -1;
+
+        mat->n_nonzeros--;
     }
 }
 
@@ -334,8 +335,6 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
             // Undo update structures
             update_structures(run,sol,u,phi1,phi2,avail,loss,gain,extra,1);
         }
-        // Pack the list of nonzeros from the extra fastmat
-        fastmat_pack(extra);
 
         // Perform swap:
         assert(best_ins!=NO_MOVEMENT);
