@@ -69,13 +69,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
             }
         }
         // Delete repeated solutions after local search
-        int n_cands0 = n_cands;
         solutions_sort_and_delete_repeated(cands,&n_cands);
-        if(n_cands0>n_cands){
-            if(run->verbose) printf(
-                "Reduced \033[34;1m%d\033[0m solutions to \033[34;1m%d\033[0m local optima.\n",
-                n_cands0,n_cands);
-        }
     }
 
     // Copy terminal solutions on the PR pool

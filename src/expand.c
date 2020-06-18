@@ -86,7 +86,7 @@ void *expand_thread_execution(void *arg){
         solution *new_sol = solution_copy(prob,fsol->origin);
         solution_add(prob,new_sol,fsol->newf,NULL);
         int filtered = 0;
-        // Must be better than any other other subset (minus 1 facility)
+        // Must be better than any other subset (minus 1 facility)
         if(args->run->filter >= BETTER_THAN_SUBSETS){
             // Initialize useful arrays if they aren't already
             if(v==NULL){

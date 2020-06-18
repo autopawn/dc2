@@ -52,6 +52,10 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
             (prob->size_restriction_minimum==-1 || sol->n_facs>prob->size_restriction_minimum);
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
+        if(target){
+            allow_size_increase = 1;
+            allow_size_decrease = 1;
+        }
 
         // Consider adding a facility while removing the worst facility
         int k_ini = allow_size_decrease? -1 : 0; // also consider not adding a facility if allow_size_decrease

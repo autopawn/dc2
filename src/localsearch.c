@@ -59,6 +59,7 @@ void solutions_sort_and_delete_repeated(solution **sols, int *n_sols){
             sols[n_final] = sols[i];
             n_final++;
         }else{
+            // Delete sols[i] as it is the same as sols[i-1]
             solution_free(sols[i]);
         }
     }

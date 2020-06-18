@@ -301,6 +301,10 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
             (prob->size_restriction_minimum==-1 || sol->n_facs>prob->size_restriction_minimum);
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
+        if(target){
+            allow_size_increase = 1;
+            allow_size_decrease = 1;
+        }
 
         best_delta = find_best_neighboor(run,loss,gain,extra,avail,
                 allow_size_increase,allow_size_decrease,&best_ins,&best_rem);

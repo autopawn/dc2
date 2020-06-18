@@ -187,7 +187,7 @@ double solution_dissimilitude(const rundata *run,
                 i2 += 1;
             }
         }
-        return disim;
+        return disim/(sol1->n_facs+sol2->n_facs);
         // // OLDER VERSION
         // double disim = 0;
         // for(int t=0;t<2;t++){
