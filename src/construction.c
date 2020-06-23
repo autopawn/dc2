@@ -172,7 +172,12 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 if(prob->size_restriction_maximum==-1 || csize<prob->size_restriction_maximum){
                     if(run->verbose) printf("Expanding \033[31;1m%d\033[0m solutions.\n",prev_n_sols);
                     next_n_sols = prev_n_sols;
-                    int pool_size = n_rstrats>0? rstrats[n_rstrats-1].n_target : prob->n_facs;
+                    // Get the final pool size expected at the end of each iteration
+                    int pool_size = prob->n_facs;
+                    for(int s=0;s<n_rstrats;s++){
+                        if(!rstrats[s].for_path_relinking) pool_size = rstrats[s].n_target;
+                    }
+                    // Expand solutions to get the next generation
                     next_sols = new_expand_solutions(run,prev_sols,prev_n_sols,&next_n_sols,pool_size);
                 }
             }
@@ -205,6 +210,8 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
             while(1){
 
+                if(run->verbose) printf("\n");
+
                 // Find current best solution value
                 double prev_best_sol_value = -INFINITY;
                 for(int i=0;i<solmem.n_prpool;i++){
@@ -218,9 +225,9 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                     }
                 }
 
-
                 // Perform path relinking on the terminal solutions
-                if(run->verbose) printf("Performing Path Relinking on \033[34;1m%d\033[0m terminal solutions.\n",solmem.n_prpool);
+                int n_prpool_before_pr = solmem.n_prpool;
+                if(run->verbose) printf("Performing Path Relinking on \033[34;1m%d\033[0m solutions.\n",solmem.n_prpool);
                 solutions_path_relinking(run,&solmem.prpool,&solmem.n_prpool);
 
                 if(run->verbose) printf("PR resulted in \033[34;1m%d\033[0m different solutions.\n",solmem.n_prpool);
@@ -239,39 +246,43 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                     }
                 }
 
+                // // Delete a fraction of the worst solutions
+                // float remov_factor = 0.33333;
+                // int n_prpool_before = solmem.n_prpool;
+                // reduction_remove_worst(solmem.prpool,&solmem.n_prpool,remov_factor);
+                // if(run->verbose) printf("Deleted the worst %d%% of the solutions: \033[34;1m%d\033[0m -> \033[34;1m%d\033[0m.\n",
+                //     (int)(100*remov_factor),n_prpool_before,solmem.n_prpool);
+
+                // Find new best solution value
+                solution *new_best_solution = NULL;
+                double new_best_sol_value   = -INFINITY;
+                for(int i=0;i<solmem.n_prpool;i++){
+                    if(solmem.prpool[i]->value > new_best_sol_value){
+                        new_best_sol_value = solmem.prpool[i]->value;
+                        new_best_solution  = solmem.prpool[i];
+                    }
+                }
+                // Add best solution to final solutions, just in case the reduction process deletes it
+                if(new_best_solution){
+                    solution **singleton_best = safe_malloc(sizeof(solution *)*1);
+                    singleton_best[0] = solution_copy(run->prob,new_best_solution);
+                    solmemory_merge_with_final(run,&solmem,singleton_best,1,r);
+                }
+                printf("current: %f\n",new_best_sol_value);
+
                 // Check for terminating conditions and save best solution found on this iteration
+                if(solmem.n_prpool<=1) break;
+                if(solmem.n_prpool<=n_prpool_before_pr-1) break;
                 if(run->path_relinking==PATH_RELINKING_1_STEP){
                     // Make PR only happen once with PATH_RELINKING_1_STEP
                     break;
                 }else if(run->path_relinking==PATH_RELINKING_UNTIL_NO_BETTER){
-                    // Find new best solution value
-                    solution *new_best_solution = NULL;
-                    double new_best_sol_value   = -INFINITY;
-                    for(int i=0;i<solmem.n_prpool;i++){
-                        if(solmem.prpool[i]->value > new_best_sol_value){
-                            new_best_sol_value = solmem.prpool[i]->value;
-                            new_best_solution  = solmem.prpool[i];
-                        }
-                    }
-                    // Add best solution to final solutions, just in case
-                    if(new_best_solution){
-                        solution **singleton_best = safe_malloc(sizeof(solution *)*1);
-                        singleton_best[0] = solution_copy(run->prob,new_best_solution);
-
-                        // free solutions in the sols array, but some may be saved in the solmem final solutions
-                        // if they are better than the current ones on it.
-                        solmemory_merge_with_final(run,&solmem,singleton_best,1,r);
-                    }
-
                     // No better solution was found
                     if(new_best_sol_value<=prev_best_sol_value) break;
                 }
 
             }
 
-
-            // free solutions in the sols array, but some may be saved in the solmem final solutions
-            // if they are better than the current ones on it.// == Update array of best solutions
             solmemory_merge_with_final(run,&solmem,solmem.prpool,solmem.n_prpool,r);
         }
 

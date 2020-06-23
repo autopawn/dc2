@@ -77,3 +77,17 @@ void reduction_random_uniform(const rundata *run, solution **sols, int *n_sols, 
     *n_sols = n_target;
 }
 
+void reduction_remove_worst(solution **sols, int *n_sols, double factor){
+    // Sort solutions in decreasing value
+    qsort(sols,*n_sols,sizeof(solution *),solutionp_value_cmp_inv);
+    // How many solutions to delete?
+    int n_delete = (int) floorf((*n_sols)*factor);
+    assert(n_delete <= *n_sols);
+    // Delete last solutions in the array
+    for(int i=0;i<n_delete;i++){
+        int idx = *n_sols -1 - i;
+        assert(idx>=0);
+        solution_free(sols[idx]);
+    }
+    *n_sols = *n_sols - n_delete;
+}

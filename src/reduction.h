@@ -6,7 +6,7 @@
 #include "problem.h"
 #include "solution.h"
 
-// NOTE: not all methods are in reduction.c, there are also methods in reduction_*.c files.
+// NOTE: not all functions are defined in reduction.c, there are also functions in reduction_*.c files.
 
 // Perform a redunction indicated by the given redstrategy
 void reduce_by_redstrategy(const rundata *run, const redstrategy rstrat,
@@ -29,5 +29,13 @@ void reduction_diversity_starting(const rundata *run, solution **sols, int *n_so
 
 void reduction_vr_heuristic(const rundata *run, solution **sols, int *n_sols,
         int n_target, soldismode soldis, facdismode facdis, int vision_range);
+
+
+
+
+// Remove the worst fraction of the given solutions
+void reduction_remove_worst(solution **sols, int *n_sols, double factor);
+
+
 
 #endif
