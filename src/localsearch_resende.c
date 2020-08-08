@@ -3,118 +3,6 @@
 #define NO_MOVEMENT (-2)
 
 // ============================================================================
-// fastmatrix
-
-/* A fastmatrix is a matrix that allows a fast iteration over non-zero elements. */
-
-// coordinate in the fastmat
-typedef struct {
-    int y,x;
-} coord;
-
-// cell in the fastmat
-typedef struct {
-    // current cell value
-    double value;
-    // number of clients adding to this value (when 0, the value should be 0)
-    int n_clis;
-    // position on the nonzero array, if it is a nonzero
-    int nonzero_index;
-} cell;
-
-// the fastmat
-struct fastmat {
-    // Values of the matrix's cells
-    int size_y, size_x;
-    cell **cells;
-    // Array of non-zero entries
-    int n_nonzeros;
-    int s_nonzeros;
-    coord *nonzeros;
-};
-
-// Initializes fastmat
-fastmat *fastmat_init(int size_y, int size_x){
-    fastmat *mat = safe_malloc(sizeof(fastmat));
-    mat->cells = safe_malloc(sizeof(cell*)*size_y);
-    for(int y=0;y<size_y;y++){
-        mat->cells[y] = safe_malloc(sizeof(cell)*size_x);
-        for(int x=0;x<size_x;x++){
-            mat->cells[y][x].value  = 0;
-            mat->cells[y][x].n_clis = 0;
-            mat->cells[y][x].nonzero_index = -1;
-        }
-    }
-    mat->size_y = size_y;
-    mat->size_x = size_x;
-    mat->s_nonzeros = size_y*size_x;
-    mat->nonzeros = safe_malloc(sizeof(coord)*mat->s_nonzeros);
-    mat->n_nonzeros = 0;
-    return mat;
-}
-
-// Adds a value on the given position in the fastmatrix
-void fastmat_add(fastmat *mat, int y, int x, double v){
-    // Find current cell
-    assert(y>=0 && x>=0 && y<mat->size_y && x<mat->size_x);
-    assert(v>=-1e-6);
-    mat->cells[y][x].value += v;
-    mat->cells[y][x].n_clis += 1;
-    if(mat->cells[y][x].n_clis==1){ // Add nonzero to the list
-        assert(mat->n_nonzeros<mat->s_nonzeros);
-        coord *co = &mat->nonzeros[mat->n_nonzeros];
-        co->y = y;
-        co->x = x;
-        mat->cells[y][x].nonzero_index = mat->n_nonzeros;
-        mat->n_nonzeros++;
-    }
-}
-
-// Intended for reverting an addition on the given position in a fastmatrix
-void fastmat_rem(fastmat *mat, int y, int x, double v){
-    // if(mat->cells[y][x].n_clis==0) return; // ???
-    assert(mat->cells[y][x].n_clis>0);
-    mat->cells[y][x].value  -= v;
-    mat->cells[y][x].n_clis -= 1;
-    if(mat->cells[y][x].n_clis==0){
-        #ifdef DEBUG
-            assert(mat->cells[y][x].value<=0.000001);
-        #endif
-        // This may be required due rounding errors
-        mat->cells[y][x].value = 0;
-
-        // Delete this entry from the nonzeros array, swap with the last nonzero
-        int c_index = mat->cells[y][x].nonzero_index;
-
-        mat->nonzeros[c_index] = mat->nonzeros[mat->n_nonzeros-1];
-        int co_y = mat->nonzeros[c_index].y;
-        int co_x = mat->nonzeros[c_index].x;
-        mat->cells[co_y][co_x].nonzero_index = c_index;
-
-        mat->cells[y][x].nonzero_index = -1;
-
-        mat->n_nonzeros--;
-    }
-}
-
-// Free fastmat memory
-void fastmat_free(fastmat *mat){
-    for(int y=0;y<mat->size_y;y++) free(mat->cells[y]);
-    free(mat->cells);
-    free(mat->nonzeros);
-    free(mat);
-}
-
-void fastmat_clean(fastmat *mat){
-    for(int i=0;i<mat->n_nonzeros;i++){
-        coord co = mat->nonzeros[i];
-        mat->cells[co.y][co.x].value  = 0;
-        mat->cells[co.y][co.x].n_clis = 0;
-    }
-    mat->n_nonzeros = 0;
-}
-
-// ============================================================================
 // Resende's and werneck local search functions
 
 void update_structures(
@@ -219,12 +107,16 @@ double find_best_neighboor(
         }
     }
     // Consider swaps
-    for(int i=0;i<extra->n_nonzeros;i++){
-        coord co = extra->nonzeros[i];
-        double extrav = extra->cells[co.y][co.x].value;
+    coordcelltable_iter it = coordcelltable_begin(extra->tab);
+    while(!coordcelltable_iter_done(&it)){
+        // Get key and value from next iteration
+        coord co = coordcelltable_iter_key(&it);
+        cell ce = coordcelltable_iter_val(&it);
+        double extrav = ce.value;
+        //
         int fi = co.y;
         int fr = co.x;
-        assert(extra->cells[co.y][co.x].n_clis>0);
+        assert(ce.n_clis>0);
         assert(avail->used[fr]);
         assert(!avail->used[fi]);
         double delta = gain[fi] - loss[fr] + extrav - prob->facility_cost[fi] + prob->facility_cost[fr];
@@ -233,6 +125,9 @@ double find_best_neighboor(
             best_frem = fr;
             best_delta = delta;
         }
+
+        // Step to next iteration
+        coordcelltable_iter_next(&it);
     }
     // Retrieve results
     *out_fins = best_fins;
@@ -253,9 +148,6 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
     }
 
     // Structures
-    assert(zeroini_mat->n_nonzeros==0);
-    assert(zeroini_mat->size_y==prob->n_facs);
-    assert(zeroini_mat->size_x==prob->n_facs);
     fastmat *extra = zeroini_mat;
     double *gain = safe_malloc(sizeof(double)*prob->n_facs);
     double *loss = safe_malloc(sizeof(double)*prob->n_facs);

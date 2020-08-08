@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "solution.h"
 #include "shuffle.h"
+#include "fastmat.h"
 
 // An availmoves contains 2 array lists with the available insertion and removal movements
 typedef struct {
@@ -28,11 +29,6 @@ typedef struct {
 availmoves *availmoves_init(const problem *prob, const solution *sol, const solution *tgt);
 void availmoves_register_move(availmoves *av, int f_ins, int f_rem);
 void availmoves_free(availmoves *av);
-
-// Fastmat is a big matrix that can be reused over differnt calls of solution_resendewerneck_hill_climbing
-typedef struct fastmat fastmat;
-fastmat *fastmat_init(int size_y, int size_x);
-void fastmat_free(fastmat *mat);
 
 // Performs hill climbing via facility swappings using Resende & Werneck local search
 // requires a fastmat of size (prob->n_facs,prob->n_facs) initialized in zeros (retrieves it the same way so it can be reused).

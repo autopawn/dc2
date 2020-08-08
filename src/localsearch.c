@@ -84,7 +84,7 @@ void *hillclimb_thread_execution(void *arg){
     hillclimb_thread_args *args = (hillclimb_thread_args *) arg;
     if(args->run->local_search==SWAP_RESENDE_WERNECK){
         if(args->thread_id<args->n_sols){
-            fastmat *mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
+            fastmat *mat = fastmat_init(); //args->run->prob->n_facs,args->run->prob->n_facs);
             for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
                 // Perform local search on the given solution
                 args->n_moves += solution_resendewerneck_hill_climbing(args->run,&args->sols[r],NULL,mat);
@@ -165,7 +165,7 @@ void *path_relinking_thread_execution(void *arg){
     path_relinking_thread_args *args = (path_relinking_thread_args *) arg;
 
     if(args->run->local_search==SWAP_RESENDE_WERNECK){
-        fastmat *mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
+        fastmat *mat = fastmat_init(); //args->run->prob->n_facs,args->run->prob->n_facs);
 
         int c_pair = 0;
         for(int i=0;i<args->n_pool;i++){
@@ -197,7 +197,7 @@ void *path_relinking_thread_execution(void *arg){
 
         fastmat_free(mat);
     }else{
-        assert(0);
+        assert(!"Path relinking is only compatible with -W for now");
     }
 
 

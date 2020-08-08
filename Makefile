@@ -4,6 +4,7 @@ SOURCES = src/main.c \
     src/localsearch.c \
     src/localsearch_resende.c \
     src/localsearch_whitaker.c \
+    src/fastmat.c \
     src/output.c \
     src/redstrategy.c \
     src/reduction_diversity.c \
