@@ -88,6 +88,10 @@ void *hillclimb_thread_execution(void *arg){
             for(int r=args->thread_id;r<args->n_sols;r+=args->run->n_threads){
                 // Perform local search on the given solution
                 args->n_moves += solution_resendewerneck_hill_climbing(args->run,&args->sols[r],NULL,mat);
+
+                const problem *prob = args->run->prob;
+                assert(prob->size_restriction_maximum==-1 || args->sols[r]->n_facs<=prob->size_restriction_maximum);
+                assert(prob->size_restriction_minimum==-1 || args->sols[r]->n_facs>=prob->size_restriction_minimum);
             }
             fastmat_free(mat);
         }
@@ -186,6 +190,10 @@ void *path_relinking_thread_execution(void *arg){
                     // Perform path relinking
                     solution *sol = solution_copy(args->run->prob,sol_ini);
                     solution_resendewerneck_hill_climbing(args->run,&sol,sol_end,mat);
+
+                    const problem *prob = args->run->prob;
+                    assert(prob->size_restriction_maximum==-1 || sol->n_facs<=prob->size_restriction_maximum);
+                    assert(prob->size_restriction_minimum==-1 || sol->n_facs>=prob->size_restriction_minimum);
 
                     args->result[c_pair] = sol;
                 }
