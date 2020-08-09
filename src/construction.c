@@ -11,7 +11,7 @@ typedef struct {
 
 // free solutions in the sols array, but some may be saved in the solmem final solutions
 // if they are better than the current ones on it.
-void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols, int n_sols, int restart){
+void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols, int n_sols, int restart, int message){
     // Save current restart best solution found
     for(int i=0;i<n_sols;i++){
         if(sols[i]->value > run->restart_values[restart]){
@@ -36,6 +36,8 @@ void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols
 
     // Solution cands is not longer needed.
     free(sols);
+    // Print best solution
+    if(run->verbose && message) printf("Current value: %f\n",run->restart_values[restart]);
 }
 
 // final is expected to have a size >= 2*prob->target_sols
@@ -97,7 +99,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
     }
 
     // == Update array of best solutions
-    solmemory_merge_with_final(run,solmem,cands,n_cands,restart);
+    solmemory_merge_with_final(run,solmem,cands,n_cands,restart,1);
 }
 
 solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rstrats,
@@ -226,7 +228,6 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 }
 
                 // Perform path relinking on the terminal solutions
-                int n_prpool_before_pr = solmem.n_prpool;
                 if(run->verbose) printf("Performing Path Relinking on \033[34;1m%d\033[0m solutions.\n",solmem.n_prpool);
                 solutions_path_relinking(run,&solmem.prpool,&solmem.n_prpool);
 
@@ -266,13 +267,11 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 if(new_best_solution){
                     solution **singleton_best = safe_malloc(sizeof(solution *)*1);
                     singleton_best[0] = solution_copy(run->prob,new_best_solution);
-                    solmemory_merge_with_final(run,&solmem,singleton_best,1,r);
+                    solmemory_merge_with_final(run,&solmem,singleton_best,1,r,1);
                 }
-                printf("current: %f\n",new_best_sol_value);
 
-                // Check for terminating conditions and save best solution found on this iteration
+                // Check for terminating conditions
                 if(solmem.n_prpool<=1) break;
-                if(solmem.n_prpool<=n_prpool_before_pr-1) break;
                 if(run->path_relinking==PATH_RELINKING_1_STEP){
                     // Make PR only happen once with PATH_RELINKING_1_STEP
                     break;
@@ -283,7 +282,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
             }
 
-            solmemory_merge_with_final(run,&solmem,solmem.prpool,solmem.n_prpool,r);
+            solmemory_merge_with_final(run,&solmem,solmem.prpool,solmem.n_prpool,r,0);
         }
 
         clock_t restart_end = clock();
