@@ -272,7 +272,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
                 // Check for terminating conditions and save best solution found on this iteration
                 if(solmem.n_prpool<=1) break;
-                if(solmem.n_prpool<=n_prpool_before_pr-1) break;
+                // if(solmem.n_prpool<=n_prpool_before_pr-1) break; // NOTE: Can this help?
                 if(run->path_relinking==PATH_RELINKING_1_STEP){
                     // Make PR only happen once with PATH_RELINKING_1_STEP
                     break;
