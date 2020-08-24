@@ -136,6 +136,10 @@ typedef struct {
 // | Retrieves the value of assigning the client c to the facility f
 static inline double problem_assig_value(const problem *prob, int f, int c){
     double cweight = prob->client_weight[c];
+    if(cweight==1 && prob->transport_cost==1 && prob->client_gain==0){
+	if(f==-1) return -prob->unassigned_cost;
+	else return -prob->distance[f][c];
+    }
     if(f==-1){
         return cweight*(-prob->unassigned_cost);
     }else{

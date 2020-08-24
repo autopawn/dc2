@@ -197,7 +197,7 @@ void *path_relinking_thread_execution(void *arg){
 
         fastmat_free(mat);
     }else{
-        assert(0);
+        assert(0); // FIXME: BETTER ERROR MESSAGE!!!!
     }
 
 
