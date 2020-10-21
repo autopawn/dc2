@@ -7,8 +7,13 @@ problem *problem_init(int n_facs, int n_clis){
     //
     prob->facility_cost = safe_malloc(sizeof(double)*prob->n_facs);
     memset(prob->facility_cost,0,     sizeof(double)*prob->n_facs);
-    //
-    prob->distance_cost = safe_malloc(sizeof(double*)*prob->n_facs);
+    // Initialize distance cost matrix with rows starting from -1
+    prob->distance_cost = safe_malloc(sizeof(double*)*(prob->n_facs+1));
+    prob->distance_cost += 1;
+    // Initialize row -1
+    prob->distance_cost[-1] = safe_malloc(sizeof(double)*prob->n_clis);
+    for(int j=0;j<prob->n_clis;j++) prob->distance_cost[-1][j] = -INFINITY;
+    // Initialize other rrows
     for(int i=0;i<prob->n_facs;i++){
         prob->distance_cost[i] = safe_malloc(sizeof(double)*prob->n_clis);
         memset(prob->distance_cost[i],0,     sizeof(double)*prob->n_clis);
@@ -38,10 +43,10 @@ problem *problem_copy(const problem *other){
 
 void problem_free(problem *prob){
     // Free facility-client distances
-    for(int i=0;i<prob->n_facs;i++){
+    for(int i=-1;i<prob->n_facs;i++){
         free(prob->distance_cost[i]);
     }
-    free(prob->distance_cost);
+    free(prob->distance_cost-1);
     // Free per facility and client arrays
     free(prob->facility_cost);
     // Free problem

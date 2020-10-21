@@ -6,12 +6,6 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     solution *sol = *solp;
     const problem *prob = run->prob;
 
-    // NOTE: FOR NOW, PATH RELINKING IS NOT IMPLEMENTED FOR WHITAKER'S FAST EXCHANGE
-    if(target){
-        fprintf(stderr,"ERROR: Path relinking not yet implemented for Whitaker's local search.\n");
-        exit(1);
-    }
-
     // Is this first improvement?
     int first_improvement = run->local_search==SWAP_FIRST_IMPROVEMENT;
     assert(shuff!=NULL || !first_improvement);
@@ -19,28 +13,32 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     // First and Second nearest facility to each client
     int *phi1 = safe_malloc(sizeof(int)*prob->n_clis);
     int *phi2 = safe_malloc(sizeof(int)*prob->n_clis);
-    // Array if a facility appears in the solution
-    int *used = safe_malloc(sizeof(int)*prob->n_facs);
     // Auxiliar array for solution_findout
     double *v = safe_malloc(sizeof(double)*prob->n_facs);
     // Initialize arrays
     for(int i=0;i<prob->n_facs;i++){
-        used[i] = 0;
         v[i] = -INFINITY;
-    }
-    for(int i=0;i<sol->n_facs;i++){
-        used[sol->facs[i]] = 1;
     }
     // For each client, find the second nearest facility in the solution
     for(int i=0;i<prob->n_clis;i++){
         phi1[i] = sol->assigns[i];
         phi2[i] = solution_client_2nd_nearest(prob,sol,i);
     }
+
+    // Available moves
+    availmoves *avail = availmoves_init(prob,sol,target);
+
+    // Best solution found so far (if doing path relinking):
+    solution *best_sol = NULL;
+    if(avail->path_relinking){
+        best_sol = solution_copy(prob,sol);
+    }
+
     // Each movement:
     int n_moves = 0;
     while(1){
         // Insertion candidate:
-        double best_delta = 0;
+        double best_delta = -INFINITY;
         int best_rem = NO_MOVEMENT;
         int best_ins = NO_MOVEMENT;
 
@@ -52,10 +50,6 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
             (prob->size_restriction_minimum==-1 || sol->n_facs>prob->size_restriction_minimum);
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
-        if(target){
-            allow_size_increase = 1;
-            allow_size_decrease = 1;
-        }
 
         // Consider adding a facility while removing the worst facility
         int k_ini = allow_size_decrease? -1 : 0; // also consider not adding a facility if allow_size_decrease
@@ -68,25 +62,25 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
             }
 
             // Ignore insertion if the facility is already present in the solution
-            if(f_ins>=0 && used[f_ins]) continue;
+            if(f_ins>=0 && !avail->avail_inss[f_ins]) continue;
             // Find best facility to remove after inserting f_ins, and profits
             int f_rem;
             double delta_profit, delta_profit_worem;
-            solution_findout(prob,sol,f_ins,v,phi2,&f_rem,&delta_profit,&delta_profit_worem);
+            solution_findout(prob,sol,f_ins,v,phi2,avail->avail_rems,
+                    &f_rem,&delta_profit,&delta_profit_worem);
             // Update best removal and insertion
             int improvement = 0;
             if(delta_profit>best_delta){
                 best_delta = delta_profit;
                 best_rem = f_rem;
                 best_ins = f_ins;
-                improvement = 1;
             }
             if(delta_profit_worem>best_delta && allow_size_increase){
                 best_delta = delta_profit_worem;
                 best_rem = -1;
                 best_ins = f_ins;
-                improvement = 1;
             }
+            if(best_delta>0) improvement = 1;
             // break the loop on first_improvement
             if(first_improvement && improvement) break;
         }
@@ -97,24 +91,38 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
         }
 
         // Stop when no movement results in a better solution:
-        if(best_ins==NO_MOVEMENT) break;
+        if(best_ins==NO_MOVEMENT){
+            assert(best_rem==NO_MOVEMENT);
+            break;
+        }
 
         // Perform swap:
         assert(best_rem!=NO_MOVEMENT);
         double old_value = sol->value;
         if(best_rem!=-1){
             solution_remove(prob,sol,best_rem,phi2,NULL);
-            used[best_rem] = 0;
         }
         if(best_ins!=-1){
             solution_add(prob,sol,best_ins,NULL);
-            used[best_ins] = 1;
         }
-        assert(sol->value>old_value);
+        availmoves_register_move(avail,best_ins,best_rem);
+
+        // Update best solution so far (if doing path relinking)
+        if(avail->path_relinking){
+            assert(best_sol);
+            if(best_sol->value < sol->value){
+                solution_free(best_sol);
+                best_sol = solution_copy(prob,sol);
+            }
+        }
+
+        assert(avail->path_relinking || sol->value>old_value);
         #ifdef DEBUG
-            double error_pred = (sol->value-old_value)-best_delta;
-            if(error_pred<0) error_pred *= -1;
-            assert(error_pred<1e-5 || isnan(error_pred));
+            if(isfinite(best_delta)){
+                double error_pred = (sol->value-old_value)-best_delta;
+                if(error_pred<0) error_pred *= -1;
+                assert(error_pred<1e-5 || isnan(error_pred));
+            }
         #endif
 
         // Update phi1 and phi2
@@ -125,9 +133,16 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     }
 
     // Free memory
+    availmoves_free(avail);
     free(v);
-    free(used);
     free(phi2);
     free(phi1);
+
+    // Set sol to best_sol in case we are doing path relinking
+    if(best_sol!=NULL){
+        *solp = best_sol;
+        solution_free(sol);
+    }
+
     return n_moves;
 }

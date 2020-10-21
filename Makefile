@@ -1,21 +1,25 @@
 SOURCES = src/main.c \
-    src/bnb.c \
-    src/expand.c \
-    src/localsearch.c \
-    src/localsearch_resende.c \
-    src/localsearch_whitaker.c \
-    src/output.c \
-    src/redstrategy.c \
-    src/reduction_diversity.c \
-    src/reduction_vr.c \
-    src/utils.c \
-    src/construction.c \
-    src/load.c \
-    src/problem.c \
-    src/reduction.c \
-    src/reduction_rank.c \
-    src/shuffle.c \
-    src/solution.c
+    ./src/bnb.c \
+    ./src/construction.c \
+    ./src/expand.c \
+    ./src/load.c \
+    ./src/localsearch.c \
+    ./src/localsearch_resende.c \
+    ./src/localsearch_whitaker.c \
+    ./src/output.c \
+    ./src/problem.c \
+    ./src/redstrategy.c \
+    ./src/reduction.c \
+    ./src/reduction_diversity.c \
+    ./src/reduction_rank.c \
+    ./src/reduction_vr.c \
+    ./src/rundata.c \
+    ./src/runinfo.c \
+    ./src/runprecomp.c \
+    ./src/shuffle.c \
+    ./src/solution.c \
+    ./src/utils.c \
+
 
 SOURCES_OPT_CHECKER = src/main_opt_checker.c \
     src/redstrategy.c \

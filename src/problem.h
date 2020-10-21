@@ -19,11 +19,11 @@ typedef struct {
 
 // | Retrieves the cost of assigning the client c to the facility f
 static inline double problem_assig_cost(const problem *prob, int f, int c){
-    return (f==-1)? INFINITY : prob->distance_cost[f][c];
+    return prob->distance_cost[f][c]; // NOTE that f can be -1
 }
 // | Retrieves the value (cost*-1) of assigning the client c to the facility f
 static inline double problem_assig_value(const problem *prob, int f, int c){
-    return (f==-1)? -INFINITY : -prob->distance_cost[f][c];
+    return -prob->distance_cost[f][c]; // NOTE that f can be -1
 }
 
 // Initializes a problem along with all the needed arrays.

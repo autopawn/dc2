@@ -159,46 +159,51 @@ typedef struct {
     solution **pool;
     int n_pool;
     solution **result;
+    shuffler *shuff;
 } path_relinking_thread_args;
 
 void *path_relinking_thread_execution(void *arg){
     path_relinking_thread_args *args = (path_relinking_thread_args *) arg;
 
+    // Allocate a unique reusable fastmat if SWAP_RESENDE_WERNECK
+    fastmat *mat = NULL;
     if(args->run->local_search==SWAP_RESENDE_WERNECK){
-        fastmat *mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
-
-        int c_pair = 0;
-        for(int i=0;i<args->n_pool;i++){
-            for(int j=i+1;j<args->n_pool;j++){
-                // Check if this pair should be linked by the current thread
-                if(c_pair%args->run->n_threads==args->thread_id){
-
-                    // Pick initial and ending solution from the pair according to solution value
-                    const solution *sol_ini, *sol_end;
-                    if(args->pool[i]->value >= args->pool[j]->value){
-                        sol_ini = args->pool[i];
-                        sol_end = args->pool[j];
-                    }else{
-                        sol_ini = args->pool[j];
-                        sol_end = args->pool[i];
-                    }
-
-                    // Perform path relinking
-                    solution *sol = solution_copy(args->run->prob,sol_ini);
-                    solution_resendewerneck_hill_climbing(args->run,&sol,sol_end,mat);
-
-                    args->result[c_pair] = sol;
-                }
-                c_pair += 1;
-            }
-        }
-
-        assert(c_pair== args->n_pool*(args->n_pool-1)/2);
-
-        fastmat_free(mat);
-    }else{
-        assert(0); // FIXME: BETTER ERROR MESSAGE!!!!
+        mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
     }
+
+    int c_pair = 0;
+    for(int i=0;i<args->n_pool;i++){
+        for(int j=i+1;j<args->n_pool;j++){
+            // Check if this pair should be linked by the current thread
+            if(c_pair%args->run->n_threads==args->thread_id){
+
+                // Pick initial and ending solution from the pair according to solution value
+                const solution *sol_ini, *sol_end;
+                if(args->pool[i]->value >= args->pool[j]->value){
+                    sol_ini = args->pool[i];
+                    sol_end = args->pool[j];
+                }else{
+                    sol_ini = args->pool[j];
+                    sol_end = args->pool[i];
+                }
+
+                // Perform path relinking
+                solution *sol = solution_copy(args->run->prob,sol_ini);
+                if(args->run->local_search==SWAP_RESENDE_WERNECK){
+                    solution_resendewerneck_hill_climbing(args->run,&sol,sol_end,mat);
+                }else{
+                    solution_whitaker_hill_climbing(args->run,&sol,sol_end,args->shuff);
+                }
+
+                args->result[c_pair] = sol;
+            }
+            c_pair += 1;
+        }
+    }
+
+    assert(c_pair== args->n_pool*(args->n_pool-1)/2);
+
+    if(mat) fastmat_free(mat);
 
 
     return NULL;
@@ -224,6 +229,11 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
         targs[i].pool = (*sols);
         targs[i].n_pool = (*n_sols);
         targs[i].result = resulting;
+        if(run->local_search==SWAP_FIRST_IMPROVEMENT){
+            targs[i].shuff = shuffler_init(run->prob->n_facs);
+        }else{
+            targs[i].shuff = NULL;
+        }
 
         // Create thread
         int rc = pthread_create(&threads[i],NULL,path_relinking_thread_execution,&targs[i]);
@@ -239,6 +249,9 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
     }
 
     // Free memory
+    for(int i=0;i<run->n_threads;i++){
+        if(targs[i].shuff!=NULL) shuffler_free(targs[i].shuff);
+    }
     free(targs);
     free(threads);
 

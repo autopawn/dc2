@@ -56,11 +56,14 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
 // Find the best option for removal if f_ins is inserted to the solution
 // NOTE: v must be intialized with -INFINITY and have size equal to prob->n_facs.
 // ^ It is always reset to that state before returning.
+// frem_allowed is prob->n_facs array that indicates, for each facility in the solution,
+//      if it can be removed. NULL allows all facilities.
 // *out_frem is the best facility to remove.
 // *out_profit is the profit from swapping.
 // *out_profit_worem is the profit from adding the solution without removing
 void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
-        const int *phi2, int *out_f_rem, double *out_profit, double *out_profit_worem);
+        const int *phi2, int *frem_allowed,
+        int *out_f_rem, double *out_profit, double *out_profit_worem);
 
 // Print a solution to the given descriptor
 void solution_print(const problem *prob, const solution *sol, FILE *fp);

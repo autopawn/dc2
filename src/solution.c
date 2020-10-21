@@ -281,7 +281,8 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
 }
 
 void solution_findout(const problem *prob, const solution *sol, int f_ins, double *v,
-        const int *phi2, int *out_f_rem, double *out_profit, double *out_profit_worem){
+        const int *phi2, int *frem_allowed,
+        int *out_f_rem, double *out_profit, double *out_profit_worem){
     // The gain for swaping decreases on the cost of the inserted facility
     double w = f_ins==-1? 0 : -prob->facility_cost[f_ins];
     // The cost for swapping decreases on the cost of the removed facility
@@ -309,10 +310,11 @@ void solution_findout(const problem *prob, const solution *sol, int f_ins, doubl
         }
     }
     // Find the one to be removed with less loss
-    int f_rem = sol->n_facs==0? -1 : sol->facs[0];
-    for(int k=1;k<sol->n_facs;k++){
-        if(v[sol->facs[k]]<v[f_rem]){
-            f_rem = sol->facs[k];
+    int f_rem = -1;
+    for(int k=0;k<sol->n_facs;k++){
+        int f = sol->facs[k];
+        if(frem_allowed==NULL || frem_allowed[f]){
+            if(f_rem==-1 || v[f]<v[f_rem]) f_rem = f;
         }
     }
     // Outputs

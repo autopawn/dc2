@@ -264,9 +264,6 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
         loss[i] = 0;
     }
 
-    // Available moves
-    availmoves *avail = availmoves_init(prob,sol,target);
-
     // Array of affected clients
     int n_affected = prob->n_clis;
     int *affected = safe_malloc(sizeof(int)*prob->n_clis);
@@ -280,6 +277,9 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
     double best_delta = 0;
 
     int *affected_mask = safe_malloc(sizeof(int)*prob->n_clis);
+
+    // Available moves
+    availmoves *avail = availmoves_init(prob,sol,target);
 
     // Best solution found so far (if doing path relinking):
     solution *best_sol = NULL;
@@ -302,12 +302,6 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
             (prob->size_restriction_minimum==-1 || sol->n_facs>prob->size_restriction_minimum);
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
-
-	// // NOTE: I don't know why I added this, it makes PR avoid the size restrictions!
-	// if(target){
-        //    allow_size_increase = 1;
-        //    allow_size_decrease = 1;
-        //}
 
         best_delta = find_best_neighboor(run,loss,gain,extra,avail,
                 allow_size_increase,allow_size_decrease,&best_ins,&best_rem);
