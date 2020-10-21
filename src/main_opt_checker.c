@@ -1,6 +1,7 @@
 #include "load.h"
 #include "redstrategy.h"
 #include "problem.h"
+#include "rundata.h"
 #include "solution.h"
 
 /*

@@ -112,7 +112,7 @@ void *expand_thread_execution(void *arg){
         }
         // If it must be better than the empty solution
         else if(args->run->filter == BETTER_THAN_EMPTY){
-            filtered = is_filtered(prob,new_sol,args->run->precomp_empty_value);
+            filtered = is_filtered(prob,new_sol,-INFINITY);
         }
         // Delete the solution
         if(filtered){

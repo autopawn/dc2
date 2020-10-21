@@ -39,39 +39,39 @@ void save_solutions(const char *file,
     fprintf(fp,"# CPU_TIME: %f\n",seconds);
     fprintf(fp,"# ELAPSED: %f\n",elapsed);
     fprintf(fp,"# VIRT_MEM_PEAK_KB: %d\n",mem_usage);
-    fprintf(fp,"# TOTAL_ITERATIONS: %d\n",run->total_n_iterations);
+    fprintf(fp,"# TOTAL_ITERATIONS: %d\n",run->run_inf->total_n_iterations);
     fprintf(fp,"\n");
 
     /* LOCAL SEARCH INFO */
     fprintf(fp,"== LOCAL SEARCH INFO ==\n");
-    fprintf(fp,"# LOCAL_SEARCH_CPU_TIME: %f\n",run->local_search_seconds);
-    fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",run->n_local_searches);
-    fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)run->n_local_search_movements/(double)run->n_local_searches);
+    fprintf(fp,"# LOCAL_SEARCH_CPU_TIME: %f\n",run->run_inf->local_search_seconds);
+    fprintf(fp,"# N_LOCAL_SEARCHES: %lld\n",run->run_inf->n_local_searches);
+    fprintf(fp,"# AVG_LOCAL_SEARCH_MOVES: %f\n",(double)run->run_inf->n_local_search_movements/(double)run->run_inf->n_local_searches);
     fprintf(fp,"\n");
 
     /* PATH RELINKING INFO */
     fprintf(fp,"== PATH RELINKING INFO ==\n");
-    fprintf(fp,"# PATH_RELINKING_CPU_TIME: %f\n",run->path_relinking_seconds);
+    fprintf(fp,"# PATH_RELINKING_CPU_TIME: %f\n",run->run_inf->path_relinking_seconds);
 
     /* FIRST RESTART DATA */
     fprintf(fp,"== FIRST RESTART INFO ==\n");
-    fprintf(fp,"# FIRST_ITERATIONS: %d\n",run->firstr_n_iterations);
+    fprintf(fp,"# FIRST_ITERATIONS: %d\n",run->run_inf->firstr_n_iterations);
     //
     fprintf(fp,"# FIRST_PER_SIZE_SOLS:       ");
-    for(int i=0;i<run->firstr_n_iterations;i++){
-        fprintf(fp," %6d",run->firstr_per_size_n_sols[i]);
+    for(int i=0;i<run->run_inf->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->run_inf->firstr_per_size_n_sols[i]);
     }
     fprintf(fp,"\n");
     //
     fprintf(fp,"# FIRST_PER_SIZE_SOLS_RED:   ");
-    for(int i=0;i<run->firstr_n_iterations;i++){
-        fprintf(fp," %6d",run->firstr_per_size_n_sols_after_red[i]);
+    for(int i=0;i<run->run_inf->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->run_inf->firstr_per_size_n_sols_after_red[i]);
     }
     fprintf(fp,"\n");
     //
     fprintf(fp,"# FIRST_PER_SIZE_LOCAL_OPT:  ");
-    for(int i=0;i<run->firstr_n_iterations;i++){
-        fprintf(fp," %6d",run->firstr_per_size_n_local_optima[i]);
+    for(int i=0;i<run->run_inf->firstr_n_iterations;i++){
+        fprintf(fp," %6d",run->run_inf->firstr_per_size_n_local_optima[i]);
     }
     fprintf(fp,"\n");
     //
@@ -80,7 +80,7 @@ void save_solutions(const char *file,
     /* EACH RESTART DATA */
     fprintf(fp,"== PER RESTART INFO ==\n");
     for(int i=0;i<run->n_restarts;i++){
-        fprintf(fp,"# RST %8d %lf %lf\n",i,run->restart_values[i],run->restart_times[i]);
+        fprintf(fp,"# RST %8d %lf %lf\n",i,run->run_inf->restart_values[i],run->run_inf->restart_times[i]);
     }
     fprintf(fp,"\n");
 

@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "redstrategy.h"
 #include "problem.h"
+#include "rundata.h"
 #include "solution.h"
 
 // NOTE: not all functions are defined in reduction.c, there are also functions in reduction_*.c files.

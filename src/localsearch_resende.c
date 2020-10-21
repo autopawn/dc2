@@ -125,8 +125,8 @@ void update_structures(
     const problem *prob = run->prob;
 
     int fr    = sol->assigns[u];
-    double d_phi1 = -problem_assig_value(prob,phi1[u],u);
-    double d_phi2 = -problem_assig_value(prob,phi2[u],u);
+    double d_phi1 = problem_assig_cost(prob,phi1[u],u);
+    double d_phi2 = problem_assig_cost(prob,phi2[u],u);
     assert(fr>=0 && avail->used[fr]);
     assert(d_phi2>=d_phi1);
     assert(phi1[u]==fr);
@@ -149,10 +149,10 @@ void update_structures(
         double d_fi;
 
         if(proximity_mode){
-            fi = run->nearly_indexes[u][k];
+            fi = run->precomp->nearly_indexes[u][k];
             if(!avail->avail_inss[fi]) continue;
 
-            d_fi = -problem_assig_value(prob,fi,u);
+            d_fi = problem_assig_cost(prob,fi,u);
             if(d_fi >= d_phi2) break;
         }else{
             if(k >= avail->n_insertions) break;
@@ -160,7 +160,7 @@ void update_structures(
             fi = avail->insertions[k];
             assert(avail->avail_inss[fi]);
 
-            d_fi = -problem_assig_value(prob,fi,u);
+            d_fi = problem_assig_cost(prob,fi,u);
             if(d_fi >= d_phi2) continue;
         }
 
@@ -302,7 +302,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
             (prob->size_restriction_minimum==-1 || sol->n_facs>prob->size_restriction_minimum);
         int allow_size_increase = run->local_search_add_movement &&
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
-        
+
 	// // NOTE: I don't know why I added this, it makes PR avoid the size restrictions!
 	// if(target){
         //    allow_size_increase = 1;
@@ -324,7 +324,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
         for(int u=0;u<prob->n_clis;u++){
             assert(sol->assigns[u] == phi1[u]);
             affected_mask[u] = 0;
-            if(phi1[u]==best_rem || phi2[u]==best_rem || (-problem_assig_value(prob,best_ins,u)) < (-problem_assig_value(prob,phi2[u],u))){
+            if(phi1[u]==best_rem || phi2[u]==best_rem || (problem_assig_cost(prob,best_ins,u)) < (problem_assig_cost(prob,phi2[u],u))){
                 affected[n_affected] = u;
                 n_affected += 1;
                 affected_mask[u] = 1;

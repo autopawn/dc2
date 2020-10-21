@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "problem.h"
+#include "rundata.h"
 #include "solution.h"
 #include <sys/time.h>
 

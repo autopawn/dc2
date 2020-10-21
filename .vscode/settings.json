@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "*.tcc": "cpp"
     },
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,

@@ -14,8 +14,8 @@ typedef struct {
 void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols, int n_sols, int restart){
     // Save current restart best solution found
     for(int i=0;i<n_sols;i++){
-        if(sols[i]->value > run->restart_values[restart]){
-            run->restart_values[restart] = sols[i]->value;
+        if(sols[i]->value > run->run_inf->restart_values[restart]){
+            run->run_inf->restart_values[restart] = sols[i]->value;
         }
     }
 
@@ -31,7 +31,7 @@ void solmemory_merge_with_final(rundata *run, solmemory *solmem, solution **sols
     // Pick the best prob->target_sols for final solutions
     reduction_bests(run,solmem->final,&solmem->n_final,run->target_sols);
     // Update the lower bound
-    if(solmem->final[0]->value > run->lower_bound) run->lower_bound = solmem->final[0]->value;
+    if(solmem->final[0]->value > run->bnb_lower_bound) run->bnb_lower_bound = solmem->final[0]->value;
 
 
     // Solution cands is not longer needed.
@@ -93,7 +93,7 @@ void update_final_solutions(rundata *run, solmemory *solmem,
 
     // Save number of local optima found
     if(restart==0 && run->local_search){
-        run->firstr_per_size_n_local_optima[csize] = n_cands;
+        run->run_inf->firstr_per_size_n_local_optima[csize] = n_cands;
     }
 
     // == Update array of best solutions
@@ -148,7 +148,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
             // Save number of solutions after expansion
             if(first_restart && run->local_search){
-                run->firstr_per_size_n_sols[csize] = prev_n_sols;
+                run->run_inf->firstr_per_size_n_sols[csize] = prev_n_sols;
             }
 
             // Apply the reduction strategies
@@ -161,7 +161,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
 
             // Save number of solutions after reduction
             if(first_restart && run->local_search){
-                run->firstr_per_size_n_sols_after_red[csize] = prev_n_sols;
+                run->run_inf->firstr_per_size_n_sols_after_red[csize] = prev_n_sols;
             }
 
             int next_n_sols = 0;
@@ -199,9 +199,9 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
             // Increase csize
             csize += 1;
             // Update number of iterations
-            if(first_restart) run->firstr_n_iterations = csize;
+            if(first_restart) run->run_inf->firstr_n_iterations = csize;
         }
-        run->total_n_iterations += csize;
+        run->run_inf->total_n_iterations += csize;
 
         // Apply post-optimization to the PR pool
         if(run->path_relinking!=NO_PATH_RELINKING){
@@ -273,7 +273,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 // Check for terminating conditions and save best solution found on this iteration
                 if(solmem.n_prpool<=1) break;
                 // if(solmem.n_prpool<=n_prpool_before_pr-1) break; // NOTE: Can this help?
-                if(run->path_relinking==PATH_RELINKING_1_STEP){
+                if(run->path_relinking==PATH_RELINKING_1_ITER){
                     // Make PR only happen once with PATH_RELINKING_1_STEP
                     break;
                 }else if(run->path_relinking==PATH_RELINKING_UNTIL_NO_BETTER){
@@ -287,7 +287,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
         }
 
         clock_t restart_end = clock();
-        run->restart_times[r] = (double)(restart_end - restart_start) / (double)CLOCKS_PER_SEC;
+        run->run_inf->restart_times[r] = (double)(restart_end - restart_start) / (double)CLOCKS_PER_SEC;
 
         if(run->verbose) printf("\n");
 

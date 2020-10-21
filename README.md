@@ -72,7 +72,7 @@ executes the solver using 8 threads with a two step reduction method (first samp
 
 # Formats supported
 
-The solver currently supports 3 formats, the ORLIB-cap format and the Simple format, specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html), and the more general DC_V1 format.
+The solver currently supports 2 formats, the ORLIB-cap format and the Simple format, specified on the [UflLib benchmark](https://resources.mpi-inf.mpg.de/departments/d1/projects/benchmarks/UflLib/data-format.html).
 
 ## ORLIB-cap format
 
@@ -82,12 +82,13 @@ The first line has the amount of facilities and clients of the problem:
 ```
 [n] [m]
 ```
-The next `n` lines consist on the opening cost and capacity each facility. NOTE: as this solver is meant for uncapacitated location problems, capacities are expected to be left at 0.
+The next `n` lines consist on the opening cost and capacity each facility.
+NOTE: as this solver is meant for uncapacitated location problems, capacities are expected to be left as 0.
 ```
 [capacity] [f_i]
 ```
 The next `2m` lines, `2` for each client, contain:
-* The demand (weight) of the client (if marked as 0, is set to 1).
+* The demand (weight) of the client (it's ignored).
 * The cost of allocating all that demand (i.e. distance*weight) on each of the facilitites .
 ```
 [w_j]
@@ -136,61 +137,6 @@ FILE: Example.txt
 4 200 100 120 150
 ```
 
-## DC_V1 format
-
-The DC_V1 format is more complex as it allows to set all model variables.
-
-The fist line contains the string `DC_V1`, used to identify the format
-```
-DC_V1
-```
-The following lines contain the transport cost, the client gain and the unassigned cost multipliers.
-```
-[T]
-[C]
-[K]
-```
-The following line contains the minimum and maximum solutions sizes, can be left as `-1` if they don't apply.
-```
-[s_min] [s_max]
-```
-The following line contains the number of facilitites and clients.
-```
-[n] [m]
-```
-The following line contains the `n` facility costs
-```
-[f_0] [f_1] ... [f_(n-1)]
-```
-The following `2m`, `2` for each client contain:
-* The client weight.
-* The distances from this client to each facility.
-```
-[w_j]
-[d_0j] [d_1j] ... [d_(n-1)j]
-```
-
-Example: `n=4`, `m=5`:
-```
-DC_V1
-10.0
-20.0
-inf
--1 3
-4 5
- 200 400 300 400
-1.0
- 10 20 30 40
-2.0
- 15 5 5 15
-3.0
- 40 30 20 10
-4.0
- 25 15 5 5
-3.0
- 5 5 15 25
-```
-
 # Parameters
 
 ## Flags
@@ -205,7 +151,7 @@ The following flags can be used to specify different behaviours:
 | `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
 | `-l` | Skip local searches entirely. |
 | `-L` | Perform local searches with first improvement rather than best improvement. <br>
-         **Warning**: movement choice may be arbitrary for problems without a unique size restriction <br>
+         **Warning**: movement choice may be arbitrary for problems without a fixed size `p` restriction <br>
          without `-x`. |
 | `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. |
 | `-P`    | Use path relinking on terminal solutions once; for now `-W` is required. |
@@ -240,6 +186,8 @@ sdce+:400
 ```
 
 Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise. These dissimilitudes require precomputations.
+
+## path relinking and final
 
 ### Strategies
 

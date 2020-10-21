@@ -129,7 +129,7 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='P' && strcmp(argv[i],"-P")==0){
                 // Enable 1 path relinking
                 assert(path_relinking==UNSET);
-                path_relinking = PATH_RELINKING_1_STEP;
+                path_relinking = PATH_RELINKING_1_ITER;
             }else if(argv[i][1]=='M' && strcmp(argv[i],"-M")==0){
                 // Enable path relinking until no better solution is found made
                 assert(path_relinking==UNSET);
@@ -158,7 +158,7 @@ int main(int argc, const char **argv){
 
     // Create rundata (perform precomputations)
     int precomp_nearly_indexes = (local_search==SWAP_RESENDE_WERNECK);
-    rundata *run = rundata_init(prob, strategies,n_strategies,restarts,precomp_nearly_indexes);
+    rundata *run = rundata_init(prob, strategies,n_strategies,restarts,precomp_nearly_indexes,n_threads,verbose);
 
     // Free problem (rundata kepps a copy)
     problem_free(prob);
@@ -186,6 +186,24 @@ int main(int argc, const char **argv){
             }
         }
     }
+
+    // Simple coeficients version of dc2 check:
+    #ifdef DC2_110
+       for(int c=0;c<run->prob->n_clis;c++){
+           if(run->prob->client_weight[c]!=1){
+               fprintf(stderr,"ERROR: %s expects problems with client_weight[%d] = 1\n",argv[0],c);
+	       exit(1);
+	   }
+       }
+       if(run->prob->transport_cost!=1){
+	       fprintf(stderr,"ERROR: %s expects problems with transport_cost = 1\n",argv[0]);
+	       exit(1);
+       }
+       if(run->prob->client_gain!=0){
+	       fprintf(stderr,"ERROR: %s expects problems with client_gain = 0\n",argv[0]);
+	       exit(1);
+       }
+    #endif
 
     // Set random seed
     if(random_seed==UNSET) random_seed = (int) time(NULL);

@@ -147,7 +147,7 @@ double solution_dissimilitude(const rundata *run,
     // Compute the dissimilitude according to the sdismode
     if(sdismode==SOLDIS_MEAN_GEOMETRIC_ERROR){
         // Expect the facility distances for this mode to be computed:
-        if(run->facs_distance[fdismode]==NULL){
+        if(run->precomp->facs_distance[fdismode]==NULL){
             fprintf(stderr,"Error: problem facility-facility distances are not precomputed!\n");
             exit(1);
         }
@@ -168,7 +168,7 @@ double solution_dissimilitude(const rundata *run,
                 double min_dist = INFINITY;
                 for(int k=0;k<sol2->n_facs;k++){
                     int f2 = sol2->facs[k];
-                    double dist = run->facs_distance[fdismode][s1f][f2];
+                    double dist = run->precomp->facs_distance[fdismode][s1f][f2];
                     if(dist<min_dist) min_dist = dist;
                 }
                 disim += min_dist;
@@ -179,7 +179,7 @@ double solution_dissimilitude(const rundata *run,
                 double min_dist = INFINITY;
                 for(int k=0;k<sol1->n_facs;k++){
                     int f1 = sol1->facs[k];
-                    double dist = run->facs_distance[fdismode][s2f][f1];
+                    double dist = run->precomp->facs_distance[fdismode][s2f][f1];
                     if(dist<min_dist) min_dist = dist;
                 }
                 disim += min_dist;
@@ -196,7 +196,7 @@ double solution_dissimilitude(const rundata *run,
         //         int f1 = sol1->facs[i1];
         //         for(int i2=0;i2<sol2->n_facs;i2++){
         //             int f2 = sol2->facs[i2];
-        //             double dist = run->facs_distance[fdismode][f1][f2];
+        //             double dist = run->precomp->facs_distance[fdismode][f1][f2];
         //             if(dist<min_dist) min_dist = dist;
         //         }
         //         disim += min_dist;
@@ -207,7 +207,7 @@ double solution_dissimilitude(const rundata *run,
     }
     else if(sdismode==SOLDIS_HAUSDORF){ // Based on https://github.com/mavillan/py-hausdorff
         // Expect the facility distances for this mode to be computed:
-        if(run->facs_distance[fdismode]==NULL){
+        if(run->precomp->facs_distance[fdismode]==NULL){
             fprintf(stderr,"Error: problem facility-facility distances are not precomputed!\n");
             exit(1);
         }
@@ -218,7 +218,7 @@ double solution_dissimilitude(const rundata *run,
                 double cmin = INFINITY;
                 for(int i2=0;i2<sol2->n_facs;i2++){
                     int f2 = sol2->facs[i2];
-                    double dist = run->facs_distance[fdismode][f1][f2];
+                    double dist = run->precomp->facs_distance[fdismode][f1][f2];
                     if(dist<cmin) cmin = dist;
                     if(cmin<disim) break;
                 }
@@ -254,7 +254,7 @@ double solution_dissimilitude(const rundata *run,
 
 // An upper bound for the best value that a children solution could have
 double solution_upper_bound(const rundata *run, const solution *sol){
-    double upbound = run->precomp_client_optimal_gain;
+    double upbound = run->precomp->precomp_client_optimal_gain;
     for(int i=0;i<sol->n_facs;i++){
         upbound -= run->prob->facility_cost[sol->facs[i]];
     }

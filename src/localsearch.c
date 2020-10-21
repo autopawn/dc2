@@ -143,9 +143,9 @@ void solutions_hill_climbing(rundata *run, solution **sols, int n_sols){
     // End measuring time
     clock_t end = clock();
     double seconds = (double)(end - start) / (double)CLOCKS_PER_SEC;
-    run->n_local_searches += n_sols;
-    run->n_local_search_movements += n_moves;
-    run->local_search_seconds += seconds;
+    run->run_inf->n_local_searches += n_sols;
+    run->run_inf->n_local_search_movements += n_moves;
+    run->run_inf->local_search_seconds += seconds;
 }
 
 
@@ -245,7 +245,7 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
     // End measuring time
     clock_t end = clock();
     double seconds = (double)(end - start) / (double)CLOCKS_PER_SEC;
-    run->path_relinking_seconds += seconds;
+    run->run_inf->path_relinking_seconds += seconds;
 
     // Delete similar solutions
     solutions_sort_and_delete_repeated(resulting,&n_resulting);

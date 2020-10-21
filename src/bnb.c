@@ -3,15 +3,15 @@
 void branch_and_bound(rundata *run, solution **sols, int *n_sols){
     // Update lower bound
     for(int i=0;i<*n_sols;i++){
-        if(sols[i]->value > run->lower_bound){
-            run->lower_bound = sols[i]->value;
+        if(sols[i]->value > run->bnb_lower_bound){
+            run->bnb_lower_bound = sols[i]->value;
         }
     }
     // Filters solutions with larger upperbound
     int n_sols2 = 0;
     for(int i=0;i<*n_sols;i++){
         double upbound = solution_upper_bound(run,sols[i]);
-        if(upbound < run->lower_bound){
+        if(upbound < run->bnb_lower_bound){
             // Delete solution
             solution_free(sols[i]);
         }else{

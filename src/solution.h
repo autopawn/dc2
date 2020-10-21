@@ -4,7 +4,7 @@
 #include <limits.h>
 
 #include "utils.h"
-#include "problem.h"
+#include "rundata.h"
 
 typedef struct {
     int n_facs;
