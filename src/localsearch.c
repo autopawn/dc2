@@ -197,7 +197,8 @@ void *path_relinking_thread_execution(void *arg){
 
         fastmat_free(mat);
     }else{
-        assert(0);
+	fprintf(stderr,"ERROR: Whitaker's local search is not yet supported for path relinking, use -W.\n");
+	exit(1);
     }
 
 
