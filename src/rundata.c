@@ -42,19 +42,21 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     prob = run->prob;
 
     run->filter = FILTER_DEFAULT;
-    run->branch_and_bound = 1;
+    run->branch_and_bound = BRANCH_AND_BOUND_DEFAULT;
     run->random_seed = 42;
     run->n_restarts = n_restarts;
 
     // Default values
     run->bnb_lower_bound = -INFINITY;
     run->verbose     = verbose;
-    run->branching_factor = DEFAULT_BRANCHING_FACTOR;
+    run->branching_factor     = DEFAULT_BRANCHING_FACTOR;
+    run->branching_correction = DEFAULT_BRANCHING_CORRECTION;
     run->path_relinking   = DEFAULT_PATH_RELINKING;
 
     run->target_sols  = DEFAULT_TARGET_SOLS;
     run->n_threads    = n_threads;
     run->local_search = DEFAULT_LOCAL_SEARCH;
+    run->local_search_pr = DEFAULT_LOCAL_SEARCH;
     run->local_search_only_terminal = DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL;
     run->local_search_rem_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
     run->local_search_add_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
@@ -89,8 +91,10 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# LOCAL_SEARCH_ONLY_TERMINAL: %d\n",run->local_search_only_terminal);
     fprintf(fp,"# LOCAL_SEARCH_REM_MOVEMENT: %d\n",run->local_search_rem_movement);
     fprintf(fp,"# LOCAL_SEARCH_ADD_MOVEMENT: %d\n",run->local_search_add_movement);
-    fprintf(fp,"# BRANCHING FACTOR: %d\n",run->branching_factor);
+    fprintf(fp,"# BRANCHING_FACTOR: %d\n",run->branching_factor);
+    fprintf(fp,"# BRANCHING_FACTOR_CORRECTION: %d\n",run->branching_correction);
     fprintf(fp,"# PATH_RELINKING: %s\n",path_relinking_names[run->path_relinking]);
+    fprintf(fp,"# PATH_RELINKING_LOCAL_SEARCH: %s\n",local_search_names[run->local_search_pr]);
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
     fprintf(fp,"# VERBOSE: %d\n",run->verbose);

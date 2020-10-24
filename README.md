@@ -1,6 +1,6 @@
 # dc2
 
-**dc2** is a solver for uncapacitated facility location problems like SPLP and p-median, based on Disperse Construction, a constructive incomplete search method that explores the search space using diversity.
+**dc2** is a solver for the Uncapacitated Facility Location problem (a.k.a. SPLP) and p-median. It is based on Disperse Construction, a constructive incomplete search method that explores the search space ensuring diversity.
 
 This is the second version of the original [dc_splp](https://github.com/autopawn/dc_splp).
 
@@ -9,40 +9,11 @@ It is mainly composed of:
 * **Filtering**: A method that deletes some of the solutions if they are not worth exploring, i.e. leading to worse solutions that the one from where it originated.
 * **Reduction**: A method to select a representative subset of solutions from a given set.
 * **Local search**: A method that perform moves on a given solution until no further moves can increase the solution value.
+* **Path relinking**: Optionally, the final solutions are combined using Path Relinking.
 
 ![](imgs/dc2.png)
 
 The search advances using these methods on several iterations, as shown in the previous diagram, until no more solutions are present. Additionaly it uses Branch and Bound to further filter solutions.
-
-## Model
-
-The solver aims to solve the following general uncapacitated location problem model, on its combinatorial form:
-
-![](imgs/model_formula.gif)
-
-where:
-
-* `S` is a solution, the set of indexes of the opened facilities, a subset of `{0,1,2,...,n}`
-* `C` is the set of all clients indexes `{0,1,2,...,m-1}`.
-* `w_j` is the weight of client `j`.
-* `K` is the cost of having clients unassigned.
-* `C` is the profit for reaching clients.
-* `T` is the transport cost for each unit of distance.
-* `d_ij` is the distance between facility `i` and client `j`.
-* `f_i` is the cost of opening the facility `i`.
-* `s_min` is the minimum size that the solutions can have.
-* `s_max` is the maximum size that the solutions can have.
-
-SPLP, p-median, set covering, and maximum coverage problems can be **reduced** to this model:
-
-| Problem | Values |
-| :------ | ------ |
-| SPLP | `K=inf`, `C=0` |
-| p-median | `K=inf`, `C=0`, `f_i=0`, `s_max=p` |
-| set covering | `K=n+1`, `C=0`, `f_i=1`, `T=inf`, `d_ij={0 or 1}` |
-| maximum coverage | `K=0`, `C=1`, `f_i=0`, `T=inf`, `d_ij={0 or 1}`, `s_max=k` |
-
-Furthermore, the solver can read a SPLP and a p-median problem file formats directly.
 
 # Usage
 
@@ -145,21 +116,21 @@ The following flags can be used to specify different behaviours:
 
 | Flag | Effect |
 | :--- | ------ |
-| `-b` | Don't perform Branch & Bound as additional filter. |
 | `-A` | Perform local search on all solutions, not only terminal. |
 | `-x` | Don't allow local search to perform movements that change the number of facilities. |
 | `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
 | `-l` | Skip local searches entirely. |
-| `-L` | Perform local searches with first improvement rather than best improvement. <br>
-         **Warning**: movement choice may be arbitrary for problems without a fixed size `p` restriction <br>
-         without `-x`. |
-| `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. |
+| `-L` | Perform local searches with first improvement rather than best improvement. <br> **Note**: movements that don't decrease solution size have preference. |
+| `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. <br> Requires `O(n*m)` memory for each **thread**. |
+| `-LP` | Use first improvement strategy for path relinking. <br> By default, the same method than local searches is used. |
+| `-WP` | Use Resende and Werneck's local search for path relinking. <br> By default, the same method than local searches is used. |
 | `-P`    | Use path relinking on terminal solutions once; for now `-W` is required. |
 | `-M`    | Use path relinking on terminal solutions until no better solution is found; for now `-W` is required. |
 | `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
 | `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
 | `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
 | `-B<n>` | Instead of creating every child of each solution, just build `n` at random. <br> This happens before filtering. <br> `-B0` builds `ceil(log2(m/p))` where `p` is the solution size. |
+| `-BC`   | Disables increasing the branching factor for the first generations of solutions. |
 | `-t<n>` | The number of threads to use. |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.
@@ -187,7 +158,11 @@ sdce+:400
 
 Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise. These dissimilitudes require precomputations.
 
-## path relinking and final
+When using Path Relinking, through `-M` or `-P`, it is important to also specify a reduction strategy for after each time it is applied, this is done adding a reduction strategy with an underscore, for instance:
+```
+rand1:6000 sdce+:200 _best:100
+```
+will select the best 100 solutions after each step of path relinking.
 
 ### Strategies
 
@@ -274,10 +249,3 @@ Resende and Werneck local search is optional, in some cases it can speed up the 
 First improvement strategy may be arbitrary for Whitaker's method when the solution size is not restricted and it's not yet implemented for Resende and Werneck.
 
 Also Resende and Werneck's method is not made for instances that can left clients unassinged; this is a TODO.
-
-# TODOs:
-
-- [ ] Make PR work with Whitaker's local search.
-- [ ] Implement first improvement strategy for Resende and Werneck's local search.
-- [ ] Resende and Werneck's local search compatible with problems that can left clients unnasigned (no p-median or SPLP).
-- [ ] Speed-up mge for similar solutions.

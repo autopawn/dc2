@@ -7,8 +7,7 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     const problem *prob = run->prob;
 
     // Is this first improvement?
-    int first_improvement = run->local_search==SWAP_FIRST_IMPROVEMENT;
-    assert(shuff!=NULL || !first_improvement);
+    int first_improvement = shuff!=NULL;
 
     // First and Second nearest facility to each client
     int *phi1 = safe_malloc(sizeof(int)*prob->n_clis);
@@ -38,7 +37,7 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     int n_moves = 0;
     while(1){
         // Insertion candidate:
-        double best_delta = -INFINITY;
+        double best_delta = (avail->path_relinking)? -INFINITY : 0;
         int best_rem = NO_MOVEMENT;
         int best_ins = NO_MOVEMENT;
 
@@ -52,13 +51,13 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
             (prob->size_restriction_maximum==-1 || sol->n_facs<prob->size_restriction_maximum);
 
         // Consider adding a facility while removing the worst facility
-        int k_ini = allow_size_decrease? -1 : 0; // also consider not adding a facility if allow_size_decrease
-        for(int k=k_ini;k<prob->n_facs;k++){
+        int k_end = allow_size_decrease? prob->n_facs+1 : prob->n_facs; // also consider not adding a facility if allow_size_decrease
+        for(int k=0;k<k_end;k++){
             int f_ins;
-            if(first_improvement && k!=-1){
-                f_ins = shuffler_next(shuff);
+            if(k==prob->n_facs){
+                f_ins = -1;
             }else{
-                f_ins = k;
+                f_ins = first_improvement? shuffler_next(shuff) : k;
             }
 
             // Ignore insertion if the facility is already present in the solution

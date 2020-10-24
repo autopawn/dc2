@@ -167,7 +167,7 @@ void *path_relinking_thread_execution(void *arg){
 
     // Allocate a unique reusable fastmat if SWAP_RESENDE_WERNECK
     fastmat *mat = NULL;
-    if(args->run->local_search==SWAP_RESENDE_WERNECK){
+    if(args->run->local_search_pr==SWAP_RESENDE_WERNECK){
         mat = fastmat_init(args->run->prob->n_facs,args->run->prob->n_facs);
     }
 
@@ -189,13 +189,30 @@ void *path_relinking_thread_execution(void *arg){
 
                 // Perform path relinking
                 solution *sol = solution_copy(args->run->prob,sol_ini);
-                if(args->run->local_search==SWAP_RESENDE_WERNECK){
+                if(args->run->local_search_pr==SWAP_RESENDE_WERNECK){
                     solution_resendewerneck_hill_climbing(args->run,&sol,sol_end,mat);
                 }else{
                     solution_whitaker_hill_climbing(args->run,&sol,sol_end,args->shuff);
                 }
 
                 args->result[c_pair] = sol;
+
+                // Chack that path relinking was performed correctly
+                #ifdef DEBUG
+                    // Check that all facilitites in sol came from one of the solutions
+                    for(int k=0; k<sol->n_facs; k++){
+                        int in_ini = elem_in_sorted(sol_ini->facs,sol_ini->n_facs,sol->facs[k]);
+                        int in_end = elem_in_sorted(sol_end->facs,sol_end->n_facs,sol->facs[k]);
+                        assert(in_ini || in_end);
+                    }
+                    // Check that all facilities in both solutions remain in sol
+                    for(int k=0; k<sol_ini->n_facs; k++){
+                        int f = sol_ini->facs[k];
+                        if(elem_in_sorted(sol_end->facs, sol_end->n_facs, f)){
+                            assert(elem_in_sorted(sol->facs,sol->n_facs,f));
+                        }
+                    }
+                #endif
             }
             c_pair += 1;
         }
@@ -229,7 +246,7 @@ void solutions_path_relinking(rundata *run, solution ***sols, int *n_sols){
         targs[i].pool = (*sols);
         targs[i].n_pool = (*n_sols);
         targs[i].result = resulting;
-        if(run->local_search==SWAP_FIRST_IMPROVEMENT){
+        if(run->local_search_pr==SWAP_FIRST_IMPROVEMENT){
             targs[i].shuff = shuffler_init(run->prob->n_facs);
         }else{
             targs[i].shuff = NULL;

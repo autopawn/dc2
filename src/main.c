@@ -35,12 +35,14 @@ int main(int argc, const char **argv){
     int min_size = UNSET;
     int n_threads = UNSET;
     int local_search = UNSET;
+    int local_search_pr = UNSET;
     int local_search_only_on_terminal = UNSET;
     int local_search_rem_movement = UNSET;
     int local_search_add_movement = UNSET;
     int bnb = UNSET;
     int verbose = UNSET;
     int branching = UNSET;
+    int branching_correction = UNSET;
     int path_relinking = UNSET;
 
     // Parse arguments
@@ -67,6 +69,10 @@ int main(int argc, const char **argv){
                    fprintf(stderr,"ERROR: expected number of restarts on argument \"%s\".\n",argv[i]);
                    exit(1);
                 }
+            }else if(argv[i][1]=='B' && strcmp(argv[i],"-BC")==0){
+                // Disable branching factor adjustment
+                assert(branching_correction==UNSET);
+                branching_correction = 0;
             }else if(argv[i][1]=='B'){
                 // Set branching factor
                 int n_read = sscanf(argv[i],"-B%d",&branching);
@@ -107,6 +113,9 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='b' && strcmp(argv[i],"-b")==0){
                 // Disable branch and bound
                 bnb = 0;
+            }else if(argv[i][1]=='b' && strcmp(argv[i],"-bnb")==0){
+                // Enable branch and bound
+                bnb = 1;
             }else if(argv[i][1]=='l' && strcmp(argv[i],"-l")==0){
                 // Disable local search
                 assert(local_search==UNSET);
@@ -115,10 +124,19 @@ int main(int argc, const char **argv){
                 // First improvement local search
                 assert(local_search==UNSET);
                 local_search = SWAP_FIRST_IMPROVEMENT;
+                if(local_search_pr==UNSET) local_search_pr = SWAP_FIRST_IMPROVEMENT;
             }else if(argv[i][1]=='W' && strcmp(argv[i],"-W")==0){
                 // Resende and Werneck's local search
                 assert(local_search==UNSET);
                 local_search = SWAP_RESENDE_WERNECK;
+            }else if(argv[i][1]=='L' && strcmp(argv[i],"-LP")==0){
+                // First improvement local search
+                assert(local_search_pr==UNSET);
+                local_search_pr = SWAP_FIRST_IMPROVEMENT;
+            }else if(argv[i][1]=='W' && strcmp(argv[i],"-WP")==0){
+                // Resende and Werneck's local search
+                assert(local_search_pr==UNSET);
+                local_search_pr = SWAP_RESENDE_WERNECK;
             }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
                 // Perform local search on all nodes
                 local_search_only_on_terminal = 0;
@@ -149,7 +167,10 @@ int main(int argc, const char **argv){
 
     redstrategy *strategies = redstrategy_init_from_nomenclatures(strategy_args,&n_strategies);
 
+    // Default values
     if(restarts<0) restarts = 1;
+    if(n_threads<0) n_threads = DEFAULT_THREADS;
+    if(verbose<0) verbose = 1;
 
     // Read problem and set size restrictions
     problem *prob = new_problem_load(input_fname);
@@ -176,6 +197,10 @@ int main(int argc, const char **argv){
     if(verbose!=UNSET) run->verbose = verbose;
     if(branching!=UNSET) run->branching_factor = branching;
     if(path_relinking!=UNSET) run->path_relinking = path_relinking;
+    if(local_search_pr==UNSET){
+        if(run->local_search!=NO_LOCAL_SEARCH) run->local_search_pr = run->local_search;
+    }
+    if(branching_correction!=UNSET) run->branching_correction = branching_correction;
 
     // Check that there is no reduction for path relinking if we are not using it
     if(run->path_relinking==NO_PATH_RELINKING){

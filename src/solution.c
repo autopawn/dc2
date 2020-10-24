@@ -353,3 +353,32 @@ void solution_print(const problem *prob, const solution *sol, FILE *fp){
         fprintf(fp,"\n");
     }
 }
+
+int solution_check_integrity(const problem *prob, const solution *sol){
+    int integrity = 1;
+    // Check that each client is assigned to it's nearest facility in the solution
+    for(int j=0;j<prob->n_clis;j++){
+        double current_value = problem_assig_value(prob,sol->assigns[j],j);
+        for(int k=0;k<sol->n_facs;k++){
+            int f = sol->facs[k];
+            double other_value = problem_assig_value(prob,f,j);
+            if(current_value < other_value) integrity = 0;
+        }
+    }
+    // Check that he value corresponds with the stored value
+    double value = 0;
+    for(int j=0;j<prob->n_clis;j++){
+        value += problem_assig_value(prob,sol->assigns[j],j);
+    }
+    for(int k=0;k<sol->n_facs;k++){
+        int f = sol->facs[k];
+        value -= prob->facility_cost[f];
+    }
+    if(isfinite(value)){
+        double error = sol->value-value;
+        if(error<0) error *= -1;
+        if(error>=1e-5 && !isnan(error)) integrity = 0;
+    }
+
+    return integrity;
+}

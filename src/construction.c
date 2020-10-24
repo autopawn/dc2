@@ -292,9 +292,16 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
         if(run->verbose) printf("\n");
 
     }
-
-
     // Retrieve the final solutions:
     *out_n_sols = solmem.n_final;
+
+    #ifdef DEBUG
+        // Check final solutions integrity
+        for(int i=0;i<solmem.n_final;i++){
+            solution *sol = solmem.final[i];
+            assert(solution_check_integrity(prob,sol));
+        }
+    #endif
+
     return solmem.final;
 }

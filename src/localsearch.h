@@ -39,8 +39,8 @@ void fastmat_free(fastmat *mat);
 int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp, const solution *target, fastmat *zeroini_mat);
 
 // Performs hill climbing via facility swapings using Whitaker's fast exchange heuristic
+// If a shuffler is provided, 1st improvement is assumed.
 int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const solution *target, shuffler *shuff);
-
 
 // Sort the given array and delete repeated solutions
 void solutions_sort_and_delete_repeated(solution **sols, int *n_sols);

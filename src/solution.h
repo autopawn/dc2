@@ -68,4 +68,7 @@ void solution_findout(const problem *prob, const solution *sol, int f_ins, doubl
 // Print a solution to the given descriptor
 void solution_print(const problem *prob, const solution *sol, FILE *fp);
 
+// Checks that has solution is properly computed, the value is right and each client is assigned to its nearest facilty
+int solution_check_integrity(const problem *prob, const solution *sol);
+
 #endif

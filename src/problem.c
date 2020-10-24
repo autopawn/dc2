@@ -12,7 +12,7 @@ problem *problem_init(int n_facs, int n_clis){
     prob->distance_cost += 1;
     // Initialize row -1
     prob->distance_cost[-1] = safe_malloc(sizeof(double)*prob->n_clis);
-    for(int j=0;j<prob->n_clis;j++) prob->distance_cost[-1][j] = -INFINITY;
+    for(int j=0;j<prob->n_clis;j++) prob->distance_cost[-1][j] = INFINITY;
     // Initialize other rrows
     for(int i=0;i<prob->n_facs;i++){
         prob->distance_cost[i] = safe_malloc(sizeof(double)*prob->n_clis);

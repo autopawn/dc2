@@ -12,6 +12,8 @@
 #define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
 #define DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED 1
 #define DEFAULT_BRANCHING_FACTOR (-1)
+#define DEFAULT_BRANCHING_CORRECTION 1
+#define BRANCH_AND_BOUND_DEFAULT 0
 
 // Possible filters after child solutions are created
 typedef enum {
@@ -57,8 +59,10 @@ typedef struct {
     int target_sols;
     // | Number of threads
     int n_threads;
-    // | Perform local search?
-    int local_search;
+    // | Which local search to perform, if any.
+    localsearch local_search;
+    // | Which local search to use in path relinking
+    localsearch local_search_pr;
     // | Random seed
     int random_seed;
     // | Restarts
@@ -73,6 +77,8 @@ typedef struct {
     if -1, then all solutions will be generated
     if 0, then ceil(log2(m/p)) solutions will be generated */
     int branching_factor;
+    // Whether to increase the branching factor for the first generations because they start with a pool of size 0
+    int branching_correction;
     // If PR is enabled
     pathrelinkingmode path_relinking;
 

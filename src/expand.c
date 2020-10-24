@@ -143,23 +143,28 @@ solution **new_expand_solutions(const rundata *run,
 
     // ==== Generate futuresols depending on the branching factor
     assert(run->branching_factor>=-1);
-    int branching = run->branching_factor;
-    if(run->branching_factor==0){
-        if(current_size==0){
-            branching = 1 + (int) roundf(log2f(1.0+prob->n_facs));
-        }else{
-            branching = 1 + (int) roundf(log2f((float)prob->n_facs/(float)current_size));
-        }
-    }else if(run->branching_factor==-1){
-        branching = prob->n_facs-current_size;
-    }
-    // Generation 0 branching is greater because generation 0 has the disadvantage of having pool size 1.
-    if(current_size==0){
-        branching = pool_size * branching;
-    }
-    if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
 
-    if(branching>prob->n_facs-current_size) branching = prob->n_facs-current_size;
+    float branchingf;
+    if(run->branching_factor==-1){
+        // All children are generated
+        branchingf = prob->n_facs-current_size;
+    }else if(run->branching_factor==0){
+        // Generate according to Resende & Werneck's formula
+        branchingf = log2f((float)prob->n_facs/fmaxf(1,current_size));
+    }else{
+        // Use the branching factor given
+        branchingf = run->branching_factor;
+    }
+    // Branching factor correction ensures that enough solutions are created at the first generations
+    if(run->branching_correction){
+        float expected_sols = powf(pool_size,current_size);
+        if(expected_sols>pool_size) expected_sols = pool_size;
+        branchingf *= pool_size/expected_sols;
+    }
+    // Final branching factor
+    int branching = ceilf(branchingf);
+    if(branching>(prob->n_facs-current_size)) branching = prob->n_facs-current_size;
+
     // Allocate enough memory for the maximium amount of futuresols that can appear:
     void *futuresols = safe_malloc(fsol_size*(n_sols*branching+1));
     int n_futuresols = 0;
