@@ -1,6 +1,7 @@
 confi
 bin
 out.txt
+output.txt
 
 # Prerequisites
 *.d
