@@ -30,13 +30,13 @@ Then execute it as follows:
 
 for example:
 ```
-./bin/dc scripts/example_problem out.txt
+./bin/dc example_problems/cap111.txt out.txt
 ```
-solves the problem on `scripts/example_problem` and saves the solution to `out.txt`.
+solves the problem on `example_problems/cap111.txt` and saves the solution to `out.txt`.
 
 Normally the default parameters are suitable for getting good solutions, but they can be specified, for example:
 ```
-./bin/dc -t8 -l rank:2000 sdbs+:100 scripts/example_problem out.txt
+./bin/dc -t8 -l rank:2000 sdbs+:100 example_problems/cap111.txt out.txt
 ```
 
 executes the solver using 8 threads with a two step reduction method (first sampling based on `rank`, then `sdbs+` until `100` solutions are reached) and skips local searches.
@@ -122,7 +122,7 @@ The following flags can be used to specify different behaviours:
 | `-x` | Don't allow local search to perform movements that change the number of facilities. |
 | `-w` | Perform local searches with Whitaker's fast exchange best improvement. <br> **This is the default local search.** |
 | `-L` | Perform local searches with first improvement rather than best improvement. <br> **Note**: movements that don't decrease solution size have preference. |
-| `-W` | Perform Resende and Werneck's local search, **may be much faster**. <br> Requires preprocessing. <br> Requires `O(n*m)` memory for each **thread**. |
+| `-W` | Perform Resende and Werneck's local search, **may be much faster**. <br> Requires preprocessing. <br> Requires O(n*m) memory for each **thread**. |
 | `-l` | Don't perform local searches. |
 
 #### Path Relinking
