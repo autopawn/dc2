@@ -200,6 +200,7 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
             csize += 1;
             // Update number of iterations
             if(first_restart) run->run_inf->firstr_n_iterations = csize;
+
         }
         run->run_inf->total_n_iterations += csize;
 
@@ -268,7 +269,6 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                     singleton_best[0] = solution_copy(run->prob,new_best_solution);
                     solmemory_merge_with_final(run,&solmem,singleton_best,1,r);
                 }
-                printf("current: %f\n",new_best_sol_value);
 
                 // Check for terminating conditions and save best solution found on this iteration
                 if(solmem.n_prpool<=1) break;

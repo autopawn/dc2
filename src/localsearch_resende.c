@@ -143,6 +143,7 @@ void update_structures(
     // Choose between numerating possible insertions using proximity order or available insertions
     int proximity_mode = prob->n_facs/sol->n_facs <= avail->n_insertions;
 
+    assert(run->precomp->nearly_indexes!=NULL);
 
     for(int k=0;k<prob->n_facs;k++){
         int fi;

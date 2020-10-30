@@ -82,8 +82,6 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"\n");
     fprintf(fp,"== RUN DATA ==\n");
     fprintf(fp,"# FILTER: %s (%d)\n",filter_names[run->filter],(int)run->filter);
-    fprintf(fp,"# BRANCH_AND_BOUND: %d\n",run->branch_and_bound);
-    fprintf(fp,"# LOWER_BOUND: %lf\n",run->bnb_lower_bound);
     fprintf(fp,"# TARGET_SOLS: %d\n",run->target_sols);
     fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",run->precomp->precomp_client_optimal_gain);
     fprintf(fp,"# N_THREADS: %d\n",run->n_threads);
@@ -98,4 +96,6 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# RANDOM_SEED: %d\n",run->random_seed);
     fprintf(fp,"# RESTARTS: %d\n",run->n_restarts);
     fprintf(fp,"# VERBOSE: %d\n",run->verbose);
+    fprintf(fp,"# BRANCH_AND_BOUND: %d (deprecated)\n",run->branch_and_bound);
+    fprintf(fp,"# LOWER_BOUND: %lf \n",run->bnb_lower_bound);
 }

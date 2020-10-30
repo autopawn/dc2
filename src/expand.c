@@ -150,14 +150,18 @@ solution **new_expand_solutions(const rundata *run,
         branchingf = prob->n_facs-current_size;
     }else if(run->branching_factor==0){
         // Generate according to Resende & Werneck's formula
-        branchingf = log2f((float)prob->n_facs/fmaxf(1,current_size));
+        branchingf = log2f((float)prob->n_facs/fmaxf(1.0,current_size));
     }else{
         // Use the branching factor given
         branchingf = run->branching_factor;
     }
     // Branching factor correction ensures that enough solutions are created at the first generations
     if(run->branching_correction){
-        float expected_sols = powf(pool_size,current_size);
+        float expected_sols = 1;
+        for(int i=0;i<current_size;i++){
+            expected_sols *= pool_size;
+            if(expected_sols>pool_size) break;
+        }
         if(expected_sols>pool_size) expected_sols = pool_size;
         branchingf *= pool_size/expected_sols;
     }

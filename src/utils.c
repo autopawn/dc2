@@ -1,7 +1,7 @@
 #include "utils.h"
 
 void *safe_malloc(size_t size){
-    assert(errno==0);
+    detect_errno();
     void *ptr = malloc(size);
     if((size>0 && ptr==NULL) || errno!=0){
         fprintf(stderr,"ERROR (on malloc): %s\n",strerror(errno));
@@ -11,7 +11,7 @@ void *safe_malloc(size_t size){
 }
 
 void *safe_realloc(void *original, size_t size){
-    assert(errno==0);
+    detect_errno();
     void *ptr = realloc(original,size);
     if((size>0 && ptr==NULL) || errno!=0){
         fprintf(stderr,"ERROR (on realloc): %s\n",strerror(errno));

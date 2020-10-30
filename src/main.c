@@ -111,24 +111,34 @@ int main(int argc, const char **argv){
                 }
                 assert(0<=filter_n && filter_n<=MAX_FILTER);
             }else if(argv[i][1]=='b' && strcmp(argv[i],"-b")==0){
-                // Disable branch and bound
+                // Disable branch and bound.
+                assert(bnb==UNSET);
                 bnb = 0;
             }else if(argv[i][1]=='b' && strcmp(argv[i],"-bnb")==0){
                 // Enable branch and bound
+                // NOTE: hidden feature, it has not proven useful. Maybe with a better algorith,
+                assert(bnb==UNSET);
                 bnb = 1;
             }else if(argv[i][1]=='l' && strcmp(argv[i],"-l")==0){
                 // Disable local search
                 assert(local_search==UNSET);
                 local_search = NO_LOCAL_SEARCH;
+            }else if(argv[i][1]=='w' && strcmp(argv[i],"-w")==0){
+                // Best improvement local search
+                assert(local_search==UNSET);
+                local_search = SWAP_BEST_IMPROVEMENT;
             }else if(argv[i][1]=='L' && strcmp(argv[i],"-L")==0){
                 // First improvement local search
                 assert(local_search==UNSET);
                 local_search = SWAP_FIRST_IMPROVEMENT;
-                if(local_search_pr==UNSET) local_search_pr = SWAP_FIRST_IMPROVEMENT;
             }else if(argv[i][1]=='W' && strcmp(argv[i],"-W")==0){
                 // Resende and Werneck's local search
                 assert(local_search==UNSET);
                 local_search = SWAP_RESENDE_WERNECK;
+            }else if(argv[i][1]=='w' && strcmp(argv[i],"-wP")==0){
+                // Best improvement local search
+                assert(local_search_pr==UNSET);
+                local_search_pr = SWAP_BEST_IMPROVEMENT;
             }else if(argv[i][1]=='L' && strcmp(argv[i],"-LP")==0){
                 // First improvement local search
                 assert(local_search_pr==UNSET);
@@ -177,8 +187,18 @@ int main(int argc, const char **argv){
     if(min_size>=0) prob->size_restriction_minimum = min_size;
     if(max_size>=0) prob->size_restriction_maximum = max_size;
 
-    // Create rundata (perform precomputations)
-    int precomp_nearly_indexes = (local_search==SWAP_RESENDE_WERNECK);
+    // See if the nearly indexes should be precomputed
+    int precomp_nearly_indexes = 0;
+    if(local_search==SWAP_RESENDE_WERNECK) precomp_nearly_indexes = 1;
+    if(local_search==UNSET && DEFAULT_LOCAL_SEARCH==SWAP_RESENDE_WERNECK) precomp_nearly_indexes = 1;
+    if(path_relinking!=NO_PATH_RELINKING){
+        if(local_search_pr==SWAP_RESENDE_WERNECK) precomp_nearly_indexes = 1;
+        if(local_search==NO_LOCAL_SEARCH && DEFAULT_LOCAL_SEARCH==SWAP_RESENDE_WERNECK) precomp_nearly_indexes = 1;
+    }
+    // FIXME: ^ it is not nice that this has to be computed before intiializing the rundata.
+    // It is a form of coupling.
+
+    // Initialize the rundata and perform the precomputations
     rundata *run = rundata_init(prob, strategies,n_strategies,restarts,precomp_nearly_indexes,n_threads,verbose);
 
     // Free problem (rundata kepps a copy)
@@ -197,8 +217,10 @@ int main(int argc, const char **argv){
     if(verbose!=UNSET) run->verbose = verbose;
     if(branching!=UNSET) run->branching_factor = branching;
     if(path_relinking!=UNSET) run->path_relinking = path_relinking;
-    if(local_search_pr==UNSET){
+    if(local_search_pr==UNSET){ // If PR local search is unset, make it equal to the normal local search
         if(run->local_search!=NO_LOCAL_SEARCH) run->local_search_pr = run->local_search;
+    }else{
+        run->local_search_pr = local_search_pr;
     }
     if(branching_correction!=UNSET) run->branching_correction = branching_correction;
 
@@ -208,6 +230,18 @@ int main(int argc, const char **argv){
             if(strategies[i].for_path_relinking){
                 fprintf(stderr,"ERROR: \"%s\" reduction but no path relinking.\n",strategies[i].nomenclature);
                 exit(1);
+            }
+        }
+    }
+
+    // Check that there is no specification of path relinking if we are not using it
+    if(run->path_relinking==NO_PATH_RELINKING){
+        if(local_search_pr!=UNSET){
+            fprintf(stderr,"ERROR: No path relinking but path relinking method was specified.\n");
+            exit(1);
+        }
+        for(int i=0;i<n_strategies;i++){
+            if(strategies[i].for_path_relinking){
             }
         }
     }

@@ -13,7 +13,7 @@ It is mainly composed of:
 
 ![](imgs/dc2.png)
 
-The search advances using these methods on several iterations, as shown in the previous diagram, until no more solutions are present. Additionaly it uses Branch and Bound to further filter solutions.
+The search advances using these methods on several iterations, as shown in the previous diagram, until no more solutions are present.
 
 # Usage
 
@@ -36,10 +36,10 @@ solves the problem on `scripts/example_problem` and saves the solution to `out.t
 
 Normally the default parameters are suitable for getting good solutions, but they can be specified, for example:
 ```
-./bin/dc -t8 -l rank:2000 sdce+:100 scripts/example_problem out.txt
+./bin/dc -t8 -l rank:2000 sdbs+:100 scripts/example_problem out.txt
 ```
 
-executes the solver using 8 threads with a two step reduction method (first sampling based on `rank`, then `sdce+` until `100` solutions are reached) and skips local searches.
+executes the solver using 8 threads with a two step reduction method (first sampling based on `rank`, then `sdbs+` until `100` solutions are reached) and skips local searches.
 
 # Formats supported
 
@@ -114,55 +114,76 @@ FILE: Example.txt
 
 The following flags can be used to specify different behaviours:
 
+#### Local search
+
 | Flag | Effect |
 | :--- | ------ |
 | `-A` | Perform local search on all solutions, not only terminal. |
 | `-x` | Don't allow local search to perform movements that change the number of facilities. |
-| `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
-| `-l` | Skip local searches entirely. |
+| `-w` | Perform local searches with Whitaker's fast exchange best improvement. <br> **This is the default local search.** |
 | `-L` | Perform local searches with first improvement rather than best improvement. <br> **Note**: movements that don't decrease solution size have preference. |
-| `-W` | Perform Resende and Werneck's local search, usually faster. <br> Requires preprocessing. <br> Requires `O(n*m)` memory for each **thread**. |
-| `-LP` | Use first improvement strategy for path relinking. <br> By default, the same method than local searches is used. |
-| `-WP` | Use Resende and Werneck's local search for path relinking. <br> By default, the same method than local searches is used. |
-| `-P`    | Use path relinking on terminal solutions once; for now `-W` is required. |
-| `-M`    | Use path relinking on terminal solutions until no better solution is found; for now `-W` is required. |
-| `-r<n>` | Sets the random seed to `n`, so execution is deterministic. |
-| `-n<n>` | Sets the number of target solutions (1 by default). <br> Use with `-b` to get diverse solutions. |
-| `-R<n>` | Performs `n` restarts, useful with random reduction components. <br> **Note:** B&B lower bound is kept after restarts.  |
-| `-B<n>` | Instead of creating every child of each solution, just build `n` at random. <br> This happens before filtering. <br> `-B0` builds `ceil(log2(m/p))` where `p` is the solution size. |
-| `-BC`   | Disables increasing the branching factor for the first generations of solutions. |
+| `-W` | Perform Resende and Werneck's local search, **may be much faster**. <br> Requires preprocessing. <br> Requires `O(n*m)` memory for each **thread**. |
+| `-l` | Don't perform local searches. |
+
+#### Path Relinking
+
+| Flag | Effect |
+| :--- | ------ |
+| `-P`    | Use path relinking on terminal solutions once; for now `-W` is required.  |
+| `-M`    | Use path relinking on terminal solutions until no better solution is found. <br> **NOTE**: Too many solutions may be created, <br> remember to specify PR reduction strategies. |
+| `-wP` | Use best improvement strategy as path relinking <br> By default, the same method than local searches is used. |
+| `-LP` | Use first improvement strategy as path relinking. <br> By default, the same method than local searches is used. |
+| `-WP` | Use Resende and Werneck's local search as path relinking. <br> By default, the same method than local searches is used. |
+
+#### Execution
+
+| Flag | Effect |
+| :--- | ------ |
+| `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
+| `-r<n>` | Sets the random seed to `n`, so execution is deterministic. <br> This is useful for **reproducibility**. |
+| `-n<n>` | Sets the number of target solutions (1 by default). |
 | `-t<n>` | The number of threads to use. |
+
+#### Algorithm parameters
+
+| Flag | Effect |
+| :--- | ------ |
+| `-R<n>` | Performs `n` restarts, useful with random reduction components. |
+| `-B<n>` | Instead of creating every child of each solution, just build `n` at random. <br> This happens before filtering. <br> `-B0` builds `ceil(log2(m/p))` where `p` is the solution size. |
+| `-BC`   | Disables increasing the branching factor for the first generations of solutions. <br> This is done to compensate that the inital pool has size 1. |
+| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent (default). <br> `-f4`: solution should be better than any possible parent |
 | `-s<n>` | Sets the minimum size to `n`. <br> Solutions of smaller size are not considered as results. <br> Local search is not performed on them. |
 | `-S<n>` | Sets the maximum size to `n`. <br> Once it is reached, the iteration stops.
-| `-f<n>` | The filter level, can range from 0 to 4: <br> `-f0`: don't filter any solution. <br> `-f1`: solution should be better than the empty solution. <br> `-f2`: solution should be better than its worst parent. <br> `-f3`: solution should be better than its best parent (default). <br> `-f4`: solution should be better than any possible parent |
 
 ## Reduction strategies
 
 The reduction is performed chaining one or more reduction strategies. These reduction strategies vary in the results they may have, memory and time complexity.
 
-The default (and recommended) reduction strategy, is:
+The default reduction strategy is:
 ```
-rand1:6000 sdce+:200
+rand1:6000 sdbs+:200:pcd
 ```
-which picks 6000 solutions randomly and then applies `sdce+` to select 200.
+which picks 6000 solutions randomly and then applies `sdbs+` to select 200.
 
 **If you want to invest more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
 ```
-rand1:10000 sdce+:400
+rand1:10000 sdbs+:400:pcd
 ```
 
 You may also skip the previous random selection, which will be more costly but will result on more representative solutions.
 ```
-sdce+:400
+sdbs+:400
 ```
 
-Complex reduction strategies like `sdce+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdce+:400:mgemin` and `sdce+:400:mgesum` otherwise. These dissimilitudes require precomputations.
+Complex reduction strategies like `sdbs+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdbs+:400:mgemin` and `sdbs+:400:mgesum` otherwise. These dissimilitudes require precomputations.
 
-When using Path Relinking, through `-M` or `-P`, it is important to also specify a reduction strategy for after each time it is applied, this is done adding a reduction strategy with an underscore, for instance:
+### Path relinking reduction strategies
+
+When using Path Relinking through `-M` (or `-P`) it is important to also specify a reduction strategy for after each time it is applied, this is done adding a reduction strategy with an underscore, for instance:
 ```
-rand1:6000 sdce+:200 _best:100
+rand1:6000 sdbs+:200 _best:100
 ```
-will select the best 100 solutions after each step of path relinking.
+will select the best 100 solutions after each path relinking iteration.
 
 ### Strategies
 
@@ -180,16 +201,16 @@ The **complex** strategies make use of a **dissimilitude** metric to compare bet
 
 | **Strategy** | **Description** |
 | :----------  | --------------- |
-| `sdce:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based <br> clustering initialization method, enhanced. <br> Using the `<di>` dissimilitude metric (default: `autosum`).
-| `sdce+:<n>:<di>` | Same as `scde` but the bests solutions of each cluster <br> are selected instead of the centroids.
-| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `autosum`).
+| `sdbs:<n>:<di>` | Select `n` solutions using Glover's simple diversity-based  <br> starting method, optimized. <br> Using the `<di>` dissimilitude metric (default: `pcd`).
+| `sdbs+:<n>:<di>` | Same as `sdbs` but the bests solutions of each cluster <br> are selected instead of the centroids.
+| `vrh:<n>:<di>:<v>` | Select `n` solutions using the VR-Heuristic <br> with vision range `v` (default `2n`). <br> Using the `<di>` dissimilitude metric (default: `pcd`).
 
 The following table lists the complexities to select `r` solutions from a set of size `q`.
 
 | **Strategy** | **Dissimilitudes** | **Memory** |
 | :----------  | :-------------: | :--------: |
-| `sdce` | `q r` | `O(q)` |
-| `sdce+` | `q r` | `O(q)` |
+| `sdbs` | `q r` | `O(q)` |
+| `sdbs+` | `q r` | `O(q)` |
 | `vrh` | `2 q v` | `O(q v)` |
 
 ### Dissimilitude metrics:
@@ -203,11 +224,12 @@ The following dissimilitude metrics are available:
 | `haumin` | Hausdorff distance. <br> Using **min triangle** as facility-facility distance. |
 | `hausum` | Hausdorff distance. <br> Using **sum of deltas** as facility-facility distance. |
 | `pcd`    | Per client delta. <br> Doesn't use facility-facility distances. |
-| `automum`   | Choose `mgesum` when p^2 <= 15*m and `pcd` otherwise. |
+| `autosum`   | Choose `mgesum` when p^2 <= 15*m and `pcd` otherwise. |
 | `automin`   | Choose `mgemin` when p^2 <= 15*m and `pcd` otherwise. |
 | `indexval`  | Number of different facility indexes, also use difference in solution value to break ties. |
 
 Facility-facility distances:
+
 * **min triangle**:
     ```
     df(a,b) = min_j d(a,j)+d(b,j)
@@ -225,27 +247,21 @@ Facility-facility distances:
     Precomputation of all them costs O(n^2 m).
 
 Solution-solution dissimilitudes:
+
 * **Mean geometric error**:
     ```
     D(A,B) = sum_a inf_b df(a,b) + sum_b inf_a df(b,a)
     ```
-    Is stable and brings good results, however it costs is proportional to O(p^2) where p is the size of the solutions.
+    Is stable and brings good results, however its costs is proportional to O(p^2) where p is the size of the solutions.
+
 * **Hausdorff**:
     ```
     D(A,B) = max {sup_a inf_b df(a,b), sup_b inf_a df(b,a)}
     ```
     Is faster but may have poor results, it is prone to ties.
+
 * **Per client delta**:
     ```
     D(A,B) = sum_j |v(A,j)-v(B,j)|
     ```
     Uses the client assignment costs as a vector which is compared, its cost is O(m) (number of clients) so may be good for problems with very large solutions.
-
-## Local search
-
-The local searches are performed using Whitaker's fast swap heuristic, adapted for SPLP.
-Resende and Werneck local search is optional, in some cases it can speed up the local searches in up to 3 order of magnitude.
-
-First improvement strategy may be arbitrary for Whitaker's method when the solution size is not restricted and it's not yet implemented for Resende and Werneck.
-
-Also Resende and Werneck's method is not made for instances that can left clients unassinged; this is a TODO.

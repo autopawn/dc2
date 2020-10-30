@@ -1,6 +1,6 @@
 #include "redstrategy.h"
 
-const char *default_redstrategies[] = {"rand1:6000","sdce+:200"};
+const char *default_redstrategies[] = {"rand1:6000","sdbs+:200:pcd","_rand1:6000","_sdbs+:200:pcd"};
 
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
@@ -111,12 +111,12 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         // Set the default value for the VISION RANGE
         if(strategy.arg==-1) strategy.arg = 2*strategy.n_target;
     }
-    else if(strcmp(abrev,"sdce")==0){
-        strategy.method = REDUCTION_GLOVER_SDCE;
+    else if(strcmp(abrev,"sdbs")==0){
+        strategy.method = REDUCTION_GLOVER_sdbs;
         if(strategy_n_parts>3) invalid = 1;
     }
-    else if(strcmp(abrev,"sdce+")==0){
-        strategy.method = REDUCTION_GLOVER_SDCE_BESTS;
+    else if(strcmp(abrev,"sdbs+")==0){
+        strategy.method = REDUCTION_GLOVER_sdbs_BESTS;
         if(strategy_n_parts>3) invalid = 1;
     }
     else{
@@ -130,9 +130,9 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Identify the dissimilitude and distance strategies
     if(n_scan<3){
-        // Default dissimilitude: (autosum)
-        strategy.soldis = SOLDIS_AUTO;
-        strategy.facdis = FACDIS_SUM_OF_DELTAS;
+        // Default dissimilitude:
+        strategy.soldis = SOLDIS_PER_CLIENT_DELTA;
+        strategy.facdis = FACDIS_NONE;
     }else{
         if(strcmp(distm,"mgemin")==0){
             strategy.soldis = SOLDIS_MEAN_GEOMETRIC_ERROR;

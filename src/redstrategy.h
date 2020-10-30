@@ -29,9 +29,9 @@ typedef enum {
     // | The VR-Heuristic
     REDUCTION_VRHEURISTIC,
     // | Enhanced Glover simple diversity-based starting method
-    REDUCTION_GLOVER_SDCE,
-    // | EGLOVER_SDCE selecting the best solution of each cluster
-    REDUCTION_GLOVER_SDCE_BESTS,
+    REDUCTION_GLOVER_sdbs,
+    // | EGLOVER_sdbs selecting the best solution of each cluster
+    REDUCTION_GLOVER_sdbs_BESTS,
 } reduction_method;
 
 typedef struct {
