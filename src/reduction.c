@@ -24,12 +24,12 @@ void reduce_by_redstrategy(const rundata *run, const redstrategy rstrat,
         }
         reduction_random_rank(run,sols,n_sols,rstrat.n_target,rstrat.elitist);
     }
-    else if(rstrat.method==REDUCTION_GLOVER_sdbs){
+    else if(rstrat.method==REDUCTION_GLOVER_SDBS){
         if(run->verbose) printf("simple diversity-based starting method.\n");
         reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,0);
     }
-    else if(rstrat.method==REDUCTION_GLOVER_sdbs_BESTS){
+    else if(rstrat.method==REDUCTION_GLOVER_SDBS_BESTS){
         if(run->verbose) printf("simple diversity-based starting method (bests-of-cluster).\n");
         reduction_diversity_starting(run,sols,n_sols,rstrat.n_target,
             rstrat.soldis,rstrat.facdis,1);

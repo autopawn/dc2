@@ -112,11 +112,11 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
         if(strategy.arg==-1) strategy.arg = 2*strategy.n_target;
     }
     else if(strcmp(abrev,"sdbs")==0){
-        strategy.method = REDUCTION_GLOVER_sdbs;
+        strategy.method = REDUCTION_GLOVER_SDBS;
         if(strategy_n_parts>3) invalid = 1;
     }
     else if(strcmp(abrev,"sdbs+")==0){
-        strategy.method = REDUCTION_GLOVER_sdbs_BESTS;
+        strategy.method = REDUCTION_GLOVER_SDBS_BESTS;
         if(strategy_n_parts>3) invalid = 1;
     }
     else{
