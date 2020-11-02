@@ -129,7 +129,7 @@ The following flags can be used to specify different behaviours:
 
 | Flag | Effect |
 | :--- | ------ |
-| `-P`    | Use path relinking on terminal solutions once; for now `-W` is required.  |
+| `-P`    | Use path relinking on terminal solutions once.  |
 | `-M`    | Use path relinking on terminal solutions until no better solution is found. <br> **NOTE**: Too many solutions may be created, <br> remember to specify PR reduction strategies. |
 | `-wP` | Use best improvement strategy as path relinking <br> By default, the same method than local searches is used. |
 | `-LP` | Use first improvement strategy as path relinking. <br> By default, the same method than local searches is used. |
