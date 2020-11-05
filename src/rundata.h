@@ -9,11 +9,12 @@
 
 #define DEFAULT_TARGET_SOLS 1
 #define DEFAULT_THREADS 4
-#define DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL 1
 #define DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED 1
 #define DEFAULT_BRANCHING_FACTOR (-1)
 #define DEFAULT_BRANCHING_CORRECTION 1
 #define BRANCH_AND_BOUND_DEFAULT 0
+#define DEFAULT_LOCAL_SEARCH_BEFORE_SELECT 0
+#define DEFAULT_SELECT_ONLY_TERMINAL 1
 
 // Possible filters after child solutions are created
 typedef enum {
@@ -46,6 +47,7 @@ typedef enum {
 #define DEFAULT_PATH_RELINKING NO_PATH_RELINKING
 
 
+
 typedef struct {
     // The current problem being solved
     problem *prob;
@@ -67,8 +69,10 @@ typedef struct {
     int random_seed;
     // | Restarts
     int n_restarts;
-    // | If the local search is just done for terminal nodes
-    int local_search_only_terminal;
+    // | If only terminal solutions are selected
+    int select_only_terminal;
+    // | If the local search is perform before final selection
+    int local_search_before_select;
     // | If the local search has the remove movement
     int local_search_rem_movement;
     // | If the local search has the add movement

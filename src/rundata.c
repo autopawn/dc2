@@ -57,7 +57,8 @@ rundata *rundata_init(problem *prob, redstrategy *rstrats, int n_rstrats, int n_
     run->n_threads    = n_threads;
     run->local_search = DEFAULT_LOCAL_SEARCH;
     run->local_search_pr = DEFAULT_LOCAL_SEARCH;
-    run->local_search_only_terminal = DEFAULT_LOCAL_SEARCH_ONLY_TERMINAL;
+    run->local_search_before_select = DEFAULT_LOCAL_SEARCH_BEFORE_SELECT;
+    run->select_only_terminal = DEFAULT_SELECT_ONLY_TERMINAL;
     run->local_search_rem_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
     run->local_search_add_movement = DEFAULT_LOCAL_SEARCH_SIZE_CHANGE_MOVEMENTS_ENABLED;
 
@@ -85,8 +86,9 @@ void rundata_print(const rundata *run, FILE *fp){
     fprintf(fp,"# TARGET_SOLS: %d\n",run->target_sols);
     fprintf(fp,"# PRECOMP_CLIENT_OPTIMAL_GAIN: %lf\n",run->precomp->precomp_client_optimal_gain);
     fprintf(fp,"# N_THREADS: %d\n",run->n_threads);
+    fprintf(fp,"# SELECT_ONLY_TERMINAL: %d\n",run->select_only_terminal);
     fprintf(fp,"# LOCAL_SEARCH: %s\n",local_search_names[run->local_search]);
-    fprintf(fp,"# LOCAL_SEARCH_ONLY_TERMINAL: %d\n",run->local_search_only_terminal);
+    fprintf(fp,"# LOCAL_SEARCH_BEFORE_SELECT: %d\n",run->local_search_before_select);
     fprintf(fp,"# LOCAL_SEARCH_REM_MOVEMENT: %d\n",run->local_search_rem_movement);
     fprintf(fp,"# LOCAL_SEARCH_ADD_MOVEMENT: %d\n",run->local_search_add_movement);
     fprintf(fp,"# BRANCHING_FACTOR: %d\n",run->branching_factor);

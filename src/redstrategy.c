@@ -1,6 +1,6 @@
 #include "redstrategy.h"
 
-const char *default_redstrategies[] = {"rand1:6000","sdbs+:200:pcd"};
+const char *default_redstrategies[] = {"rand1:6000","sdbs+:200:pcd","_rand1:6000","_sdbs+:200:pcd"};
 
 redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms){
     int n_strategies = *n_noms;
@@ -23,7 +23,7 @@ redstrategy *redstrategy_init_from_nomenclatures(const char **noms, int *n_noms)
     for(int t=0;t<=1;t++){ // For not PR and for PR
         int current_n_target = INT_MAX;
         for(int i=0;i<n_strategies;i++){
-            if(strategies[i].for_path_relinking == t){
+            if(strategies[i].for_selected_sols == t){
                 if(strategies[i].n_target>=current_n_target){
                     fprintf(stderr,"ERROR: strategy n_targets must decrease!\n");
                     exit(1);
@@ -43,10 +43,10 @@ redstrategy redstrategy_from_nomenclature(const char *nomenclature){
 
     // Check if reduction method starts with '_', meaning that it is intended for path relinking
     if(nomenclature[0]=='_'){
-        strategy.for_path_relinking = 1;
+        strategy.for_selected_sols = 1;
         nomenclature = &nomenclature[1];
     }else{
-        strategy.for_path_relinking = 0;
+        strategy.for_selected_sols = 0;
     }
 
     //
