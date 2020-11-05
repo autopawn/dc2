@@ -148,9 +148,9 @@ int main(int argc, const char **argv){
                 // Resende and Werneck's local search
                 assert(local_search_pr==UNSET);
                 local_search_pr = SWAP_RESENDE_WERNECK;
-            }else if(argv[i][1]=='b' && strcmp(argv[i],"-bef")==0){
-                // Perform local search on all nodes
-                local_search_before_select = 1;
+            }else if(argv[i][1]=='a' && strcmp(argv[i],"-aft")==0){
+                // Perform local search after selecting nodes
+                local_search_before_select = 0;
             }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
                 // Perform local search on all nodes
                 select_only_terminal = 0;

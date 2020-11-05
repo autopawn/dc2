@@ -35,7 +35,7 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
 
     // Each movement:
     int n_moves = 0;
-    while(1){
+    while(avail->n_insertions>0 || avail->n_removals>0){
         // Insertion candidate:
         double best_delta = (avail->path_relinking)? -INFINITY : 0;
         int best_rem = NO_MOVEMENT;

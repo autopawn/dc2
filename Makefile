@@ -33,5 +33,6 @@ compile:
 	rm -rf bin || true
 	mkdir bin
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES) -lpthread -lm -o bin/dc
+	gcc -g -pg -O4 -march=native -flto -Wall $(SOURCES) -lpthread -lm -o bin/dc_prof
 	gcc -g -pedantic -Wall $(SOURCES) -lpthread -lm -D DEBUG -o bin/dc_debug
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -lm -o bin/opt_checker
