@@ -35,7 +35,7 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
 
     // Each movement:
     int n_moves = 0;
-    while(1){
+    while(avail->n_insertions>0 || avail->n_removals>0){
         // Insertion candidate:
         double best_delta = (avail->path_relinking)? -INFINITY : 0;
         int best_rem = NO_MOVEMENT;
@@ -74,7 +74,7 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
                 best_rem = f_rem;
                 best_ins = f_ins;
             }
-            if(delta_profit_worem>best_delta && allow_size_increase){
+            if(delta_profit_worem>best_delta && allow_size_increase && (f_ins!=-1 || target==NULL)){
                 best_delta = delta_profit_worem;
                 best_rem = -1;
                 best_ins = f_ins;
@@ -83,10 +83,15 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
             // break the loop on first_improvement
             if(first_improvement && improvement) break;
         }
+
         // No inserting and no removing is equivalent to not performing a movement
         if(best_ins==-1 && best_rem==-1){
             best_ins = NO_MOVEMENT;
             best_rem = NO_MOVEMENT;
+            #ifdef DEBUG
+                // Assert that the target was reached
+                if(target!=NULL) assert(solutionp_facs_cmp(&sol,&target)==0);
+            #endif
         }
 
         // Stop when no movement results in a better solution:
@@ -140,8 +145,11 @@ int solution_whitaker_hill_climbing(const rundata *run, solution **solp, const s
     // Set sol to best_sol in case we are doing path relinking
     if(best_sol!=NULL){
         *solp = best_sol;
+        #ifdef DEBUG
+            // Assert that the target was reached
+            if(target!=NULL) assert(solutionp_facs_cmp(&sol,&target)==0);
+        #endif
         solution_free(sol);
     }
-
     return n_moves;
 }
