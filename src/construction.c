@@ -247,12 +247,6 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 // Find current best solution value
                 double prev_best_sol_value = solmemory_register_in_final(run,&solmem,r,1);
 
-                // Apply the reduction strategies
-                for(int i=0;i<n_rstrats;i++){
-                    if(rstrats[i].for_selected_sols){ // Only apply reductions not intended for path relinking
-                        reduce_by_redstrategy(run,rstrats[i],solmem.selectpool,&solmem.n_selectpool);
-                    }
-                }
 
                 // Perform path relinking on the terminal solutions
                 int n_prpool_before_pr = solmem.n_selectpool;
@@ -260,6 +254,13 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 solutions_path_relinking(run,&solmem.selectpool,&solmem.n_selectpool);
 
                 if(run->verbose) printf("PR resulted in \033[34;1m%d\033[0m different solutions.\n",solmem.n_selectpool);
+
+                // Apply the reduction strategies
+                for(int i=0;i<n_rstrats;i++){
+                    if(rstrats[i].for_selected_sols){ // Only apply reductions not intended for path relinking
+                        reduce_by_redstrategy(run,rstrats[i],solmem.selectpool,&solmem.n_selectpool);
+                    }
+                }
 
                 // Perform local search on the resulting solutions
                 if(run->local_search != NO_LOCAL_SEARCH){
