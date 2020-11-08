@@ -76,7 +76,6 @@ static inline void fastmat_add(fastmat *mat, int y, int x, double v){
 
 // Intended for reverting an addition on the given position in a fastmatrix
 static inline void fastmat_rem(fastmat *mat, int y, int x, double v){
-    // if(mat->cells[y][x].n_clis==0) return; // ???
     assert(mat->cells[y][x].n_clis>0);
     mat->cells[y][x].value  -= v;
     mat->cells[y][x].n_clis -= 1;
@@ -145,7 +144,7 @@ void update_structures(
     }
 
     // Choose between numerating possible insertions using proximity order or available insertions
-    int proximity_mode = prob->n_facs/sol->n_facs <= avail->n_insertions;
+    int proximity_mode = 3 * prob->n_facs/sol->n_facs <= avail->n_insertions;
 
     assert(run->precomp->nearly_indexes!=NULL);
 
@@ -176,7 +175,9 @@ void update_structures(
                 if(avail->avail_rems[fr]) fastmat_add(extra,fi,fr,d_phi2-d_phi1);
             }else{
                 gain[fi] -= d_phi1 - d_fi;
-                assert(gain[fi]>=-1e-6);
+                #ifdef DEBUG
+                    assert(gain[fi]>=-1e-6);
+                #endif
                 if(avail->avail_rems[fr]) fastmat_rem(extra,fi,fr,d_phi2-d_phi1);
             }
         }else{

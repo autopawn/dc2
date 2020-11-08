@@ -255,7 +255,6 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                 }
 
                 // Perform path relinking on the terminal solutions
-                int n_prpool_before_pr = solmem.n_selectpool;
                 if(run->verbose) printf("Performing Path Relinking on \033[34;1m%d\033[0m solutions.\n",solmem.n_selectpool);
                 solutions_path_relinking(run,&solmem.selectpool,&solmem.n_selectpool);
 
@@ -276,13 +275,6 @@ solution **new_find_best_solutions(rundata *run, redstrategy *rstrats, int n_rst
                             n_prpool0,solmem.n_selectpool);
                     }
                 }
-
-                // // Delete a fraction of the worst solutions
-                // float remov_factor = 0.33333;
-                // int n_prpool_before = solmem.n_selectpool;
-                // reduction_remove_worst(solmem.selectpool,&solmem.n_selectpool,remov_factor);
-                // if(run->verbose) printf("Deleted the worst %d%% of the solutions: \033[34;1m%d\033[0m -> \033[34;1m%d\033[0m.\n",
-                //     (int)(100*remov_factor),n_prpool_before,solmem.n_selectpool);
 
                 // Find new best solution value
                 double new_best_sol_value = solmemory_register_in_final(run,&solmem,r,1);

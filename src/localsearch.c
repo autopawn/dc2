@@ -3,8 +3,10 @@
 void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, int f_rem,
         int *phi1, int *phi2, int *affected_mask){
     for(int i=0;i<prob->n_clis;i++){
-        int before_phi1 = phi1[i];
-        int before_phi2 = phi2[i];
+        #ifdef DEBUG
+            int before_phi1 = phi1[i];
+            int before_phi2 = phi2[i];
+        #endif
         // Update phi2
         int near[3];
         if(f_ins==-1){
@@ -41,9 +43,11 @@ void update_phi1_and_phi2(const problem *prob, const solution *sol, int f_ins, i
 
         // Update phi1
         phi1[i] = sol->assigns[i];
-        assert(phi1[i]!=phi2[i] || phi1[i]==-1);
-        assert(problem_assig_value(prob,phi1[i],i) >= problem_assig_value(prob,phi2[i],i));
-        assert(affected_mask==NULL || affected_mask[i] || (before_phi1==phi1[i] && before_phi2==phi2[i]));
+        #ifdef DEBUG
+            assert(phi1[i]!=phi2[i] || phi1[i]==-1);
+            assert(problem_assig_value(prob,phi1[i],i) >= problem_assig_value(prob,phi2[i],i));
+            assert(affected_mask==NULL || affected_mask[i] || (before_phi1==phi1[i] && before_phi2==phi2[i]));
+        #endif
     }
 }
 
