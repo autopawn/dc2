@@ -36,7 +36,8 @@ int main(int argc, const char **argv){
     int n_threads = UNSET;
     int local_search = UNSET;
     int local_search_pr = UNSET;
-    int local_search_only_on_terminal = UNSET;
+    int select_only_terminal = UNSET;
+    int local_search_before_select = UNSET;
     int local_search_rem_movement = UNSET;
     int local_search_add_movement = UNSET;
     int bnb = UNSET;
@@ -147,9 +148,12 @@ int main(int argc, const char **argv){
                 // Resende and Werneck's local search
                 assert(local_search_pr==UNSET);
                 local_search_pr = SWAP_RESENDE_WERNECK;
+            }else if(argv[i][1]=='a' && strcmp(argv[i],"-aft")==0){
+                // Perform local search after selecting nodes
+                local_search_before_select = 0;
             }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
                 // Perform local search on all nodes
-                local_search_only_on_terminal = 0;
+                select_only_terminal = 0;
             }else if(argv[i][1]=='x' && strcmp(argv[i],"-x")==0){
                 // Don't allow local search to perform movements that change the size
                 local_search_rem_movement = 0;
@@ -211,7 +215,8 @@ int main(int argc, const char **argv){
     if(bnb!=UNSET) run->branch_and_bound = bnb;
     if(n_threads>0) run->n_threads = n_threads;
     if(local_search!=UNSET) run->local_search = local_search;
-    if(local_search_only_on_terminal!=UNSET) run->local_search_only_terminal = local_search_only_on_terminal;
+    if(select_only_terminal!=UNSET) run->select_only_terminal = select_only_terminal;
+    if(local_search_before_select!=UNSET) run->local_search_before_select = local_search_before_select;
     if(local_search_rem_movement!=UNSET) run->local_search_rem_movement = local_search_rem_movement;
     if(local_search_add_movement!=UNSET) run->local_search_add_movement = local_search_add_movement;
     if(verbose!=UNSET) run->verbose = verbose;
@@ -224,45 +229,13 @@ int main(int argc, const char **argv){
     }
     if(branching_correction!=UNSET) run->branching_correction = branching_correction;
 
-    // Check that there is no reduction for path relinking if we are not using it
-    if(run->path_relinking==NO_PATH_RELINKING){
-        for(int i=0;i<n_strategies;i++){
-            if(strategies[i].for_path_relinking){
-                fprintf(stderr,"ERROR: \"%s\" reduction but no path relinking.\n",strategies[i].nomenclature);
-                exit(1);
-            }
-        }
-    }
-
     // Check that there is no specification of path relinking if we are not using it
     if(run->path_relinking==NO_PATH_RELINKING){
         if(local_search_pr!=UNSET){
             fprintf(stderr,"ERROR: No path relinking but path relinking method was specified.\n");
             exit(1);
         }
-        for(int i=0;i<n_strategies;i++){
-            if(strategies[i].for_path_relinking){
-            }
-        }
     }
-
-    // Simple coeficients version of dc2 check:
-    #ifdef DC2_110
-       for(int c=0;c<run->prob->n_clis;c++){
-           if(run->prob->client_weight[c]!=1){
-               fprintf(stderr,"ERROR: %s expects problems with client_weight[%d] = 1\n",argv[0],c);
-	       exit(1);
-	   }
-       }
-       if(run->prob->transport_cost!=1){
-	       fprintf(stderr,"ERROR: %s expects problems with transport_cost = 1\n",argv[0]);
-	       exit(1);
-       }
-       if(run->prob->client_gain!=0){
-	       fprintf(stderr,"ERROR: %s expects problems with client_gain = 0\n",argv[0]);
-	       exit(1);
-       }
-    #endif
 
     // Set random seed
     if(random_seed==UNSET) random_seed = (int) time(NULL);

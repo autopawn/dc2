@@ -44,7 +44,7 @@ typedef struct {
     // For some strategies, if it keeps the better solution so far:
     int elitist;
     // If this redstrategy will be used for path relinking (1) or on the construction process (0)
-    int for_path_relinking;
+    int for_selected_sols;
 } redstrategy;
 
 // Allocates an array of redstrategies from nomenclatures

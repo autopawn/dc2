@@ -54,14 +54,18 @@ fastmat *fastmat_init(int size_y, int size_x){
 }
 
 // Adds a value on the given position in the fastmatrix
-void fastmat_add(fastmat *mat, int y, int x, double v){
+static inline void fastmat_add(fastmat *mat, int y, int x, double v){
     // Find current cell
-    assert(y>=0 && x>=0 && y<mat->size_y && x<mat->size_x);
-    assert(v>=-1e-6);
+    #ifdef DEBUG
+        assert(y>=0 && x>=0 && y<mat->size_y && x<mat->size_x);
+        assert(v>=-1e-6);
+    #endif
     mat->cells[y][x].value += v;
     mat->cells[y][x].n_clis += 1;
     if(mat->cells[y][x].n_clis==1){ // Add nonzero to the list
-        assert(mat->n_nonzeros<mat->s_nonzeros);
+        #ifdef DEBUG
+            assert(mat->n_nonzeros<mat->s_nonzeros);
+        #endif
         coord *co = &mat->nonzeros[mat->n_nonzeros];
         co->y = y;
         co->x = x;
@@ -71,8 +75,7 @@ void fastmat_add(fastmat *mat, int y, int x, double v){
 }
 
 // Intended for reverting an addition on the given position in a fastmatrix
-void fastmat_rem(fastmat *mat, int y, int x, double v){
-    // if(mat->cells[y][x].n_clis==0) return; // ???
+static inline void fastmat_rem(fastmat *mat, int y, int x, double v){
     assert(mat->cells[y][x].n_clis>0);
     mat->cells[y][x].value  -= v;
     mat->cells[y][x].n_clis -= 1;
@@ -141,7 +144,7 @@ void update_structures(
     }
 
     // Choose between numerating possible insertions using proximity order or available insertions
-    int proximity_mode = prob->n_facs/sol->n_facs <= avail->n_insertions;
+    int proximity_mode = 3 * prob->n_facs/sol->n_facs <= avail->n_insertions;
 
     assert(run->precomp->nearly_indexes!=NULL);
 
@@ -172,7 +175,9 @@ void update_structures(
                 if(avail->avail_rems[fr]) fastmat_add(extra,fi,fr,d_phi2-d_phi1);
             }else{
                 gain[fi] -= d_phi1 - d_fi;
-                assert(gain[fi]>=-1e-6);
+                #ifdef DEBUG
+                    assert(gain[fi]>=-1e-6);
+                #endif
                 if(avail->avail_rems[fr]) fastmat_rem(extra,fi,fr,d_phi2-d_phi1);
             }
         }else{
@@ -288,7 +293,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
         best_sol = solution_copy(prob,sol);
     }
 
-    while(1){
+    while(avail->n_insertions>0 || avail->n_removals>0){
         best_rem = NO_MOVEMENT;
         best_ins = NO_MOVEMENT;
 
@@ -370,7 +375,7 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
         // Count one move:
         n_moves += 1;
     }
-    assert(best_delta==0 || best_delta==-INFINITY);
+    assert(best_delta==0 || best_delta==-INFINITY || (avail->n_insertions==0 && avail->n_removals==0));
 
     free(affected_mask);
 
@@ -389,6 +394,10 @@ int solution_resendewerneck_hill_climbing(const rundata *run, solution **solp,co
     // Set sol to best_sol in case we are doing path relinking
     if(best_sol!=NULL){
         *solp = best_sol;
+        #ifdef DEBUG
+            // Assert that the target was reached
+            if(target!=NULL) assert(solutionp_facs_cmp(&sol,&target)==0);
+        #endif
         solution_free(sol);
     }
 

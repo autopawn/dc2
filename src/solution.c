@@ -266,15 +266,15 @@ int solution_client_2nd_nearest(const problem *prob, const solution *sol, int cl
     int phi1 = sol->assigns[cli];
     // 2nd nearest
     int phi2 = -1;
-    double phi2_assig_value = problem_assig_value(prob,phi2,cli);
+    double phi2_assig_cost = problem_assig_cost(prob,phi2,cli);
     // Iterate to find 2nd best facility
     for(int p=0;p<sol->n_facs;p++){
         int fac = sol->facs[p];
         if(fac==phi1) continue;
-        double fac_assig_value = problem_assig_value(prob,fac,cli);
-        if(fac_assig_value>phi2_assig_value){
+        double fac_assig_cost = problem_assig_cost(prob,fac,cli);
+        if(fac_assig_cost<phi2_assig_cost){
             phi2 = fac;
-            phi2_assig_value = fac_assig_value;
+            phi2_assig_cost = fac_assig_cost;
         }
     }
     return phi2;
