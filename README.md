@@ -161,29 +161,24 @@ The reduction is performed chaining one or more reduction strategies. These redu
 
 The default reduction strategy is:
 ```
-rand1:6000 sdbs+:200:pcd
+rand1:3000 sdbs+:100:pcd _best:200
 ```
-which picks 6000 solutions randomly and then applies `sdbs+` to select 200.
+which, on each generation, picks 3000 solutions randomly and then applies `sdbs+` to select 200 good and diverse from them.
+Finally, from the terminal solutions, the best 100 are selected before local search and after each step of path relinking, if applied, if it is used.
 
-**If you want to invest more computational power to solve the problem, you could indicate a reduction strategy that selects more solutions**:
+**If you want to invest more computational power to solve the problem, you could indicate reduction strategies that select more solutions**:
 ```
-rand1:10000 sdbs+:400:pcd
+rand1:6000 sdbs+:200:pcd _best:400
 ```
 
 You may also skip the previous random selection, which will be more costly but will result on more representative solutions.
 ```
-sdbs+:400
+sdbs+:200:pcd _best:400
 ```
 
-Complex reduction strategies like `sdbs+` can work with a given dissimilitude metric, so for instance if your problem is metric, you may use `sdbs+:400:mgemin` and `sdbs+:400:mgesum` otherwise. These dissimilitudes require precomputations.
+When an underscore `_` is present before the strategy name, like in `_best:100` it means that it is intenteded for after the terminal solutions are selected and after each step of path relinking.
 
-### Path relinking reduction strategies
-
-When using Path Relinking through `-M` (or `-P`) it is important to also specify a reduction strategy for after each time it is applied, this is done adding a reduction strategy with an underscore, for instance:
-```
-rand1:6000 sdbs+:200 _best:100
-```
-will select the best 100 solutions after each path relinking iteration.
+Complex reduction strategies like `sdbs+` can work with a given dissimilitude metric, so, for instance, if the current problem is metric, you may use `sdbs+:400:mgemin` and `sdbs+:400:mgesum` otherwise. These dissimilitudes require precomputations.
 
 ### Strategies
 
