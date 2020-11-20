@@ -159,10 +159,12 @@ solution **new_expand_solutions(const rundata *run,
     if(run->branching_correction){
         float expected_sols = 1;
         for(int i=0;i<current_size;i++){
-            expected_sols *= pool_size;
-            if(expected_sols>pool_size) break;
+            expected_sols *= branchingf;
+            if(expected_sols>pool_size){
+                expected_sols = pool_size;
+                break;
+            }
         }
-        if(expected_sols>pool_size) expected_sols = pool_size;
         branchingf *= pool_size/expected_sols;
     }
     // Final branching factor
