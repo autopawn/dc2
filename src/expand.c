@@ -150,7 +150,7 @@ solution **new_expand_solutions(const rundata *run,
         branchingf = prob->n_facs-current_size;
     }else if(run->branching_factor==0){
         // Generate according to Resende & Werneck's formula
-        branchingf = log2f((float)prob->n_facs/fmaxf(1.0,current_size));
+        branchingf = ceil(log2f((float)prob->n_facs/fmaxf(1.0,current_size)));
     }else{
         // Use the branching factor given
         branchingf = run->branching_factor;
