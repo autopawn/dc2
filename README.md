@@ -131,9 +131,9 @@ The following flags can be used to specify different behaviours:
 | :--- | ------ |
 | `-P`    | Use path relinking on terminal solutions once.  |
 | `-M`    | Use path relinking on terminal solutions until no better solution is found. <br> **NOTE**: Too many solutions may be created, <br> remember to specify PR reduction strategies. |
-| `-wP` | Use best improvement strategy as path relinking <br> By default, the same method than local searches is used. |
-| `-LP` | Use first improvement strategy as path relinking. <br> By default, the same method than local searches is used. |
-| `-WP` | Use Resende and Werneck's local search as path relinking. <br> By default, the same method than local searches is used. |
+| `-wP` | Use best improvement strategy as path relinking <br> By default, the same method that local searches is used. |
+| `-LP` | Use first improvement strategy as path relinking. <br> By default, the same method that local searches is used. |
+| `-WP` | Use Resende and Werneck's local search as path relinking. <br> By default, the same method that local searches is used. |
 
 #### Execution
 
