@@ -15,7 +15,7 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2);
 void save_solutions(const char *file,
         const rundata *run, solution **sols, int n_sols,
         const char *input_file, float seconds, float elapsed, int mem_usage,
-        const redstrategy *strategies, int n_strategies);
+        const redstrategy *strategies, int n_strategies, int only_1_output_sol);
 
 
 #endif

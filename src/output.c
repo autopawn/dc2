@@ -13,7 +13,7 @@ float get_delta_seconds(struct timeval tv1, struct timeval tv2){
 void save_solutions(const char *file,
         const rundata *run, solution **sols, int n_sols,
         const char *input_file, float seconds, float elapsed, int mem_usage,
-        const redstrategy *strategies, int n_strategies){
+        const redstrategy *strategies, int n_strategies, int only_1_output_sol){
     FILE *fp;
     // Open output file
     if(file){
@@ -89,8 +89,10 @@ void save_solutions(const char *file,
     fprintf(fp,"== SOLUTIONS DATA ==\n");
     fprintf(fp,"# OUTPUT_SOLUTIONS: %d\n",n_sols);
     for(int i=0;i<n_sols;i++){
-        fprintf(fp,"\n");
-        solution_print(run->prob,sols[i],fp);
+        if(i==0 || !only_1_output_sol){
+            fprintf(fp,"\n");
+            solution_print(run->prob,sols[i],fp);
+        }
     }
     // Close file descriptor
     if(fp!=stdout){

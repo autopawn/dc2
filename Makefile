@@ -18,7 +18,7 @@ SOURCES = src/main.c \
     ./src/runprecomp.c \
     ./src/shuffle.c \
     ./src/solution.c \
-    ./src/utils.c \
+    ./src/utils.c
 
 
 SOURCES_OPT_CHECKER = src/main_opt_checker.c \
@@ -37,3 +37,4 @@ compile:
 	gcc -g -pg -O4 -march=native -flto -Wall $(SOURCES) -lpthread -lm -o bin/dc_prof
 	gcc -g -pedantic -Wall $(SOURCES) -lpthread -lm -D DEBUG -o bin/dc_debug
 	gcc -g -O4 -march=native -flto -Wall $(SOURCES_OPT_CHECKER) -lpthread -lm -o bin/opt_checker
+

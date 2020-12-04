@@ -45,6 +45,7 @@ int main(int argc, const char **argv){
     int branching = UNSET;
     int branching_correction = UNSET;
     int path_relinking = UNSET;
+    int only_1_output_sol = UNSET;
 
     // Parse arguments
     for(int i=1;i<argc-2;i++){
@@ -151,6 +152,9 @@ int main(int argc, const char **argv){
             }else if(argv[i][1]=='a' && strcmp(argv[i],"-aft")==0){
                 // Perform local search after selecting nodes
                 local_search_before_select = 0;
+            }else if(argv[i][1]=='O' && strcmp(argv[i],"-OV")==0){
+                // Don't save more than one solution
+                only_1_output_sol = 1;
             }else if(argv[i][1]=='A' && strcmp(argv[i],"-A")==0){
                 // Perform local search on all nodes
                 select_only_terminal = 0;
@@ -228,6 +232,7 @@ int main(int argc, const char **argv){
         run->local_search_pr = local_search_pr;
     }
     if(branching_correction!=UNSET) run->branching_correction = branching_correction;
+    if(only_1_output_sol==UNSET) only_1_output_sol = 0;
 
     // Check that there is no specification of path relinking if we are not using it
     if(run->path_relinking==NO_PATH_RELINKING){
@@ -278,13 +283,13 @@ int main(int argc, const char **argv){
     save_solutions(output_fname,
         run,final_sols,final_n_sols,input_fname,
         seconds,elapsed_seconds,virt_mem_usage_peak,
-        strategies,n_strategies);
+        strategies,n_strategies, only_1_output_sol);
 
     // Print output
     save_solutions(NULL,
         run,final_sols,final_n_sols,input_fname,
         seconds,elapsed_seconds,virt_mem_usage_peak,
-        strategies,n_strategies);
+        strategies,n_strategies, only_1_output_sol);
 
     // Free memory
     for(int i=0;i<final_n_sols;i++){
