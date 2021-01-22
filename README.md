@@ -140,7 +140,7 @@ The following flags can be used to specify different behaviours:
 | Flag | Effect |
 | :--- | ------ |
 | `-V` | Less verbose mode, don't print information during the execution of the algorithm.  |
-| `-r<n>` | Sets the random seed to `n`, so execution is **deterministic** <br> with the same parameters an machine. |
+| `-r<n>` | Sets the random seed to `n`, so execution is **deterministic** <br> with the same parameters and machine. |
 | `-n<n>` | Sets the number of target solutions (1 by default). |
 | `-t<n>` | The number of threads to use. |
 
