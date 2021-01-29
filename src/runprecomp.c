@@ -177,7 +177,7 @@ runprecomp *runprecomp_init(const problem *prob, redstrategy *rstrats, int n_rst
             // Allocate memory for threads and arguments
             pthread_t *threads = safe_malloc(sizeof(pthread_t)*n_threads);
             precomp_nearly_indexes_args *targs = safe_malloc(sizeof(precomp_nearly_indexes_args)*n_threads);
-            // Call threads to compute facility-facility distances
+            // Call threads to compute nearly indexes
             for(int i=0;i<n_threads;i++){
                 targs[i].pcomp = pcomp;
                 targs[i].prob  = prob;

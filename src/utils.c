@@ -1,20 +1,30 @@
 #include "utils.h"
 
 void *safe_malloc(size_t size){
-    detect_errno();
     void *ptr = malloc(size);
-    if((size>0 && ptr==NULL) || errno!=0){
-        fprintf(stderr,"ERROR (on malloc): %s\n",strerror(errno));
+    if(size>0 && ptr==NULL){
+        fprintf(stderr,"ERROR (on %lu B malloc, p: %p, errno: %d): %s\n",size,ptr,errno,strerror(errno));
+        int currRealMem, peakRealMem, currVirtMem, peakVirtMem;
+        get_memory_usage(&currRealMem,&peakRealMem,&currVirtMem,&peakVirtMem);
+        fprintf(stderr,"currRealMem: %d kB\n",currRealMem);
+        fprintf(stderr,"peakRealMem: %d kB\n",peakRealMem);
+        fprintf(stderr,"currVirtMem: %d kB\n",currVirtMem);
+        fprintf(stderr,"peakVirtmem: %d kB\n",peakVirtMem);
         exit(1);
     }
     return ptr;
 }
 
 void *safe_realloc(void *original, size_t size){
-    detect_errno();
     void *ptr = realloc(original,size);
-    if((size>0 && ptr==NULL) || errno!=0){
-        fprintf(stderr,"ERROR (on realloc): %s\n",strerror(errno));
+    if(size>0 && ptr==NULL){
+        fprintf(stderr,"ERROR (on %lu B realloc, p: %p, errno: %d): %s\n",size,ptr,errno,strerror(errno));
+        int currRealMem, peakRealMem, currVirtMem, peakVirtMem;
+        get_memory_usage(&currRealMem,&peakRealMem,&currVirtMem,&peakVirtMem);
+        fprintf(stderr,"currRealMem: %d kB\n",currRealMem);
+        fprintf(stderr,"peakRealMem: %d kB\n",peakRealMem);
+        fprintf(stderr,"currVirtMem: %d kB\n",currVirtMem);
+        fprintf(stderr,"peakVirtmem: %d kB\n",peakVirtMem);
         exit(1);
     }
     return ptr;

@@ -44,9 +44,4 @@ void dc_semaphore_free(sem_t *sem);
 // Memory usage
 void get_memory_usage(int* currRealMem, int* peakRealMem, int* currVirtMem, int* peakVirtMem);
 
-static inline void detect_errno(){
-    if(errno!=0) fprintf(stderr,"ERROR detected: \"%s\"\n",strerror(errno));
-    assert(errno==0);
-}
-
 #endif
