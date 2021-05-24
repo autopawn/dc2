@@ -16,7 +16,7 @@ int dissimpair_cmp(dissimpair a, dissimpair b){
     delta = a.id1-b.id1;
     if(delta!=0) return delta;
     delta = a.id2-b.id2;
-    return delta;
+    return (delta==0)? 0 : ((delta<0)? -1 : +1);
 }
 
 // A heap of dissimpairs
