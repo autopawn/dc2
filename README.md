@@ -14,8 +14,7 @@ It is mainly composed of:
 ![](imgs/pseudocode.png)
 
 For an explanation refer [to the published paper](https://link.springer.com/article/10.1007/s10732-022-09494-4) also available in [Reserch Gate](https://www.researchgate.net/publication/359727595_A_heuristic_search_based_on_diversity_for_solving_combinatorial_problems) or on request.
-
-Note that **dc2** supports more features than in this paper.
+Note that **dc2** supports more features than the mentioned in this work.
 
 # Usage
 
