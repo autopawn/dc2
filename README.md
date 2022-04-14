@@ -4,18 +4,18 @@
 
 This is the second version of the original [dc_splp](https://github.com/autopawn/dc_splp).
 
-For a complete explanation refer [to the published paper](https://link.springer.com/article/10.1007/s10732-022-09494-4) also available in [Reserch Gate](https://link.springer.com/article/10.1007/s10732-022-09494-4) or on request.
-
 It is mainly composed of:
 * **Expansion**: Straightforward method to generate all possible solutions of size `n+1` by adding one facility to solutions size `n`.
-* **Filtering**: A method that deletes some of the solutions if they are not worth exploring, i.e. leading to worse solutions that the one from where it originated.
+* **Filtering**: Method used in the Expansion process to mark some of the solutions as **terminal** if they are not worth exploring.
 * **Selection**: A method to select a representative subset of solutions from a given set.
 * **Local search**: A method that perform moves on a given solution until no further moves can increase the solution value.
-* **Path relinking**: Optionally, the final solutions are combined using Path Relinking.
+* **Post Optimization**: Optionally, the final solutions are combined using Path Relinking.
 
-![](imgs/dc2.png)
+![](imgs/pseudocode.png)
 
-The search advances using these methods on several iterations, as shown in the previous diagram, until no more solutions are present.
+For an explanation refer [to the published paper](https://link.springer.com/article/10.1007/s10732-022-09494-4) also available in [Reserch Gate](https://link.springer.com/article/10.1007/s10732-022-09494-4) or on request.
+
+Note that **dc2** supports more features than in this paper.
 
 # Usage
 
