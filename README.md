@@ -7,7 +7,7 @@ This is the second version of the original [dc_splp](https://github.com/autopawn
 It is mainly composed of:
 * **Expansion**: Straightforward method to generate all possible solutions of size `n+1` by adding one facility to solutions size `n`.
 * **Filtering**: Method used in the Expansion process to mark some of the solutions as **terminal** if they are not worth exploring.
-* **Selection**: A method to select a representative subset of solutions from a given set.
+* **Selection**: (a.k.a. Reduction) A method to select a representative subset of solutions from a given set.
 * **Local search**: A method that perform moves on a given solution until no further moves can increase the solution value.
 * **Post Optimization**: Optionally, the final solutions are combined using Path Relinking.
 
